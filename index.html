@@ -351,6 +351,7 @@ function itemBadge(st){
 }
 
 function extractAmount(str){
+  if(!str||typeof str!=="string") return 0;
   const m=str.replace(/\s/g,"").match(/(\d+)/);
   return m?parseInt(m[1]):0;
 }
