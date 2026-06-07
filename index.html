@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- saved from url=(0042)file:///C:/Users/user/Downloads/crm_5.html -->
-<html lang="uk"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rewise CRM</title>
 <style>
@@ -141,44 +141,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </head>
 <body>
 
-<div class="login-wrap" id="login-wrap" style="display: none;">
+<div class="login-wrap" id="login-wrap">
   <div class="login-card">
     <div class="login-logo">RW</div>
     <div style="font-size:20px;font-weight:500;margin-bottom:4px">Rewise CRM</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:24px">Введіть пароль для входу</div>
-    <input type="password" class="login-input" id="pwd-input" placeholder="Пароль" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()">
+    <input type="password" class="login-input" id="pwd-input" placeholder="Пароль" onkeydown="if(event.key==='Enter')doLogin()">
     <button class="login-btn" onclick="doLogin()">Увійти</button>
     <div class="login-err" id="login-err"></div>
   </div>
 </div>
 
-<div class="app" id="app" style="display: flex;">
+<div class="app" id="app">
   <nav class="topnav">
     <div class="topnav-brand">
       <div class="topnav-mark">RW</div>
       <div class="topnav-name">Rewise CRM</div>
     </div>
-    <div class="nav-tab active" onclick="showPage(&#39;orders&#39;,this)">Замовлення</div>
-    <div class="nav-tab" onclick="showPage(&#39;clients&#39;,this)">Клієнти</div>
-    <div class="nav-tab" onclick="showPage(&#39;analytics&#39;,this)">Аналітика</div>
+    <div class="nav-tab active" onclick="showPage('orders',this)">Замовлення</div>
+    <div class="nav-tab" onclick="showPage('clients',this)">Клієнти</div>
+    <div class="nav-tab" onclick="showPage('analytics',this)">Аналітика</div>
     <div class="nav-right">
       <div class="logout-btn" onclick="logout()">Вийти</div>
     </div>
   </nav>
 
   <div class="page active" id="page-orders">
-    <div class="stats-row" id="stats-row">
-    <div class="stat-card"><div class="stat-label">Активних замовлень</div><div class="stat-val stat-accent">3</div></div>
-    <div class="stat-card"><div class="stat-label">Виробів в роботі</div><div class="stat-val">2</div></div>
-    <div class="stat-card"><div class="stat-label">Готові до видачі</div><div class="stat-val" style="color:#3B6D11">1</div></div>
-    <div class="stat-card"><div class="stat-label">Видано замовлень</div><div class="stat-val" style="color:var(--muted)">1</div></div>
-  </div>
+    <div class="stats-row" id="stats-row"></div>
     <div class="toolbar">
-      <button class="filter-btn" onclick="setFilter(&#39;all&#39;,this)">Усі</button>
-      <button class="filter-btn" onclick="setFilter(&#39;new&#39;,this)">🆕 Нові</button>
-      <button class="filter-btn active" onclick="setFilter(&#39;work&#39;,this)">⚙️ В роботі</button>
-      <button class="filter-btn" onclick="setFilter(&#39;ready&#39;,this)">✅ Готові</button>
-      <button class="filter-btn" onclick="setFilter(&#39;issued&#39;,this)">📦 Видані</button>
+      <button class="filter-btn active" onclick="setFilter('all',this)">Усі</button>
+      <button class="filter-btn" onclick="setFilter('new',this)">🆕 Нові</button>
+      <button class="filter-btn" onclick="setFilter('work',this)">⚙️ В роботі</button>
+      <button class="filter-btn" onclick="setFilter('ready',this)">✅ Готові</button>
+      <button class="filter-btn" onclick="setFilter('issued',this)">📦 Видані</button>
       <div class="search-wrap">
         <span class="search-ico">⌕</span>
         <input type="text" id="search-input" placeholder="Пошук..." oninput="renderOrders()">
@@ -195,27 +190,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="cell hdr">Термін</div>
         <div class="cell hdr">Оплата</div>
       </div>
-      <div id="orders-body"><div class="order-row" onclick="openOrder(&#39;RW-0001&#39;)">
-      <div class="cell"><span class="order-num-text">RW-0001</span></div>
-      <div class="cell" style="flex-direction:column;align-items:flex-start;gap:2px">
-        <span style="font-weight:500">Марина Коваль</span>
-        <span style="font-size:11px;color:var(--muted)">+380 67 123 45 67</span>
-      </div>
-      <div class="cell" style="gap:6px"><span class="badge b-work">⚙️ В роботі</span></div>
-      <div class="cell" style="color:var(--muted)">Сергей</div>
-      <div class="cell" style="color:var(--muted)">10.06</div>
-      <div class="cell" style="color:var(--muted);font-size:12px">Передоплата: 500 ₴</div>
-    </div><div class="order-row" onclick="openOrder(&#39;RW-0003&#39;)">
-      <div class="cell"><span class="order-num-text">RW-0003</span></div>
-      <div class="cell" style="flex-direction:column;align-items:flex-start;gap:2px">
-        <span style="font-weight:500">Анна Сидоренко</span>
-        <span style="font-size:11px;color:var(--muted)">+380 63 456 78 90</span>
-      </div>
-      <div class="cell" style="gap:6px"><span class="badge b-work">⚙️ В роботі</span></div>
-      <div class="cell" style="color:var(--muted)">Сергей</div>
-      <div class="cell" style="color:var(--muted)">Без терміну</div>
-      <div class="cell" style="color:var(--muted);font-size:12px">Передоплата: 1000 ₴</div>
-    </div></div>
+      <div id="orders-body"></div>
     </div>
   </div>
 
@@ -226,101 +201,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <input type="text" id="client-search" placeholder="Пошук клієнта..." oninput="renderClients()">
       </div>
     </div>
-    <div class="clients-grid" id="clients-grid"><div class="client-card">
-      <div class="client-avatar">МК</div>
-      <div class="client-name">Марина Коваль</div>
-      <div class="client-phone">+380 67 123 45 67</div>
-      <div class="client-stats">Замовлень: 1 · Сума: 4&nbsp;300 ₴</div>
-    </div><div class="client-card">
-      <div class="client-avatar">ОП</div>
-      <div class="client-name">Олег Петренко</div>
-      <div class="client-phone">+380 50 987 65 43</div>
-      <div class="client-stats">Замовлень: 1 · Сума: 850 ₴</div>
-    </div><div class="client-card">
-      <div class="client-avatar">АС</div>
-      <div class="client-name">Анна Сидоренко</div>
-      <div class="client-phone">+380 63 456 78 90</div>
-      <div class="client-stats">Замовлень: 1 · Сума: 2&nbsp;500 ₴</div>
-    </div><div class="client-card">
-      <div class="client-avatar">ВК</div>
-      <div class="client-name">Віктор Ковальчук</div>
-      <div class="client-phone">+380 97 321 54 76</div>
-      <div class="client-stats">Замовлень: 1 · Сума: 4&nbsp;100 ₴</div>
-    </div></div>
+    <div class="clients-grid" id="clients-grid"></div>
   </div>
 
   <div class="page" id="page-analytics">
-    <div class="stats-row" id="analytics-stats">
-    <div class="stat-card"><div class="stat-label">Загальний обіг</div><div class="stat-val stat-accent">4&nbsp;100 ₴</div></div>
-    <div class="stat-card"><div class="stat-label">Середній чек</div><div class="stat-val">4&nbsp;100 ₴</div></div>
-    <div class="stat-card"><div class="stat-label">Клієнтів</div><div class="stat-val">4</div></div>
-    <div class="stat-card"><div class="stat-label">Виробів оброблено</div><div class="stat-val">2</div></div>
-  </div>
+    <div class="stats-row" id="analytics-stats"></div>
     <div class="period-btns">
-      <button class="period-btn active" onclick="setPeriod(&#39;week&#39;,this)">Тиждень</button>
-      <button class="period-btn" onclick="setPeriod(&#39;month&#39;,this)">Місяць</button>
-      <button class="period-btn" onclick="setPeriod(&#39;all&#39;,this)">Весь час</button>
+      <button class="period-btn active" onclick="setPeriod('week',this)">Тиждень</button>
+      <button class="period-btn" onclick="setPeriod('month',this)">Місяць</button>
+      <button class="period-btn" onclick="setPeriod('all',this)">Весь час</button>
     </div>
     <div class="chart-card" style="margin-bottom:16px">
       <div class="chart-title">Оборот</div>
-      <div id="revenue-block">
-    <div class="revenue-big">4&nbsp;100 ₴</div>
-    <div class="revenue-sub">Загальний підтверджений обіг</div>
-    <div class="revenue-grid">
-      <div class="rev-cell"><div class="rev-cell-label">Виданих замовлень</div><div class="rev-cell-val">1</div></div>
-      <div class="rev-cell"><div class="rev-cell-label">Середній чек</div><div class="rev-cell-val">4&nbsp;100 ₴</div></div>
-      <div class="rev-cell"><div class="rev-cell-label">Виробів</div><div class="rev-cell-val">2</div></div>
+      <div id="revenue-block"></div>
     </div>
-  </div>
-    </div>
-    <div class="analytics-grid" id="analytics-grid">
-    <div class="chart-card">
-      <div class="chart-title">Топ послуг</div>
-      <div class="bar-row"><div class="bar-label">Чистка</div><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><div class="bar-val">2 шт.</div></div><div class="bar-row"><div class="bar-label">Реставрація</div><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><div class="bar-val">2 шт.</div></div><div class="bar-row"><div class="bar-label">Набійки листові</div><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><div class="bar-val">2 шт.</div></div><div class="bar-row"><div class="bar-label">+200 ₴</div><div class="bar-track"><div class="bar-fill" style="width:50%"></div></div><div class="bar-val">1 шт.</div></div><div class="bar-row"><div class="bar-label">Набійки формовані</div><div class="bar-track"><div class="bar-fill" style="width:50%"></div></div><div class="bar-val">1 шт.</div></div><div class="bar-row"><div class="bar-label">Фарбування</div><div class="bar-track"><div class="bar-fill" style="width:50%"></div></div><div class="bar-val">1 шт.</div></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">По приймальниках</div>
-      <div class="bar-row"><div class="bar-label">Магазин</div><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><div class="bar-val">4&nbsp;100 ₴</div></div><div class="bar-row"><div class="bar-label">Сергей</div><div class="bar-track"><div class="bar-fill" style="width:0%"></div></div><div class="bar-val">0 ₴</div></div><div class="bar-row"><div class="bar-label">Олександр</div><div class="bar-track"><div class="bar-fill" style="width:0%"></div></div><div class="bar-val">0 ₴</div></div>
-    </div>
-  </div>
+    <div class="analytics-grid" id="analytics-grid"></div>
   </div>
 </div>
 
 <div class="modal-bg" id="modal-bg" onclick="closeBg(event)">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title" id="modal-title">Нове замовлення</div>
+      <div class="modal-title" id="modal-title"></div>
       <div class="modal-close" onclick="closeModal()">×</div>
     </div>
-    <div class="modal-body" id="modal-body">
-    <div style="display:flex;flex-direction:column;gap:14px">
-      <div>
-        <div class="m-section-title" style="margin-bottom:6px">Хто приймає замовлення</div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px" id="mgr-btns">
-          <button class="filter-btn" onclick="selectManager(&#39;Сергей&#39;,this)">Сергей</button><button class="filter-btn" onclick="selectManager(&#39;Олександр&#39;,this)">Олександр</button><button class="filter-btn" onclick="selectManager(&#39;Магазин&#39;,this)">Магазин</button>
-        </div>
-      </div>
-      <div>
-        <div class="m-section-title" style="margin-bottom:6px">Ім'я клієнта</div>
-        <input type="text" id="no-client" placeholder="Ім&#39;я або назва магазину" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--bg)">
-      </div>
-      <div>
-        <div class="m-section-title" style="margin-bottom:6px">Номер телефону</div>
-        <input type="text" id="no-phone" placeholder="+380..." style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--bg)">
-      </div>
-    </div>
-  </div>
-    <div class="modal-footer" id="modal-footer">
-    <button class="btn" onclick="closeModal()">Скасувати</button>
-    <button class="btn btn-primary" onclick="goStep2()">Далі →</button>
-  </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
   </div>
 </div>
 
 <script>
 const PWD_HASH="70775e2a6abd151f90d68ec1cc3b5bad65e57f7c545b6790e744de1e4b7db78a";
 const SHEET_ID="1kDJ893PFa_DTNKt-r8wQES_JFXbJSDNU8niRLz70Aao";
-const API_URL="https://script.google.com/macros/s/AKfycbyRXoXVNaH2oYTk55UyAVMjeeR6pkEIWtAm7NLXUVx2Kpaz_ct5xey9LMY3U3_Ylo-L3w/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbzQC7ANnS-hUyHEVMOoclUcHwXeJbcu2Kp1h_j615zE2C3UFK1iIn383F0BoZu6F39bVw/exec";
 
 async function hashStr(s){
   const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));
@@ -384,12 +297,19 @@ async function parseSheet(res){
   const text=await res.text();
   const json=JSON.parse(text.replace(/^.*?({.*}).*$/s,"$1"));
   if(!json.table||!json.table.rows) return[];
-  const cols=json.table.cols.map(c=>c.label);
+  const numH = json.table.parsedNumHeaders||1;
+  const cols = json.table.cols.map(c=>{
+    const label = c.label||"";
+    return label.split(" ")[0];
+  });
   return json.table.rows.map(row=>{
     const obj={};
-    cols.forEach((col,i)=>{obj[col]=row.c[i]?(row.c[i].v!==null?String(row.c[i].v):""):"";});
+    cols.forEach((col,i)=>{
+      const cell=row.c[i];
+      obj[col]=cell?(cell.f||( cell.v!==null?String(cell.v):"")):"";
+    });
     return obj;
-  }).filter(r=>r[cols[0]]);
+  }).filter(r=>r[cols[0]]&&r[cols[0]].startsWith("RW-"));
 }
 
 function getStatus(num){
@@ -1117,6 +1037,5 @@ function printPlan(){
 }
 
 </script>
-
-
-</body></html>
+</body>
+</html>
