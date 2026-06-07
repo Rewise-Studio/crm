@@ -374,8 +374,9 @@ let currentManager = "all";
 
 function setFilter(f,btn){
   currentFilter=f;
-  document.querySelectorAll("#page-orders > .toolbar:first-of-type .filter-btn").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
+  renderManagerFilters();
   renderOrders();
 }
 
