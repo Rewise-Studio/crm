@@ -615,7 +615,7 @@ const SERVICES = {
   }
 };
 
- = {
+const DEPT_LABELS = {
   shoes: {cleaning:"Чистка / Базовий догляд",painting:"Фарбування / Реставрація",heels:"Каблуки та набійки",sole:"Підошва",zippers:"Блискавки",hardware:"Фурнітура",sewing:"Швейні роботи та деталі",stretch:"Розтяжка"},
   bags: {cleaning:"Чистка / Базовий догляд",painting:"Фарбування / Реставрація",handles:"Ручки та ремінь",zippers:"Блискавки",hardware:"Фурнітура",sewing:"Швейні роботи та деталі",lining:"Підкладка",edges:"Реставрація урізів",belt:"Поясний ремінь"}
 };
@@ -778,19 +778,30 @@ function goToService(){
   const type = newOrder.items[currentItemIndex].type;
   const dept = newOrder.items[currentItemIndex].dept;
   const svcs = SERVICES[type][dept];
-  document.getElementById("modal-body").innerHTML = `
-    <div>
-      <div class="m-section-title" style="margin-bottom:8px">Послуга</div>
-      <div style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto" id="svc-btns">
-        ${svcs.map(s=>{const sname=s[0].replace(/'/g,"\'");const sprice=s[1];return `<button class="filter-btn" style="text-align:left;padding:9px 14px;display:flex;justify-content:space-between" onclick="selectSvc('${sname}',${sprice},this)"><span>${s[0]}</span><span style="color:var(--umbra);flex-shrink:0;margin-left:8px">${sprice.toLocaleString("uk-UA")} ₴</span></button>`;}).join("")}
-        <button class="filter-btn" style="text-align:left;padding:9px 14px;color:var(--umbra)" onclick="manualSvc()">✏️ Ввести вручну</button>
-      </div>
-    </div>
-  `;
-  document.getElementById("modal-footer").innerHTML = `
-    <button class="btn" onclick="goToDept()">← Назад</button>
-    <button class="btn btn-primary" onclick="goToPrice()">Далі →</button>
-  `;
+  const svcContainer = document.createElement("div");
+  svcContainer.id = "svc-btns";
+  svcContainer.style.cssText = "display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto";
+  svcs.forEach(function(s){
+    const sname = s[0].replace(/'/g, "&#39;");
+    const sprice = s[1];
+    const priceStr = sprice.toLocaleString("uk-UA") + " ₴";
+    const btn = document.createElement("button");
+    btn.className = "filter-btn";
+    btn.style.cssText = "text-align:left;padding:9px 14px;display:flex;justify-content:space-between";
+    btn.innerHTML = "<span>" + s[0] + "</span><span style='color:var(--umbra);flex-shrink:0;margin-left:8px'>" + priceStr + "</span>";
+    btn.addEventListener("click", (function(name, price){ return function(){ selectSvc(name, price, this); }; })(s[0], sprice));
+    svcContainer.appendChild(btn);
+  });
+  const manualBtn = document.createElement("button");
+  manualBtn.className = "filter-btn";
+  manualBtn.style.cssText = "text-align:left;padding:9px 14px;color:var(--umbra)";
+  manualBtn.textContent = "✏️ Ввести вручну";
+  manualBtn.onclick = manualSvc;
+  svcContainer.appendChild(manualBtn);
+  const body = document.getElementById("modal-body");
+  body.innerHTML = "<div><div class='m-section-title' style='margin-bottom:8px'>Послуга</div></div>";
+  body.querySelector("div").appendChild(svcContainer);
+  document.getElementById("modal-footer").innerHTML = "<button class='btn' onclick='goToDept()'>← Назад</button><button class='btn btn-primary' onclick='goToPrice()'>Далі →</button>";
 }
 
 function selectSvc(name, price, btn){
