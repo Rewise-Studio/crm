@@ -262,7 +262,7 @@ if(sessionStorage.getItem("rw_auth")==="1"){
 
 function logout(){sessionStorage.removeItem("rw_auth");location.reload();}
 
-let ORDERS=[],ITEMS=[],currentFilter="all",currentPeriod="month";
+let ORDERS=[],ITEMS=[],PARTNERS=[],currentFilter="all",currentPeriod="month";
 
 const DEMO_ORDERS=[
   {"Номер заказа":"RW-0001","Дата создания":"04.06.2026 11:42","Приёмщик":"Сергей","Имя клиента":"Марина Коваль","Телефон":"+380 67 123 45 67","Оплата":"Передоплата: 500 ₴","Срок":"10.06","Статус заказа":"🆕 Новий"},
@@ -281,34 +281,51 @@ const DEMO_ITEMS=[
 
 async function loadData(){
   try{
-    const[r1,r2]=await Promise.all([
+    const[r1,r2,r3]=await Promise.all([
       fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Заказы`),
-      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Изделия`)
+      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Изделия`),
+      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Партнёры`)
     ]);
     ORDERS=await parseSheet(r1);
     ITEMS=await parseSheet(r2);
+    PARTNERS=await parsePartners(r3);
     if(!ORDERS.length) ORDERS=DEMO_ORDERS;
     if(!ITEMS.length) ITEMS=DEMO_ITEMS;
-  }catch(e){ORDERS=DEMO_ORDERS;ITEMS=DEMO_ITEMS;}
+    if(!PARTNERS.length) PARTNERS=["Сергей"];
+  }catch(e){ORDERS=DEMO_ORDERS;ITEMS=DEMO_ITEMS;PARTNERS=["Сергей"];}
   renderAll();
+}
+
+async function parsePartners(res){
+  try{
+    const text=await res.text();
+    const json=JSON.parse(text.replace(/^.*?({.*}).*$/s,"$1"));
+    if(!json.table||!json.table.rows) return[];
+    return json.table.rows.map(row=>{
+      const cell=row.c[0];
+      return cell&&cell.v?String(cell.v):"";
+    }).filter(v=>v&&v!=="Имя"&&v!=="Ім'я");
+  }catch(e){return[];}
 }
 
 async function parseSheet(res){
   const text=await res.text();
   const json=JSON.parse(text.replace(/^.*?({.*}).*$/s,"$1"));
   if(!json.table||!json.table.rows) return[];
-  const cols = json.table.cols.map(c=>(c.label||"").split(" ")[0]);
+  // Используем фиксированные имена колонок по позиции
+  const ORDERS_COLS = ["Номер заказа","Дата создания","Приёмщик","Имя клиента","Телефон","Оплата","Срок","Статус заказа"];
+  const ITEMS_COLS = ["Номер заказа","Номер изделия","Тип","Бренд","Услуги","Сумма","Статус","Дата приёма","Дата в работе","Дата готово","Дата выдачи"];
+  const ncols = json.table.cols.length;
+  const cols = ncols >= 8 ? ORDERS_COLS : ITEMS_COLS;
   return json.table.rows.map(row=>{
     const obj={};
     cols.forEach((col,i)=>{
       const cell=row.c[i];
       if(!cell||cell.v===null){obj[col]="";return;}
-      if(cell.f) obj[col]=cell.f;
-      else if(typeof cell.v==="string"&&cell.v.startsWith("Date(")) obj[col]="";
-      else obj[col]=String(cell.v);
+      obj[col]=cell.f||String(cell.v);
     });
     return obj;
-  }).filter(r=>r[cols[0]]&&r[cols[0]].startsWith("RW-"));
+  }).filter(r=>r["Номер заказа"]&&r["Номер заказа"].startsWith("RW-"));
 }
 
 function getStatus(num){
@@ -614,8 +631,8 @@ function openNewOrder(){
 }
 
 function renderOrderStep1(){
-  const partners = [...new Set(ORDERS.map(o=>o["Приёмщик"]).filter(Boolean))];
-  if(!partners.includes("Сергей")) partners.unshift("Сергей");
+  const partners = [...new Set(PARTNERS.filter(Boolean))];
+  if(!partners.length) partners.push("Сергей");
   document.getElementById("modal-body").innerHTML = `
     <div style="display:flex;flex-direction:column;gap:14px">
       <div>
