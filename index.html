@@ -297,16 +297,15 @@ async function parseSheet(res){
   const text=await res.text();
   const json=JSON.parse(text.replace(/^.*?({.*}).*$/s,"$1"));
   if(!json.table||!json.table.rows) return[];
-  const numH = json.table.parsedNumHeaders||1;
-  const cols = json.table.cols.map(c=>{
-    const label = c.label||"";
-    return label.split(" ")[0];
-  });
+  const cols = json.table.cols.map(c=>(c.label||"").split(" ")[0]);
   return json.table.rows.map(row=>{
     const obj={};
     cols.forEach((col,i)=>{
       const cell=row.c[i];
-      obj[col]=cell?(cell.f||( cell.v!==null?String(cell.v):"")):"";
+      if(!cell||cell.v===null){obj[col]="";return;}
+      if(cell.f) obj[col]=cell.f;
+      else if(typeof cell.v==="string"&&cell.v.startsWith("Date(")) obj[col]="";
+      else obj[col]=String(cell.v);
     });
     return obj;
   }).filter(r=>r[cols[0]]&&r[cols[0]].startsWith("RW-"));
