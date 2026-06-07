@@ -234,7 +234,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <script>
 const PWD_HASH="70775e2a6abd151f90d68ec1cc3b5bad65e57f7c545b6790e744de1e4b7db78a";
 const SHEET_ID="1kDJ893PFa_DTNKt-r8wQES_JFXbJSDNU8niRLz70Aao";
-const API_URL="https://script.google.com/macros/s/AKfycbzQC7ANnS-hUyHEVMOoclUcHwXeJbcu2Kp1h_j615zE2C3UFK1iIn383F0BoZu6F39bVw/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbw_hvy2c6xpmFFEMFjiJ51iQoNb0s3MGnGs6gz3nkyqzYGanntufTkdbQ5Ah5L7k2hPag/exec";
 
 async function hashStr(s){
   const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));
@@ -290,10 +290,8 @@ async function loadData(){
     ORDERS=await parseSheet(r1);
     ITEMS=await parseSheet(r2);
     PARTNERS=await parsePartners(r3);
-    if(!ORDERS.length) ORDERS=DEMO_ORDERS;
-    if(!ITEMS.length) ITEMS=DEMO_ITEMS;
     if(!PARTNERS.length) PARTNERS=["Сергей"];
-  }catch(e){ORDERS=DEMO_ORDERS;ITEMS=DEMO_ITEMS;PARTNERS=["Сергей"];}
+  }catch(e){PARTNERS=["Сергей"];}
   renderAll();
 }
 
