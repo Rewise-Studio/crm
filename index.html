@@ -181,6 +181,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="btn" onclick="printPlan()" style="white-space:nowrap">🖨 Роздрукувати план</button>
       <button class="btn btn-primary" onclick="openNewOrder()" style="white-space:nowrap">+ Нове замовлення</button>
     </div>
+    <div class="toolbar" id="manager-filters" style="margin-top:-6px;margin-bottom:14px"></div>
     <div class="orders-wrap">
       <div class="order-row hdr">
         <div class="cell hdr">Номер</div>
@@ -265,26 +266,26 @@ function logout(){sessionStorage.removeItem("rw_auth");location.reload();}
 let ORDERS=[],ITEMS=[],PARTNERS=[],currentFilter="all",currentPeriod="month";
 
 const DEMO_ORDERS=[
-  {"Номер заказа":"RW-0001","Дата создания":"04.06.2026 11:42","Приёмщик":"Сергей","Имя клиента":"Марина Коваль","Телефон":"+380 67 123 45 67","Оплата":"Передоплата: 500 ₴","Срок":"10.06","Статус заказа":"🆕 Новий"},
-  {"Номер заказа":"RW-0002","Дата создания":"04.06.2026 14:15","Приёмщик":"Олександр","Имя клиента":"Олег Петренко","Телефон":"+380 50 987 65 43","Оплата":"Післяоплата","Срок":"Терміново","Статус заказа":"✅ Підтверджено"},
-  {"Номер заказа":"RW-0003","Дата создания":"05.06.2026 09:30","Приёмщик":"Сергей","Имя клиента":"Анна Сидоренко","Телефон":"+380 63 456 78 90","Оплата":"Передоплата: 1000 ₴","Срок":"Без терміну","Статус заказа":"🆕 Новий"},
-  {"Номер заказа":"RW-0004","Дата создания":"06.06.2026 10:05","Приёмщик":"Магазин","Имя клиента":"Віктор Ковальчук","Телефон":"+380 97 321 54 76","Оплата":"Підтверджено: 4 800 ₴","Срок":"15.06","Статус заказа":"📦 Виданий"},
+  {"Номер замовлення":"RW-0001","Дата створення":"04.06.2026 11:42","Приймальник":"Сергей","Ім'я клієнта":"Марина Коваль","Телефон":"+380 67 123 45 67","Оплата":"Передоплата: 500 ₴","Срок":"10.06","Статус":"🆕 Новий"},
+  {"Номер замовлення":"RW-0002","Дата створення":"04.06.2026 14:15","Приймальник":"Олександр","Ім'я клієнта":"Олег Петренко","Телефон":"+380 50 987 65 43","Оплата":"Післяоплата","Срок":"Терміново","Статус":"✅ Підтверджено"},
+  {"Номер замовлення":"RW-0003","Дата створення":"05.06.2026 09:30","Приймальник":"Сергей","Ім'я клієнта":"Анна Сидоренко","Телефон":"+380 63 456 78 90","Оплата":"Передоплата: 1000 ₴","Срок":"Без терміну","Статус":"🆕 Новий"},
+  {"Номер замовлення":"RW-0004","Дата створення":"06.06.2026 10:05","Приймальник":"Магазин","Ім'я клієнта":"Віктор Ковальчук","Телефон":"+380 97 321 54 76","Оплата":"Підтверджено: 4 800 ₴","Срок":"15.06","Статус":"📦 Виданий"},
 ];
 const DEMO_ITEMS=[
-  {"Номер заказа":"RW-0001","Номер изделия":"RW-0001-1","Тип":"Взуття","Бренд":"Gucci Horsebit","Услуги":"Чистка — низьке взуття, +200 ₴","Сумма":"1 600 ₴","Статус":"⚙️ В роботі","Дата приёма":"04.06.2026 11:42","Дата в работе":"05.06.2026 09:00","Дата готово":"","Дата выдачи":""},
-  {"Номер заказа":"RW-0001","Номер изделия":"RW-0001-2","Тип":"Сумка","Бренд":"Louis Vuitton Neverfull","Услуги":"Реставрація — шкіряна сумка M","Сумма":"від 2 700 ₴","Статус":"🆕 Новий","Дата приёма":"04.06.2026 11:42","Дата в работе":"","Дата готово":"","Дата выдачи":""},
-  {"Номер заказа":"RW-0002","Номер изделия":"RW-0002-1","Тип":"Взуття","Бренд":"Golden Goose Superstar","Услуги":"Набійки формовані","Сумма":"850 ₴","Статус":"✅ Готово","Дата приёма":"04.06.2026 14:15","Дата в работе":"04.06.2026 16:00","Дата готово":"05.06.2026 12:00","Дата выдачи":""},
-  {"Номер заказа":"RW-0003","Номер изделия":"RW-0003-1","Тип":"Взуття","Бренд":"Loro Piana лофери","Услуги":"Фарбування — низьке взуття, Набійки листові","Сумма":"2 500 ₴","Статус":"⚙️ В роботі","Дата приёма":"05.06.2026 09:30","Дата в работе":"06.06.2026 10:00","Дата готово":"","Дата выдачи":""},
-  {"Номер заказа":"RW-0004","Номер изделия":"RW-0004-1","Тип":"Взуття","Бренд":"Chanel балетки","Услуги":"Реставрація — низьке взуття","Сумма":"2 000 ₴","Статус":"📦 Виданий","Дата приёма":"06.06.2026 10:05","Дата в работе":"06.06.2026 14:00","Дата готово":"07.06.2026 11:00","Дата выдачи":"07.06.2026 15:30"},
-  {"Номер заказа":"RW-0004","Номер изделия":"RW-0004-2","Тип":"Взуття","Бренд":"Chanel балетки 2","Услуги":"Чистка — низьке взуття, Набійки листові","Сумма":"2 100 ₴","Статус":"📦 Виданий","Дата приёма":"06.06.2026 10:05","Дата в работе":"06.06.2026 14:00","Дата готово":"07.06.2026 11:00","Дата выдачи":"07.06.2026 15:30"},
+  {"Номер замовлення":"RW-0001","Номер виробу":"RW-0001-1","Тип":"Взуття","Бренд":"Gucci Horsebit","Послуги":"Чистка — низьке взуття, +200 ₴","Сума":"1 600 ₴","Статус":"⚙️ В роботі","Дата прийому":"04.06.2026 11:42","Дата в роботі":"05.06.2026 09:00","Дата готово":"","Дата видачі":""},
+  {"Номер замовлення":"RW-0001","Номер виробу":"RW-0001-2","Тип":"Сумка","Бренд":"Louis Vuitton Neverfull","Послуги":"Реставрація — шкіряна сумка M","Сума":"від 2 700 ₴","Статус":"🆕 Новий","Дата прийому":"04.06.2026 11:42","Дата в роботі":"","Дата готово":"","Дата видачі":""},
+  {"Номер замовлення":"RW-0002","Номер виробу":"RW-0002-1","Тип":"Взуття","Бренд":"Golden Goose Superstar","Послуги":"Набійки формовані","Сума":"850 ₴","Статус":"✅ Готово","Дата прийому":"04.06.2026 14:15","Дата в роботі":"04.06.2026 16:00","Дата готово":"05.06.2026 12:00","Дата видачі":""},
+  {"Номер замовлення":"RW-0003","Номер виробу":"RW-0003-1","Тип":"Взуття","Бренд":"Loro Piana лофери","Послуги":"Фарбування — низьке взуття, Набійки листові","Сума":"2 500 ₴","Статус":"⚙️ В роботі","Дата прийому":"05.06.2026 09:30","Дата в роботі":"06.06.2026 10:00","Дата готово":"","Дата видачі":""},
+  {"Номер замовлення":"RW-0004","Номер виробу":"RW-0004-1","Тип":"Взуття","Бренд":"Chanel балетки","Послуги":"Реставрація — низьке взуття","Сума":"2 000 ₴","Статус":"📦 Виданий","Дата прийому":"06.06.2026 10:05","Дата в роботі":"06.06.2026 14:00","Дата готово":"07.06.2026 11:00","Дата видачі":"07.06.2026 15:30"},
+  {"Номер замовлення":"RW-0004","Номер виробу":"RW-0004-2","Тип":"Взуття","Бренд":"Chanel балетки 2","Послуги":"Чистка — низьке взуття, Набійки листові","Сума":"2 100 ₴","Статус":"📦 Виданий","Дата прийому":"06.06.2026 10:05","Дата в роботі":"06.06.2026 14:00","Дата готово":"07.06.2026 11:00","Дата видачі":"07.06.2026 15:30"},
 ];
 
 async function loadData(){
   try{
     const[r1,r2,r3]=await Promise.all([
-      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Заказы`),
-      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Изделия`),
-      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Партнёры`)
+      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Замовлення`),
+      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Вироби`),
+      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Партнери`)
     ]);
     ORDERS=await parseSheet(r1);
     ITEMS=await parseSheet(r2);
@@ -313,8 +314,8 @@ async function parseSheet(res){
   const json=JSON.parse(text.replace(/^.*?({.*}).*$/s,"$1"));
   if(!json.table||!json.table.rows) return[];
   // Используем фиксированные имена колонок по позиции
-  const ORDERS_COLS = ["Номер заказа","Дата создания","Приёмщик","Имя клиента","Телефон","Оплата","Срок","Статус заказа"];
-  const ITEMS_COLS = ["Номер заказа","Номер изделия","Тип","Бренд","Услуги","Сумма","Статус","Дата приёма","Дата в работе","Дата готово","Дата выдачи"];
+  const ORDERS_COLS = ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус"];
+  const ITEMS_COLS = ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі"];
   const ncols = json.table.cols.length;
   const cols = ncols >= 8 ? ORDERS_COLS : ITEMS_COLS;
   return json.table.rows.map(row=>{
@@ -325,11 +326,11 @@ async function parseSheet(res){
       obj[col]=cell.f||String(cell.v);
     });
     return obj;
-  }).filter(r=>r["Номер заказа"]&&r["Номер заказа"].startsWith("RW-"));
+  }).filter(r=>r["Номер замовлення"]&&r["Номер замовлення"].startsWith("RW-"));
 }
 
 function getStatus(num){
-  const items=ITEMS.filter(i=>i["Номер заказа"]===num);
+  const items=ITEMS.filter(i=>i["Номер замовлення"]===num);
   if(!items.length) return"new";
   if(items.every(i=>i["Статус"]==="📦 Виданий")) return"issued";
   if(items.some(i=>i["Статус"]==="✅ Готово")) return"ready";
@@ -356,13 +357,13 @@ function extractAmount(str){
   return m?parseInt(m[1]):0;
 }
 
-function renderAll(){renderStats();renderOrders();renderClients();renderAnalytics();}
+function renderAll(){renderStats();renderOrders();renderClients();renderAnalytics();renderManagerFilters();}
 
 function renderStats(){
-  const active=ORDERS.filter(o=>getStatus(o["Номер заказа"])!=="issued").length;
+  const active=ORDERS.filter(o=>getStatus(o["Номер замовлення"])!=="issued").length;
   const inWork=ITEMS.filter(i=>i["Статус"]==="⚙️ В роботі").length;
   const readyC=ITEMS.filter(i=>i["Статус"]==="✅ Готово").length;
-  const issuedC=ORDERS.filter(o=>getStatus(o["Номер заказа"])==="issued").length;
+  const issuedC=ORDERS.filter(o=>getStatus(o["Номер замовлення"])==="issued").length;
   document.getElementById("stats-row").innerHTML=`
     <div class="stat-card"><div class="stat-label">Активних замовлень</div><div class="stat-val stat-accent">${active}</div></div>
     <div class="stat-card"><div class="stat-label">Виробів в роботі</div><div class="stat-val">${inWork}</div></div>
@@ -371,49 +372,66 @@ function renderStats(){
   `;
 }
 
+let currentManager = "all";
+
 function setFilter(f,btn){
   currentFilter=f;
-  document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll("#page-orders > .toolbar:first-of-type .filter-btn").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
   renderOrders();
+}
+
+function setManager(m,btn){
+  currentManager=m;
+  document.querySelectorAll("#manager-filters .filter-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  renderOrders();
+}
+
+function renderManagerFilters(){
+  const el=document.getElementById("manager-filters");
+  if(!el) return;
+  const managers=["all",...new Set(ORDERS.map(o=>o["Приймальник"]).filter(Boolean))];
+  el.innerHTML=managers.map(m=>`<button class="filter-btn${m===currentManager?" active":""}" onclick="setManager('${m}',this)">${m==="all"?"Всі":m}</button>`).join("");
 }
 
 function renderOrders(){
   const q=(document.getElementById("search-input")?.value||"").toLowerCase();
   const filtered=ORDERS.filter(o=>{
-    const st=getStatus(o["Номер заказа"]);
+    const st=getStatus(o["Номер замовлення"]);
     const mf=currentFilter==="all"||st===currentFilter;
-    const mq=!q||o["Имя клиента"].toLowerCase().includes(q)||o["Номер заказа"].toLowerCase().includes(q)||o["Телефон"].includes(q);
-    return mf&&mq;
+    const mm=currentManager==="all"||o["Приймальник"]===currentManager;
+    const mq=!q||o["Ім'я клієнта"].toLowerCase().includes(q)||o["Номер замовлення"].toLowerCase().includes(q)||o["Телефон"].includes(q);
+    return mf&&mm&&mq;
   });
   const el=document.getElementById("orders-body");
   if(!filtered.length){el.innerHTML=`<div style="padding:28px;text-align:center;color:var(--muted);font-size:13px">Замовлень не знайдено</div>`;return;}
   el.innerHTML=filtered.map(o=>{
-    const urgent=o["Срок"]==="Терміново"||o["Срок"]==="⚡ Терміново";
-    return`<div class="order-row" onclick="openOrder('${o["Номер заказа"]}')">
-      <div class="cell"><span class="order-num-text">${o["Номер заказа"]}</span></div>
+    const urgent=o["Термін"]==="Терміново"||o["Термін"]==="⚡ Терміново";
+    return`<div class="order-row" onclick="openOrder('${o["Номер замовлення"]}')">
+      <div class="cell"><span class="order-num-text">${o["Номер замовлення"]}</span></div>
       <div class="cell" style="flex-direction:column;align-items:flex-start;gap:2px">
-        <span style="font-weight:500">${o["Имя клиента"]}</span>
+        <span style="font-weight:500">${o["Ім'я клієнта"]}</span>
         <span style="font-size:11px;color:var(--muted)">${o["Телефон"]}</span>
       </div>
-      <div class="cell" style="gap:6px">${badgeHTML(o["Номер заказа"])}${urgent?'<span class="badge b-urgent">⚡</span>':""}</div>
-      <div class="cell" style="color:var(--muted)">${o["Приёмщик"]}</div>
-      <div class="cell" style="color:${urgent?"#A32D2D":"var(--muted)"}">${o["Срок"]}</div>
+      <div class="cell" style="gap:6px">${badgeHTML(o["Номер замовлення"])}${urgent?'<span class="badge b-urgent">⚡</span>':""}</div>
+      <div class="cell" style="color:var(--muted)">${o["Приймальник"]}</div>
+      <div class="cell" style="color:${urgent?"#A32D2D":"var(--muted)"}">${o["Термін"]}</div>
       <div class="cell" style="color:var(--muted);font-size:12px">${o["Оплата"]}</div>
     </div>`;
   }).join("");
 }
 
 function openOrder(num){
-  const order=ORDERS.find(o=>o["Номер заказа"]===num);
+  const order=ORDERS.find(o=>o["Номер замовлення"]===num);
   if(!order) return;
-  const items=ITEMS.filter(i=>i["Номер заказа"]===num);
+  const items=ITEMS.filter(i=>i["Номер замовлення"]===num);
   document.getElementById("modal-title").textContent=`Замовлення ${num}`;
   document.getElementById("modal-body").innerHTML=`
     <div class="m-head">
       <div>
-        <div class="m-order-num">${order["Номер заказа"]}</div>
-        <div class="m-client-name">${order["Имя клиента"]}</div>
+        <div class="m-order-num">${order["Номер замовлення"]}</div>
+        <div class="m-client-name">${order["Ім'я клієнта"]}</div>
         <div class="m-client-phone">${order["Телефон"]}</div>
       </div>
       <div class="m-meta">
@@ -463,9 +481,9 @@ function closeBg(e){if(e.target===document.getElementById("modal-bg"))closeModal
 function closeModal(){document.getElementById("modal-bg").classList.remove("open");}
 
 function printOrder(num){
-  const order=ORDERS.find(o=>o["Номер заказа"]===num);
-  const items=ITEMS.filter(i=>i["Номер заказа"]===num);
-  const total=items.reduce((s,i)=>s+extractAmount(i["Сумма"]),0);
+  const order=ORDERS.find(o=>o["Номер замовлення"]===num);
+  const items=ITEMS.filter(i=>i["Номер замовлення"]===num);
+  const total=items.reduce((s,i)=>s+extractAmount(i["Сума"]),0);
   const w=window.open("","_blank");
   w.document.write(`<html><head><title>Квитанція ${num}</title>
   <style>body{font-family:Arial,sans-serif;padding:20px;font-size:13px;color:#111;max-width:320px}
@@ -483,11 +501,11 @@ function printOrder(num){
   <hr>
   <div class="row"><span class="label">Замовлення</span><span><b>${num}</b></span></div>
   <div class="row"><span class="label">Дата</span><span>${order["Дата создания"]}</span></div>
-  <div class="row"><span class="label">Клієнт</span><span>${order["Имя клиента"]}</span></div>
+  <div class="row"><span class="label">Клієнт</span><span>${order["Ім'я клієнта"]}</span></div>
   <div class="row"><span class="label">Телефон</span><span>${order["Телефон"]}</span></div>
   <div class="row"><span class="label">Термін</span><span>${order["Срок"]}</span></div>
   <hr>
-  <table>${items.map(i=>`<tr><td>${i["Номер изделия"]}<br><span style="color:#888;font-size:11px">${i["Тип"]} — ${i["Бренд"]}</span><br><span style="color:#888;font-size:11px">${i["Услуги"]}</span></td><td><b>${i["Сумма"]}</b></td></tr>`).join("")}</table>
+  <table>${items.map(i=>`<tr><td>${i["Номер виробу"]}<br><span style="color:#888;font-size:11px">${i["Тип"]} — ${i["Бренд"]}</span><br><span style="color:#888;font-size:11px">${i["Послуги"]}</span></td><td><b>${i["Сума"]}</b></td></tr>`).join("")}</table>
   <hr>
   <div class="row total"><span>Разом</span><span>${total.toLocaleString("uk-UA")} ₴</span></div>
   <div class="row"><span class="label">Оплата</span><span>${order["Оплата"]}</span></div>
@@ -508,10 +526,10 @@ function renderClients(){
   const map={};
   ORDERS.forEach(o=>{
     const k=o["Телефон"];
-    if(!map[k]) map[k]={name:o["Имя клиента"],phone:o["Телефон"],orders:[],total:0};
-    map[k].orders.push(o["Номер заказа"]);
-    const items=ITEMS.filter(i=>i["Номер заказа"]===o["Номер заказа"]);
-    map[k].total+=items.reduce((s,i)=>s+extractAmount(i["Сумма"]),0);
+    if(!map[k]) map[k]={name:o["Ім'я клієнта"],phone:o["Телефон"],orders:[],total:0};
+    map[k].orders.push(o["Номер замовлення"]);
+    const items=ITEMS.filter(i=>i["Номер замовлення"]===o["Номер замовлення"]);
+    map[k].total+=items.reduce((s,i)=>s+extractAmount(i["Сума"]),0);
   });
   const clients=Object.values(map).filter(c=>!q||c.name.toLowerCase().includes(q)||c.phone.includes(q));
   document.getElementById("clients-grid").innerHTML=clients.map(c=>{
@@ -526,9 +544,9 @@ function renderClients(){
 }
 
 function renderAnalytics(){
-  const issuedOrders=ORDERS.filter(o=>getStatus(o["Номер заказа"])==="issued");
+  const issuedOrders=ORDERS.filter(o=>getStatus(o["Номер замовлення"])==="issued");
   const allItems=ITEMS.filter(i=>i["Статус"]==="📦 Виданий");
-  const totalRevenue=allItems.reduce((s,i)=>s+extractAmount(i["Сумма"]),0);
+  const totalRevenue=allItems.reduce((s,i)=>s+extractAmount(i["Сума"]),0);
   const avgCheck=issuedOrders.length?Math.round(totalRevenue/issuedOrders.length):0;
   const clients=new Set(ORDERS.map(o=>o["Телефон"])).size;
   document.getElementById("analytics-stats").innerHTML=`
@@ -540,18 +558,18 @@ function renderAnalytics(){
 
   const mgrMap={};
   ORDERS.forEach(o=>{
-    const mgr=o["Приёмщик"]||"—";
+    const mgr=o["Приймальник"]||"—";
     if(!mgrMap[mgr]) mgrMap[mgr]={orders:0,revenue:0};
     mgrMap[mgr].orders++;
-    const items=ITEMS.filter(i=>i["Номер заказа"]===o["Номер заказа"]&&i["Статус"]==="📦 Виданий");
-    mgrMap[mgr].revenue+=items.reduce((s,i)=>s+extractAmount(i["Сумма"]),0);
+    const items=ITEMS.filter(i=>i["Номер замовлення"]===o["Номер замовлення"]&&i["Статус"]==="📦 Виданий");
+    mgrMap[mgr].revenue+=items.reduce((s,i)=>s+extractAmount(i["Сума"]),0);
   });
   const mgrs=Object.entries(mgrMap).sort((a,b)=>b[1].revenue-a[1].revenue);
   const maxMgr=mgrs[0]?mgrs[0][1].revenue:1;
 
   const svcCount={};
   ITEMS.forEach(i=>{
-    (i["Услуги"]||"").split(",").forEach(s=>{
+    (i["Послуги"]||"").split(",").forEach(s=>{
       const k=s.trim().split("—")[0].trim().slice(0,22);
       if(k) svcCount[k]=(svcCount[k]||0)+1;
     });
@@ -1013,10 +1031,11 @@ async function submitOrder(){
 function printPlan(){
   const q=(document.getElementById("search-input")?.value||"").toLowerCase();
   const filtered=ORDERS.filter(o=>{
-    const st=getStatus(o["Номер заказа"]);
+    const st=getStatus(o["Номер замовлення"]);
     const mf=currentFilter==="all"||st===currentFilter;
-    const mq=!q||o["Имя клиента"].toLowerCase().includes(q)||o["Номер заказа"].toLowerCase().includes(q)||o["Телефон"].includes(q);
-    return mf&&mq;
+    const mm=currentManager==="all"||o["Приймальник"]===currentManager;
+    const mq=!q||o["Ім'я клієнта"].toLowerCase().includes(q)||o["Номер замовлення"].toLowerCase().includes(q)||o["Телефон"].includes(q);
+    return mf&&mm&&mq;
   });
   if(!filtered.length){alert("Немає замовлень для друку");return;}
   const now = new Date();
@@ -1046,15 +1065,15 @@ function printPlan(){
   <h2>Rewise Studio — ${filterLabel}</h2>
   <div class="sub">Дата друку: ${dateStr} · Замовлень: ${filtered.length}</div>
   ${filtered.map(o=>{
-    const items=ITEMS.filter(i=>i["Номер заказа"]===o["Номер заказа"]);
-    const urgent=o["Срок"]==="Терміново"||o["Срок"]==="⚡ Терміново";
+    const items=ITEMS.filter(i=>i["Номер замовлення"]===o["Номер замовлення"]);
+    const urgent=o["Термін"]==="Терміново"||o["Термін"]==="⚡ Терміново";
     return`<div class="order-block">
       <div class="order-head">
         <div>
-          <span class="order-num">${o["Номер заказа"]}</span>
-          <span class="order-client" style="margin-left:10px">${o["Имя клиента"]} · ${o["Телефон"]}</span>
+          <span class="order-num">${o["Номер замовлення"]}</span>
+          <span class="order-client" style="margin-left:10px">${o["Ім'я клієнта"]} · ${o["Телефон"]}</span>
         </div>
-        <div class="order-deadline">${urgent?"⚡ ТЕРМІНОВО":o["Срок"]}</div>
+        <div class="order-deadline">${urgent?"⚡ ТЕРМІНОВО":o["Термін"]}</div>
       </div>
       ${items.map(item=>`<div class="item-row">
         <div class="item-num">${item["Номер изделия"]}</div>
