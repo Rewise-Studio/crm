@@ -422,10 +422,15 @@ function renderOrders(){
   }).join("");
 }
 
+function getVal(obj, ...keys){
+  for(const k of keys){ if(obj[k]!==undefined&&obj[k]!=="") return obj[k]; }
+  return "—";
+}
+
 function openOrder(num){
-  const order=ORDERS.find(o=>o["Номер замовлення"]===num);
+  const order=ORDERS.find(o=>o["Номер замовлення"]===num||o["Номер заказа"]===num);
   if(!order) return;
-  const items=ITEMS.filter(i=>i["Номер замовлення"]===num);
+  const items=ITEMS.filter(i=>i["Номер замовлення"]===num||i["Номер заказа"]===num);
   document.getElementById("modal-title").textContent=`Замовлення ${num}`;
   document.getElementById("modal-body").innerHTML=`
     <div class="m-head">
@@ -711,10 +716,10 @@ function renderItemsList(){
       <button class="btn" onclick="addItem()" style="margin-top:8px;width:100%">+ Ще один виріб</button>
     </div>
   `;
-  document.getElementById("modal-footer").innerHTML = `
-    <button class="btn" onclick="renderOrderStep1()">← Назад</button>
-    <button class="btn btn-primary" onclick="${newOrder.items.length > 0 ? 'goStep3()' : 'addItem()'}">${newOrder.items.length > 0 ? 'Далі →' : 'Додати виріб'}</button>
-  `;
+  const hasItems = newOrder.items.length > 0;
+  document.getElementById("modal-footer").innerHTML = hasItems ?
+    "<button class='btn' onclick='renderOrderStep1()'>← Назад</button><button class='btn' onclick='addItem()'>+ Ще один виріб</button><button class='btn btn-primary' onclick='goStep3()'>Далі →</button>" :
+    "<button class='btn' onclick='renderOrderStep1()'>← Назад</button><button class='btn btn-primary' onclick='addItem()'>Додати виріб</button>";
 }
 
 function addItem(){
