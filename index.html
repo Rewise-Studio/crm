@@ -407,11 +407,20 @@ function openOrder(num) {
     const iWork = gv(item,"Дата в роботі");
     const iReady = gv(item,"Дата готово");
     const iIssued = gv(item,"Дата видачі");
+    const allStatuses = ["🆕 Новий","⚙️ В роботі","✅ Готово","⏳ Відкладено","📦 Виданий"];
+    let statusBtns = "";
+    allStatuses.forEach(function(s) {
+      const isActive = s === iSt;
+      const bg = isActive ? "#6B4F3A" : "#faf8f6";
+      const col = isActive ? "#F5F0EA" : "#8a7f78";
+      statusBtns += "<button style='padding:4px 8px;border-radius:6px;border:1px solid #e0d9d3;background:" + bg + ";color:" + col + ";font-size:11px;cursor:pointer;font-family:inherit;margin-right:4px;margin-top:4px' onclick='updateItemStatus(\"" + iNum + "\",\"" + s + "\")'>" + s + "</button>";
+    });
     itemsHTML += "<div class='icard'>" +
       "<div class='icard-head'><span class='inum-badge'>" + iNum + "</span><span class='badge " + itemBadge(iSt) + "'>" + iSt + "</span></div>" +
       "<div class='itype'>" + gv(item,"Тип") + " — " + gv(item,"Бренд") + "</div>" +
       "<div class='isvcs'>" + gv(item,"Послуги") + "</div>" +
-      "<div class='ifooter'><div class='idates'>" +
+      "<div style='margin-top:8px'>" + statusBtns + "</div>" +
+      "<div class='ifooter' style='margin-top:8px'><div class='idates'>" +
       (iAccept ? "Прийнято: " + iAccept : "") +
       (iWork ? "<br>В роботі: " + iWork : "") +
       (iReady ? "<br>Готово: " + iReady : "") +
@@ -537,6 +546,26 @@ function renderAnalytics() {
     "</div><div class='chart-card'><div class='chart-title'>По приймальниках</div>" +
     mgrs.map(([n,c]) => "<div class='bar-row'><div class='bar-label'>" + n + "</div><div class='bar-track'><div class='bar-fill' style='width:" + Math.round(c/maxM*100) + "%'></div></div><div class='bar-val'>" + c + " зам.</div></div>").join("") +
     "</div>";
+}
+
+async function updateItemStatus(itemNum, status) {
+  try {
+    const res = await fetch("https://price-production-97b5.up.railway.app/status", {
+      method: "POST",
+      mode: "cors",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({item_num: itemNum, status: status})
+    });
+    const result = await res.json();
+    if (result.status === "ok") {
+      await loadData();
+      // Reopen the order card
+      const orderNum = itemNum.rsplit ? itemNum.split("-").slice(0,2).join("-") : itemNum.split("-").slice(0,2).join("-");
+      openOrder(orderNum);
+    }
+  } catch(e) {
+    alert("Помилка оновлення статусу: " + e.message);
+  }
 }
 
 function showPage(name, tab) {
