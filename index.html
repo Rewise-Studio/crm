@@ -625,7 +625,7 @@ function step1Next() {
   NO.phone = document.getElementById("no-phone").value.trim();
   if (!NO.client) { alert("Введіть ім'я клієнта"); return; }
   if (!NO.phone) { alert("Введіть номер телефону"); return; }
-  showItemsList();
+  addItem();
 }
 
 function showItemsList() {
