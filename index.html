@@ -215,7 +215,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <script>
 const PWD_HASH = "70775e2a6abd151f90d68ec1cc3b5bad65e57f7c545b6790e744de1e4b7db78a";
 const SHEET_ID = "1kDJ893PFa_DTNKt-r8wQES_JFXbJSDNU8niRLz70Aao";
-const API_URL = "https://script.google.com/macros/s/AKfycbw_hvy2c6xpmFFEMFjiJ51iQoNb0s3MGnGs6gz3nkyqzYGanntufTkdbQ5Ah5L7k2hPag/exec";
+const API_URL = "https://price-production-97b5.up.railway.app/order";
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
 async function hashStr(s) {
@@ -849,9 +849,12 @@ async function submitOrder() {
   document.getElementById("modal-body").innerHTML = "<div style='text-align:center;padding:32px;color:var(--muted);font-size:13px'>⏳ Збереження...</div>";
   document.getElementById("modal-footer").innerHTML = "";
   try {
-    const encoded = encodeURIComponent(JSON.stringify(payload));
-    const url = API_URL + "?action=create_order&data=" + encoded;
-    const res = await fetch(url, {mode:"cors"});
+    const res = await fetch(API_URL, {
+      method: "POST",
+      mode: "cors",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload)
+    });
     const result = await res.json();
     if (result.status === "ok") {
       document.getElementById("modal-body").innerHTML = "<div style='text-align:center;padding:32px;color:#3B6D11;font-size:15px'>✅ Замовлення " + result.order_num + " збережено!</div>";
