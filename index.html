@@ -849,10 +849,18 @@ async function submitOrder() {
   document.getElementById("modal-body").innerHTML = "<div style='text-align:center;padding:32px;color:var(--muted);font-size:13px'>⏳ Збереження...</div>";
   document.getElementById("modal-footer").innerHTML = "";
   try {
-    await fetch(API_URL, {method:"POST", mode:"no-cors", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)});
-    setTimeout(() => { closeModal(); setTimeout(loadData, 1000); }, 1500);
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+    const url = API_URL + "?action=create_order&data=" + encoded;
+    const res = await fetch(url, {mode:"cors"});
+    const result = await res.json();
+    if (result.status === "ok") {
+      document.getElementById("modal-body").innerHTML = "<div style='text-align:center;padding:32px;color:#3B6D11;font-size:15px'>✅ Замовлення " + result.order_num + " збережено!</div>";
+      setTimeout(() => { closeModal(); setTimeout(loadData, 1000); }, 2000);
+    } else {
+      document.getElementById("modal-body").innerHTML = "<div style='text-align:center;padding:32px;color:#a33030;font-size:13px'>Помилка: " + result.message + "</div>";
+    }
   } catch(e) {
-    document.getElementById("modal-body").innerHTML = "<div style='text-align:center;padding:32px;color:#a33030;font-size:13px'>Помилка збереження</div>";
+    document.getElementById("modal-body").innerHTML = "<div style='text-align:center;padding:32px;color:#a33030;font-size:13px'>Помилка збереження: " + e.message + "</div>";
   }
 }
 </script>
