@@ -471,6 +471,7 @@ function printOrder(num) {
   const order = ORDERS.find(o => gv(o,"Номер замовлення") === num);
   const items = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
   const total = items.reduce((s,i) => s + extractAmt(gv(i,"Сума")), 0);
+  const se = (v) => stripEmoji(String(v || ""));
   const w = window.open("","_blank");
   w.document.write("<html><head><title>Квитанція " + num + "</title><style>body{font-family:Arial,sans-serif;padding:20px;font-size:13px;max-width:320px}h2{font-size:16px;margin-bottom:2px}.sub{color:#888;font-size:11px;margin-bottom:14px}hr{border:none;border-top:1px dashed #ccc;margin:10px 0}.row{display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px}.label{color:#888}table{width:100%;border-collapse:collapse;margin-top:8px}td{padding:4px 0;font-size:12px;vertical-align:top}td:last-child{text-align:right}.footer{margin-top:14px;font-size:10px;color:#aaa;text-align:center}.sig{margin-top:20px;display:flex;justify-content:space-between;font-size:11px;color:#888}</style></head><body>" +
     "<h2>Rewise Studio</h2><div class='sub'>Одеса · @rewise.studio · +380 XX XXX XX XX</div><hr>" +
@@ -501,6 +502,7 @@ function printPlan() {
   const now = new Date();
   const pad = n => String(n).padStart(2,"0");
   const dateStr = pad(now.getDate()) + "." + pad(now.getMonth()+1) + "." + now.getFullYear();
+  const se = (v) => stripEmoji(String(v || ""));
   const w = window.open("","_blank");
   w.document.write("<html><head><title>План " + dateStr + "</title><style>body{font-family:Arial,sans-serif;padding:20px;font-size:13px;max-width:700px}h2{font-size:16px;margin-bottom:2px}.sub{color:#888;font-size:12px;margin-bottom:20px}.block{margin-bottom:14px;border:1px solid #e0d9d3;border-radius:8px;overflow:hidden}.block-head{background:#f5f0ea;padding:8px 12px;display:flex;justify-content:space-between}.bnum{font-weight:bold;color:#6B4F3A}.irow{padding:8px 12px;border-top:1px solid #e0d9d3}.inum{font-size:11px;color:#6B4F3A;font-weight:bold;margin-bottom:2px}.iname{font-size:12px;font-weight:500;margin-bottom:2px}.isvcs{font-size:11px;color:#888}.footer{margin-top:16px;font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:10px;text-align:center}</style></head><body>" +
     "<h2>Rewise Studio — План</h2><div class='sub'>" + dateStr + " · Замовлень: " + filtered.length + "</div>" +
@@ -640,10 +642,16 @@ function renderAnalytics() {
     "</div>";
 }
 
+function stripEmoji(str) {
+  if (!str) return "";
+  return str.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{1F300}-\u{1FAFF}]/gu, "").replace(/\s+/g, " ").trim();
+}
+
 function downloadPDF(num) {
   const order = ORDERS.find(o => gv(o,"Номер замовлення") === num);
   const items = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
   const total = items.reduce((s,i) => s + extractAmt(gv(i,"Сума")), 0);
+  const se = (v) => stripEmoji(String(v || ""));
   const w = window.open("","_blank");
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Квитанція ${num}</title>
   <style>
@@ -667,17 +675,17 @@ function downloadPDF(num) {
   <div class="sub">Одеса · @rewise.studio · +380 XX XXX XX XX</div>
   <hr>
   <div style="font-size:12px;font-weight:bold;margin-bottom:6px">${num}</div>
-  <div class="row"><span class="lbl">Клієнт:</span><span>${gv(order,"Ім'я клієнта")}</span></div>
-  <div class="row"><span class="lbl">Телефон:</span><span>${gv(order,"Телефон")}</span></div>
-  <div class="row"><span class="lbl">Дата:</span><span>${gv(order,"Дата створення")}</span></div>
-  <div class="row"><span class="lbl">Термін:</span><span>${gv(order,"Термін")}</span></div>
-  <div class="row"><span class="lbl">Оплата:</span><span>${gv(order,"Оплата")}</span></div>
+  <div class="row"><span class="lbl">Клієнт:</span><span>${se(gv(order,"Ім'я клієнта"))}</span></div>
+  <div class="row"><span class="lbl">Телефон:</span><span>${se(gv(order,"Телефон"))}</span></div>
+  <div class="row"><span class="lbl">Дата:</span><span>${se(gv(order,"Дата створення"))}</span></div>
+  <div class="row"><span class="lbl">Термін:</span><span>${se(gv(order,"Термін"))}</span></div>
+  <div class="row"><span class="lbl">Оплата:</span><span>${se(gv(order,"Оплата"))}</span></div>
   <hr>
   ${items.map(item => `<div class="iblock">
-    <div class="inum">${gv(item,"Номер виробу")}</div>
-    <div class="iname">${gv(item,"Тип")} — ${gv(item,"Бренд")}</div>
-    <div class="isvcs">${gv(item,"Послуги")}</div>
-    <div style="text-align:right;font-weight:bold">${gv(item,"Сума")}</div>
+    <div class="inum">${se(gv(item,"Номер виробу"))}</div>
+    <div class="iname">${se(gv(item,"Тип"))} — ${se(gv(item,"Бренд"))}</div>
+    <div class="isvcs">${se(gv(item,"Послуги"))}</div>
+    <div style="text-align:right;font-weight:bold">${se(gv(item,"Сума"))}</div>
   </div>`).join("<hr style='border-top:1px dotted #eee'>")}
   <hr>
   <div class="row total"><span>Разом:</span><span>${total.toLocaleString("uk-UA")} ₴</span></div>
