@@ -126,6 +126,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .svc-price{color:var(--umbra);font-weight:500;flex-shrink:0;margin-left:8px}
 @media(max-width:768px){.stats-row{grid-template-columns:repeat(2,1fr)}.order-row{grid-template-columns:90px 1fr 100px}.cell:nth-child(4),.cell:nth-child(5),.cell:nth-child(6){display:none}.analytics-grid{grid-template-columns:1fr}.modal{width:95vw}.page{padding:12px}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -506,25 +507,74 @@ function renderClients() {
   }).join("");
 }
 
+let analyticsPeriod = "month";
+
+function parseOrderDate(dateStr) {
+  if (!dateStr) return null;
+  const m = dateStr.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+  if (!m) return null;
+  return new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]));
+}
+
+function getAnalyticsDates() {
+  const now = new Date();
+  if (analyticsPeriod === "week") {
+    const from = new Date(now); from.setDate(now.getDate() - 7);
+    return {from, label: "за тиждень"};
+  } else if (analyticsPeriod === "month") {
+    const from = new Date(now.getFullYear(), now.getMonth(), 1);
+    return {from, label: "за місяць"};
+  } else if (analyticsPeriod === "year") {
+    const from = new Date(now.getFullYear(), 0, 1);
+    return {from, label: "за рік"};
+  }
+  return {from: null, label: "за весь час"};
+}
+
+function setPeriod(p, btn) {
+  analyticsPeriod = p;
+  document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  renderAnalytics();
+}
+
 function renderAnalytics() {
-  const issued = ORDERS.filter(o => getStatus(gv(o,"Номер замовлення")) === "issued");
-  const issuedItems = ITEMS.filter(i => gv(i,"Статус") === "📦 Виданий");
+  const {from, label} = getAnalyticsDates();
+
+  const filteredOrders = ORDERS.filter(o => {
+    if (!from) return true;
+    const d = parseOrderDate(gv(o,"Дата створення"));
+    return d && d >= from;
+  });
+
+  const filteredOrderNums = new Set(filteredOrders.map(o => gv(o,"Номер замовлення")));
+
+  const issued = filteredOrders.filter(o => getStatus(gv(o,"Номер замовлення")) === "issued");
+  const issuedItems = ITEMS.filter(i => gv(i,"Статус") === "📦 Виданий" && filteredOrderNums.has(gv(i,"Номер замовлення")));
   const total = issuedItems.reduce((s,i) => s + extractAmt(gv(i,"Сума")), 0);
   const avg = issued.length ? Math.round(total / issued.length) : 0;
-  const clients = new Set(ORDERS.map(o => gv(o,"Телефон"))).size;
+  const clients = new Set(filteredOrders.map(o => gv(o,"Телефон"))).size;
+  const active = filteredOrders.filter(o => getStatus(gv(o,"Номер замовлення")) !== "issued").length;
+
   document.getElementById("analytics-stats").innerHTML =
-    "<div class='stat-card'><div class='stat-label'>Загальний обіг</div><div class='stat-val stat-accent'>" + total.toLocaleString("uk-UA") + " ₴</div></div>" +
+    "<div class='stat-card'><div class='stat-label'>Обіг " + label + "</div><div class='stat-val stat-accent'>" + total.toLocaleString("uk-UA") + " ₴</div></div>" +
     "<div class='stat-card'><div class='stat-label'>Середній чек</div><div class='stat-val'>" + avg.toLocaleString("uk-UA") + " ₴</div></div>" +
     "<div class='stat-card'><div class='stat-label'>Клієнтів</div><div class='stat-val'>" + clients + "</div></div>" +
-    "<div class='stat-card'><div class='stat-label'>Виданих замовлень</div><div class='stat-val' style='color:var(--muted)'>" + issued.length + "</div></div>";
+    "<div class='stat-card'><div class='stat-label'>Замовлень</div><div class='stat-val'>" + filteredOrders.length + "</div></div>";
+
+  // Period buttons
   document.getElementById("revenue-block").innerHTML =
+    "<div id='period-btns-wrap'></div>" +
     "<div class='rev-big'>" + total.toLocaleString("uk-UA") + " ₴</div>" +
-    "<div class='rev-sub'>Підтверджений обіг</div>" +
-    "<div class='rev-grid'><div class='rev-cell'><div class='rev-cell-label'>Виданих</div><div class='rev-cell-val'>" + issued.length + "</div></div>" +
+    "<div class='rev-sub'>Підтверджений обіг " + label + "</div>" +
+    "<div class='rev-grid'>" +
+    "<div class='rev-cell'><div class='rev-cell-label'>Виданих</div><div class='rev-cell-val'>" + issued.length + "</div></div>" +
     "<div class='rev-cell'><div class='rev-cell-label'>Середній чек</div><div class='rev-cell-val'>" + avg.toLocaleString("uk-UA") + " ₴</div></div>" +
-    "<div class='rev-cell'><div class='rev-cell-label'>Виробів</div><div class='rev-cell-val'>" + issuedItems.length + "</div></div></div>";
+    "<div class='rev-cell'><div class='rev-cell-label'>Активних</div><div class='rev-cell-val'>" + active + "</div></div>" +
+    "</div>";
+
   const svcCount = {};
-  ITEMS.forEach(i => {
+  ITEMS.filter(i => filteredOrderNums.has(gv(i,"Номер замовлення"))).forEach(i => {
     (gv(i,"Послуги") || "").split(",").forEach(s => {
       const k = s.trim().split("—")[0].trim().slice(0,22);
       if (k) svcCount[k] = (svcCount[k] || 0) + 1;
@@ -532,20 +582,146 @@ function renderAnalytics() {
   });
   const top = Object.entries(svcCount).sort((a,b) => b[1]-a[1]).slice(0,6);
   const maxS = top[0] ? top[0][1] : 1;
+
   const mgrMap = {};
-  ORDERS.forEach(o => {
+  filteredOrders.forEach(o => {
     const m = gv(o,"Приймальник") || "—";
-    if (!mgrMap[m]) mgrMap[m] = 0;
-    mgrMap[m]++;
+    if (!mgrMap[m]) mgrMap[m] = {orders:0, revenue:0};
+    mgrMap[m].orders++;
+    ITEMS.filter(i => gv(i,"Номер замовлення") === gv(o,"Номер замовлення") && gv(i,"Статус") === "📦 Виданий")
+      .forEach(i => { mgrMap[m].revenue += extractAmt(gv(i,"Сума")); });
   });
-  const mgrs = Object.entries(mgrMap).sort((a,b) => b[1]-a[1]);
-  const maxM = mgrs[0] ? mgrs[0][1] : 1;
+  const mgrs = Object.entries(mgrMap).sort((a,b) => b[1].revenue-a[1].revenue);
+  const maxM = mgrs[0] ? mgrs[0][1].revenue : 1;
+
+  // Render period buttons
+  const pbWrap = document.getElementById("period-btns-wrap");
+  if (pbWrap) {
+    pbWrap.style.cssText = "display:flex;gap:8px;margin-bottom:16px";
+    const pLabels = {week:"Тиждень",month:"Місяць",year:"Рік",all:"Весь час"};
+    ["week","month","year","all"].forEach(function(p) {
+      const btn = document.createElement("button");
+      btn.className = analyticsPeriod === p ? "fbtn active" : "fbtn";
+      btn.textContent = pLabels[p];
+      btn.addEventListener("click", function() { setPeriod(p, btn); });
+      pbWrap.appendChild(btn);
+    });
+  }
+
   document.getElementById("analytics-grid").innerHTML =
-    "<div class='chart-card'><div class='chart-title'>Топ послуг</div>" +
-    top.map(([n,c]) => "<div class='bar-row'><div class='bar-label'>" + n + "</div><div class='bar-track'><div class='bar-fill' style='width:" + Math.round(c/maxS*100) + "%'></div></div><div class='bar-val'>" + c + " шт.</div></div>").join("") +
-    "</div><div class='chart-card'><div class='chart-title'>По приймальниках</div>" +
-    mgrs.map(([n,c]) => "<div class='bar-row'><div class='bar-label'>" + n + "</div><div class='bar-track'><div class='bar-fill' style='width:" + Math.round(c/maxM*100) + "%'></div></div><div class='bar-val'>" + c + " зам.</div></div>").join("") +
+    "<div class='chart-card'><div class='chart-title'>Топ послуг " + label + "</div>" +
+    (top.length ? top.map(([n,c]) => "<div class='bar-row'><div class='bar-label'>" + n + "</div><div class='bar-track'><div class='bar-fill' style='width:" + Math.round(c/maxS*100) + "%'></div></div><div class='bar-val'>" + c + " шт.</div></div>").join("") : "<div style='color:var(--muted);font-size:13px'>Немає даних</div>") +
+    "</div><div class='chart-card'><div class='chart-title'>По приймальниках " + label + "</div>" +
+    (mgrs.length ? mgrs.map(([n,d]) => "<div class='bar-row'><div class='bar-label'>" + n + "</div><div class='bar-track'><div class='bar-fill' style='width:" + Math.round(d.revenue/maxM*100) + "%'></div></div><div class='bar-val'>" + d.revenue.toLocaleString("uk-UA") + " ₴</div></div>").join("") : "<div style='color:var(--muted);font-size:13px'>Немає даних</div>") +
     "</div>";
+}
+
+function downloadPDF(num) {
+  const order = ORDERS.find(o => gv(o,"Номер замовлення") === num);
+  const items = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+  const total = items.reduce((s,i) => s + extractAmt(gv(i,"Сума")), 0);
+
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF({format:"a6", unit:"mm"});
+
+  // Fonts and colors
+  doc.setFont("helvetica");
+
+  // Header
+  doc.setFontSize(14);
+  doc.setFont("helvetica","bold");
+  doc.text("Rewise Studio", 10, 12);
+
+  doc.setFontSize(8);
+  doc.setFont("helvetica","normal");
+  doc.setTextColor(120,120,120);
+  doc.text("Одеса · @rewise.studio · +380 XX XXX XX XX", 10, 18);
+
+  // Divider
+  doc.setDrawColor(200,200,200);
+  doc.line(10, 21, 95, 21);
+
+  // Order info
+  doc.setTextColor(0,0,0);
+  doc.setFontSize(9);
+  let y = 27;
+  const addRow = (label, value) => {
+    doc.setFont("helvetica","normal");
+    doc.setTextColor(120,120,120);
+    doc.text(label, 10, y);
+    doc.setTextColor(0,0,0);
+    doc.text(String(value), 40, y);
+    y += 5;
+  };
+
+  doc.setFontSize(11);
+  doc.setFont("helvetica","bold");
+  doc.text(num, 10, y);
+  y += 6;
+
+  doc.setFontSize(9);
+  addRow("Клієнт:", gv(order,"Ім'я клієнта"));
+  addRow("Телефон:", gv(order,"Телефон"));
+  addRow("Дата:", gv(order,"Дата створення"));
+  addRow("Термін:", gv(order,"Термін"));
+  addRow("Оплата:", gv(order,"Оплата"));
+
+  // Divider
+  doc.setDrawColor(200,200,200);
+  doc.line(10, y+1, 95, y+1);
+  y += 6;
+
+  // Items
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(9);
+  doc.text("Вироби", 10, y);
+  y += 5;
+
+  items.forEach(item => {
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(8);
+    doc.setTextColor(107,79,58);
+    doc.text(gv(item,"Номер виробу"), 10, y);
+    doc.setTextColor(0,0,0);
+    doc.text(gv(item,"Сума"), 75, y, {align:"right"});
+    y += 4;
+    doc.setFont("helvetica","normal");
+    doc.setTextColor(60,60,60);
+    doc.text(gv(item,"Тип") + " — " + gv(item,"Бренд"), 10, y);
+    y += 4;
+    const svcs = gv(item,"Послуги");
+    if (svcs) {
+      doc.setFontSize(7);
+      doc.setTextColor(120,120,120);
+      const lines = doc.splitTextToSize(svcs, 75);
+      doc.text(lines, 10, y);
+      y += lines.length * 3.5;
+    }
+    y += 2;
+  });
+
+  // Total
+  doc.setDrawColor(200,200,200);
+  doc.line(10, y, 95, y);
+  y += 5;
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(11);
+  doc.setTextColor(107,79,58);
+  doc.text("Разом: " + total.toLocaleString("uk-UA") + " ₴", 10, y);
+
+  y += 8;
+  doc.setFont("helvetica","normal");
+  doc.setFontSize(7);
+  doc.setTextColor(150,150,150);
+  doc.text("Підпис майстра: _______________", 10, y);
+  y += 5;
+  doc.text("Підпис клієнта: _______________", 10, y);
+
+  y += 7;
+  doc.setFontSize(7);
+  doc.text("Дякуємо за довіру · Rewise Studio", 52, y, {align:"center"});
+
+  doc.save("Квитанція-" + num + ".pdf");
 }
 
 async function updateItemStatus(itemNum, status) {
