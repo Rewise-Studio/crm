@@ -457,7 +457,8 @@ function openOrder(num) {
     noteSection.appendChild(noteBtn);
   }
   document.getElementById("modal-footer").innerHTML =
-    "<button class='btn' onclick=\"printOrder('" + num + "')\">Роздрукувати</button>" +
+    "<button class='btn' onclick=\"printOrder('" + num + "')\">🖨 Роздрукувати</button>" +
+    "<button class='btn' onclick=\"downloadPDF('" + num + "')\">📄 PDF</button>" +
     "<button class='btn btn-primary' onclick='closeModal()'>Закрити</button>";
   document.getElementById("modal-bg").classList.add("open");
 }
