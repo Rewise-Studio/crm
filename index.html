@@ -126,7 +126,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .svc-price{color:var(--umbra);font-weight:500;flex-shrink:0;margin-left:8px}
 @media(max-width:768px){.stats-row{grid-template-columns:repeat(2,1fr)}.order-row{grid-template-columns:90px 1fr 100px}.cell:nth-child(4),.cell:nth-child(5),.cell:nth-child(6){display:none}.analytics-grid{grid-template-columns:1fr}.modal{width:95vw}.page{padding:12px}}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -643,108 +642,55 @@ function downloadPDF(num) {
   const order = ORDERS.find(o => gv(o,"Номер замовлення") === num);
   const items = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
   const total = items.reduce((s,i) => s + extractAmt(gv(i,"Сума")), 0);
-
-  const {jsPDF} = window.jspdf;
-  const doc = new jsPDF({format:"a6", unit:"mm"});
-
-  // Fonts and colors
-  doc.setFont("helvetica");
-
-  // Header
-  doc.setFontSize(14);
-  doc.setFont("helvetica","bold");
-  doc.text("Rewise Studio", 10, 12);
-
-  doc.setFontSize(8);
-  doc.setFont("helvetica","normal");
-  doc.setTextColor(120,120,120);
-  doc.text("Одеса · @rewise.studio · +380 XX XXX XX XX", 10, 18);
-
-  // Divider
-  doc.setDrawColor(200,200,200);
-  doc.line(10, 21, 95, 21);
-
-  // Order info
-  doc.setTextColor(0,0,0);
-  doc.setFontSize(9);
-  let y = 27;
-  const addRow = (label, value) => {
-    doc.setFont("helvetica","normal");
-    doc.setTextColor(120,120,120);
-    doc.text(label, 10, y);
-    doc.setTextColor(0,0,0);
-    doc.text(String(value), 40, y);
-    y += 5;
-  };
-
-  doc.setFontSize(11);
-  doc.setFont("helvetica","bold");
-  doc.text(num, 10, y);
-  y += 6;
-
-  doc.setFontSize(9);
-  addRow("Клієнт:", gv(order,"Ім'я клієнта"));
-  addRow("Телефон:", gv(order,"Телефон"));
-  addRow("Дата:", gv(order,"Дата створення"));
-  addRow("Термін:", gv(order,"Термін"));
-  addRow("Оплата:", gv(order,"Оплата"));
-
-  // Divider
-  doc.setDrawColor(200,200,200);
-  doc.line(10, y+1, 95, y+1);
-  y += 6;
-
-  // Items
-  doc.setFont("helvetica","bold");
-  doc.setFontSize(9);
-  doc.text("Вироби", 10, y);
-  y += 5;
-
-  items.forEach(item => {
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(8);
-    doc.setTextColor(107,79,58);
-    doc.text(gv(item,"Номер виробу"), 10, y);
-    doc.setTextColor(0,0,0);
-    doc.text(gv(item,"Сума"), 75, y, {align:"right"});
-    y += 4;
-    doc.setFont("helvetica","normal");
-    doc.setTextColor(60,60,60);
-    doc.text(gv(item,"Тип") + " — " + gv(item,"Бренд"), 10, y);
-    y += 4;
-    const svcs = gv(item,"Послуги");
-    if (svcs) {
-      doc.setFontSize(7);
-      doc.setTextColor(120,120,120);
-      const lines = doc.splitTextToSize(svcs, 75);
-      doc.text(lines, 10, y);
-      y += lines.length * 3.5;
-    }
-    y += 2;
-  });
-
-  // Total
-  doc.setDrawColor(200,200,200);
-  doc.line(10, y, 95, y);
-  y += 5;
-  doc.setFont("helvetica","bold");
-  doc.setFontSize(11);
-  doc.setTextColor(107,79,58);
-  doc.text("Разом: " + total.toLocaleString("uk-UA") + " ₴", 10, y);
-
-  y += 8;
-  doc.setFont("helvetica","normal");
-  doc.setFontSize(7);
-  doc.setTextColor(150,150,150);
-  doc.text("Підпис майстра: _______________", 10, y);
-  y += 5;
-  doc.text("Підпис клієнта: _______________", 10, y);
-
-  y += 7;
-  doc.setFontSize(7);
-  doc.text("Дякуємо за довіру · Rewise Studio", 52, y, {align:"center"});
-
-  doc.save("Квитанція-" + num + ".pdf");
+  const w = window.open("","_blank");
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Квитанція ${num}</title>
+  <style>
+    @page{size:A6;margin:8mm}
+    body{font-family:Arial,sans-serif;font-size:10px;color:#111;max-width:100mm}
+    h2{font-size:13px;margin:0 0 2px}
+    .sub{color:#888;font-size:8px;margin-bottom:8px}
+    hr{border:none;border-top:1px dashed #ccc;margin:6px 0}
+    .row{display:flex;justify-content:space-between;margin-bottom:3px}
+    .lbl{color:#888}
+    .iblock{margin-bottom:6px}
+    .inum{font-size:9px;font-weight:bold;color:#6B4F3A}
+    .iname{font-weight:bold;margin:2px 0}
+    .isvcs{color:#888;font-size:8px}
+    .total{font-size:13px;font-weight:bold;color:#6B4F3A}
+    .sig{margin-top:10px;display:flex;justify-content:space-between;font-size:8px;color:#888}
+    .footer{margin-top:8px;font-size:7px;color:#aaa;text-align:center}
+    @media print{body{margin:0}}
+  </style></head><body>
+  <h2>Rewise Studio</h2>
+  <div class="sub">Одеса · @rewise.studio · +380 XX XXX XX XX</div>
+  <hr>
+  <div style="font-size:12px;font-weight:bold;margin-bottom:6px">${num}</div>
+  <div class="row"><span class="lbl">Клієнт:</span><span>${gv(order,"Ім'я клієнта")}</span></div>
+  <div class="row"><span class="lbl">Телефон:</span><span>${gv(order,"Телефон")}</span></div>
+  <div class="row"><span class="lbl">Дата:</span><span>${gv(order,"Дата створення")}</span></div>
+  <div class="row"><span class="lbl">Термін:</span><span>${gv(order,"Термін")}</span></div>
+  <div class="row"><span class="lbl">Оплата:</span><span>${gv(order,"Оплата")}</span></div>
+  <hr>
+  ${items.map(item => `<div class="iblock">
+    <div class="inum">${gv(item,"Номер виробу")}</div>
+    <div class="iname">${gv(item,"Тип")} — ${gv(item,"Бренд")}</div>
+    <div class="isvcs">${gv(item,"Послуги")}</div>
+    <div style="text-align:right;font-weight:bold">${gv(item,"Сума")}</div>
+  </div>`).join("<hr style='border-top:1px dotted #eee'>")}
+  <hr>
+  <div class="row total"><span>Разом:</span><span>${total.toLocaleString("uk-UA")} ₴</span></div>
+  <div class="sig">
+    <span>Підпис майстра: ___________</span>
+    <span>Підпис клієнта: ___________</span>
+  </div>
+  <div class="footer">Дякуємо за довіру · Rewise Studio</div>
+  <script>
+    window.onload = function() {
+      window.print();
+    };
+  <\/script>
+  </body></html>`);
+  w.document.close();
 }
 
 async function saveNote(num) {
