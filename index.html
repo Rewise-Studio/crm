@@ -259,7 +259,7 @@ async function loadData() {
       fetch("https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&sheet=%D0%92%D0%B8%D1%80%D0%BE%D0%B1%D0%B8"),
       fetch("https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&sheet=%D0%9F%D0%B0%D1%80%D1%82%D0%BD%D0%B5%D1%80%D0%B8")
     ]);
-    ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус"]);
+    ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка"]);
     ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі"]);
     PARTNERS = await parsePartners(r3);
     if (!PARTNERS.length) PARTNERS = ["Сергей"];
@@ -433,7 +433,29 @@ function openOrder(num) {
     "<div><div class='m-onum'>" + num + "</div><div class='m-cname'>" + gv(order,"Ім'я клієнта") + "</div><div class='m-phone'>" + gv(order,"Телефон") + "</div></div>" +
     "<div class='m-meta' style='margin-left:auto'><div class='m-meta-row'>Приймальник: <strong>" + gv(order,"Приймальник") + "</strong></div><div class='m-meta-row'>Дата: <strong>" + gv(order,"Дата створення") + "</strong></div><div class='m-meta-row'>Статус: <strong>" + gv(order,"Статус") + "</strong></div></div></div>" +
     "<div style='margin-bottom:16px'><div class='sec-title'>Вироби</div>" + itemsHTML + "</div>" +
-    "<div><div class='sec-title'>Деталі</div><div class='info-grid'><div class='info-cell'><div class='info-cell-label'>Оплата</div><div>" + gv(order,"Оплата") + "</div></div><div class='info-cell'><div class='info-cell-label'>Термін</div><div>" + gv(order,"Термін") + "</div></div></div></div>";
+    "<div><div class='sec-title'>Деталі</div><div class='info-grid'><div class='info-cell'><div class='info-cell-label'>Оплата</div><div>" + gv(order,"Оплата") + "</div></div><div class='info-cell'><div class='info-cell-label'>Термін</div><div>" + gv(order,"Термін") + "</div></div></div>" +
+    "<div style='margin-top:12px' id='note-section'></div></div>";
+  // Add note via DOM
+  const noteSection = document.getElementById("note-section");
+  if (noteSection) {
+    const noteLabel = document.createElement("div");
+    noteLabel.className = "info-cell-label";
+    noteLabel.style.marginBottom = "6px";
+    noteLabel.textContent = "Примітка";
+    const noteTA = document.createElement("textarea");
+    noteTA.id = "note-input";
+    noteTA.style.cssText = "width:100%;padding:8px 10px;font-size:13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;background:var(--bg);resize:vertical;min-height:60px";
+    noteTA.placeholder = "Додати примітку...";
+    noteTA.value = gv(order,"Примітка");
+    const noteBtn = document.createElement("button");
+    noteBtn.className = "btn";
+    noteBtn.style.marginTop = "6px";
+    noteBtn.textContent = "Зберегти примітку";
+    noteBtn.onclick = function() { saveNote(num); };
+    noteSection.appendChild(noteLabel);
+    noteSection.appendChild(noteTA);
+    noteSection.appendChild(noteBtn);
+  }
   document.getElementById("modal-footer").innerHTML =
     "<button class='btn' onclick=\"printOrder('" + num + "')\">Роздрукувати</button>" +
     "<button class='btn btn-primary' onclick='closeModal()'>Закрити</button>";
@@ -722,6 +744,28 @@ function downloadPDF(num) {
   doc.text("Дякуємо за довіру · Rewise Studio", 52, y, {align:"center"});
 
   doc.save("Квитанція-" + num + ".pdf");
+}
+
+async function saveNote(num) {
+  const note = document.getElementById("note-input")?.value || "";
+  try {
+    const res = await fetch("https://price-production-97b5.up.railway.app/note", {
+      method: "POST",
+      mode: "cors",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({order_num: num, note: note})
+    });
+    const result = await res.json();
+    if (result.status === "ok") {
+      // Update local data
+      const order = ORDERS.find(o => gv(o,"Номер замовлення") === num);
+      if (order) order["Примітка"] = note;
+      const btn = document.querySelector("#modal-body button[onclick*='saveNote']");
+      if (btn) { btn.textContent = "✓ Збережено"; setTimeout(() => { btn.textContent = "Зберегти примітку"; }, 2000); }
+    }
+  } catch(e) {
+    alert("Помилка збереження: " + e.message);
+  }
 }
 
 async function updateItemStatus(itemNum, status) {
