@@ -1127,15 +1127,15 @@ function goToService() {
   if (!NO.items[curItem].dept) { alert("Оберіть відділ"); return; }
   const type = NO.items[curItem].type;
   const dept = NO.items[curItem].dept;
-  const svcs = SERVICES[type][dept];
+  const svcs = SERVICES[type] ? (SERVICES[type][dept] || []) : [];
   const body = document.getElementById("modal-body");
-  body.innerHTML = "<div class='form-group'><div class='form-label'>Послуга</div><div id='svc-list' style='max-height:300px;overflow-y:auto'></div></div>";
+  body.innerHTML = "<div class='form-group'><div class='form-label'>Послуга</div><div id='svc-list' style='max-height:320px;overflow-y:auto'></div></div>";
   const list = document.getElementById("svc-list");
   svcs.forEach(s => {
     const btn = document.createElement("button");
     btn.className = "svc-btn" + (NO.items[curItem].services === s[0] ? " active" : "");
     btn.innerHTML = "<span>" + s[0] + "</span><span class='svc-price'>" + s[1].toLocaleString("uk-UA") + " ₴</span>";
-    btn.onclick = () => { NO.items[curItem].services = s[0]; NO.items[curItem].price = s[1]; list.querySelectorAll(".svc-btn").forEach(b => b.classList.remove("active")); btn.classList.add("active"); };
+    btn.onclick = function() { NO.items[curItem].services = s[0]; NO.items[curItem].price = s[1]; list.querySelectorAll(".svc-btn").forEach(b => b.classList.remove("active")); btn.classList.add("active"); };
     list.appendChild(btn);
   });
   const manBtn = document.createElement("button");
@@ -1144,7 +1144,19 @@ function goToService() {
   manBtn.innerHTML = "<span>✏️ Ввести вручну</span>";
   manBtn.onclick = showManualSvc;
   list.appendChild(manBtn);
-  document.getElementById("modal-footer").innerHTML = "<button class='btn' onclick='goToDept()'>← Назад</button><button class='btn btn-primary' onclick='goToQty()'>Далі →</button>";
+  // Set footer separately via DOM to avoid conflicts
+  const footer = document.getElementById("modal-footer");
+  footer.innerHTML = "";
+  const backBtn = document.createElement("button");
+  backBtn.className = "btn";
+  backBtn.textContent = "← Назад";
+  backBtn.onclick = goToDept;
+  const nextBtn = document.createElement("button");
+  nextBtn.className = "btn btn-primary";
+  nextBtn.textContent = "Далі →";
+  nextBtn.onclick = goToQty;
+  footer.appendChild(backBtn);
+  footer.appendChild(nextBtn);
 }
 
 function showManualSvc() {
