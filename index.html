@@ -513,7 +513,9 @@ function printPlan() {
       const items = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
       const urgent = gv(o,"Термін") === "Терміново";
       return "<div class='block'><div class='block-head'><div><span class='bnum'>" + num + "</span> · " + gv(o,"Ім'я клієнта") + " · " + gv(o,"Телефон") + "</div><div style='color:#888'>" + (urgent ? "⚡ ТЕРМІНОВО" : gv(o,"Термін")) + "</div></div>" +
-        items.map(i => "<div class='irow'><div class='inum'>" + gv(i,"Номер виробу") + "</div><div class='iname'>" + gv(i,"Тип") + " — " + gv(i,"Бренд") + "</div><div class='isvcs'>" + gv(i,"Послуги") + "</div></div>").join("") + "</div>";
+        items.map(i => "<div class='irow'><div class='inum'>" + gv(i,"Номер виробу") + "</div><div class='iname'>" + gv(i,"Тип") + " — " + gv(i,"Бренд") + "</div><div class='isvcs'>" + gv(i,"Послуги") + "</div></div>").join("") +
+        (gv(o,"Примітка") ? "<div style='padding:6px 12px;font-size:11px;color:#888;border-top:1px solid #f0e8e0;font-style:italic'>📝 " + gv(o,"Примітка") + "</div>" : "") +
+        "</div>";
     }).join("") +
     "<div class='footer'>Rewise Studio · Одеса</div><script>window.onload=()=>window.print()<\/script></body></html>");
 }
