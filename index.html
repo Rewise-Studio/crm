@@ -1105,7 +1105,8 @@ function goToBrand() {
 }
 
 function goToDept() {
-  const brand = document.getElementById("no-brand").value.trim();
+  const brandInput = document.getElementById("no-brand");
+  const brand = brandInput ? brandInput.value.trim() : NO.items[curItem].brand;
   if (!brand) { alert("Введіть бренд або «без бренду»"); return; }
   NO.items[curItem].brand = brand;
   const type = NO.items[curItem].type;
