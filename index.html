@@ -536,8 +536,15 @@ function renderClients() {
   });
   const clients = Object.values(map).filter(c => !q || c.name.toLowerCase().includes(q) || c.phone.includes(q));
   document.getElementById("clients-grid").innerHTML = clients.map(c => {
-    const initials = c.name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
-    return "<div class='ccard'><div class='cavatar'>" + initials + "</div><div class='cname'>" + c.name + "</div><div class='cphone'>" + c.phone + "</div><div class='cmeta'>Замовлень: " + c.orders.length + " · " + c.total.toLocaleString("uk-UA") + " ₴</div></div>";
+    const initials = c.name.split(" ").map(w => w[0]).filter(Boolean).join("").slice(0,2).toUpperCase();
+    const lastOrder = c.orders[c.orders.length-1] || "";
+    const ph = c.phone.replace(/'/g, "");
+    return "<div class='ccard' onclick='openClient(\"" + ph + "\")'>" +
+      "<div class='cavatar'>" + initials + "</div>" +
+      "<div class='cname'>" + c.name + "</div>" +
+      "<div class='cphone'>" + c.phone + "</div>" +
+      "<div class='cmeta'>Замовлень: " + c.orders.length + " · " + c.total.toLocaleString("uk-UA") + " ₴</div>" +
+      "</div>";
   }).join("");
 }
 
@@ -730,6 +737,48 @@ async function saveNote(num) {
   } catch(e) {
     alert("Помилка збереження: " + e.message);
   }
+}
+
+function openClient(phone) {
+  const orders = ORDERS.filter(o => gv(o,"Телефон") === phone);
+  if (!orders.length) return;
+  const clientName = gv(orders[0],"Ім'я клієнта");
+  const total = orders.reduce((sum, o) => {
+    const items = ITEMS.filter(i => gv(i,"Номер замовлення") === gv(o,"Номер замовлення"));
+    return sum + items.reduce((s, i) => s + extractAmt(gv(i,"Сума")), 0);
+  }, 0);
+  const issued = orders.filter(o => getStatus(gv(o,"Номер замовлення")) === "issued").length;
+  const active = orders.length - issued;
+  const dates = orders.map(o => gv(o,"Дата створення")).filter(Boolean);
+  const firstDate = dates[0] || "—";
+  const lastDate = dates[dates.length-1] || "—";
+
+  document.getElementById("modal-title").textContent = clientName;
+
+  let ordersHTML = orders.map(o => {
+    const num = gv(o,"Номер замовлення");
+    const items = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+    const orderTotal = items.reduce((s,i) => s + extractAmt(gv(i,"Сума")), 0);
+    return "<div class='icard' style='cursor:pointer' onclick=\"closeModal();setTimeout(function(){openOrder(\'" + num + "\')},100)\">" +
+      "<div class='icard-head'><span class='inum-badge'>" + num + "</span>" + statusBadge(num) + "</div>" +
+      "<div class='itype' style='font-size:12px;margin-top:4px'>" + gv(o,"Дата створення") + " · " + gv(o,"Приймальник") + "</div>" +
+      "<div class='ifooter' style='margin-top:6px'><div class='idates'>" + items.map(i => gv(i,"Тип") + " — " + gv(i,"Бренд")).join("<br>") + "</div>" +
+      "<div class='iprice'>" + orderTotal.toLocaleString("uk-UA") + " ₴</div></div></div>";
+  }).join("");
+
+  document.getElementById("modal-body").innerHTML =
+    "<div style='display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px'>" +
+    "<div class='info-cell'><div class='info-cell-label'>Загальний обіг</div><div style='font-size:18px;font-weight:500;color:var(--umbra)'>" + total.toLocaleString("uk-UA") + " ₴</div></div>" +
+    "<div class='info-cell'><div class='info-cell-label'>Замовлень</div><div style='font-size:18px;font-weight:500'>" + orders.length + "</div></div>" +
+    "<div class='info-cell'><div class='info-cell-label'>Активних</div><div style='font-size:18px;font-weight:500;color:var(--umbra)'>" + active + "</div></div>" +
+    "</div>" +
+    "<div class='info-cell' style='margin-bottom:16px'><div class='info-cell-label'>Телефон</div><div>" + phone + "</div></div>" +
+    "<div class='info-cell' style='margin-bottom:16px'><div class='info-cell-label'>Перший візит · Останній візит</div><div style='font-size:12px'>" + firstDate + " · " + lastDate + "</div></div>" +
+    "<div class='sec-title' style='margin-bottom:8px'>Замовлення</div>" +
+    ordersHTML;
+
+  document.getElementById("modal-footer").innerHTML = "<button class='btn btn-primary' onclick='closeModal()'>Закрити</button>";
+  document.getElementById("modal-bg").classList.add("open");
 }
 
 async function updateItemStatus(itemNum, status) {
