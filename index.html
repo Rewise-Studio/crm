@@ -11,6 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Tenor+Sans&family=Commissioner:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tenor+Sans&family=Commissioner:wght@300;400;500&display=swap" rel="stylesheet">
 <title>Rewise CRM</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -52,7 +53,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .search-wrap input{padding:7px 12px 7px 32px;font-size:13px;border:1px solid var(--border);border-radius:10px;font-family:inherit;background:var(--card);width:200px}
 .search-wrap input:focus{outline:none;border-color:var(--umbra)}
 .orders-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-.order-row{display:grid;grid-template-columns:40px 110px 1fr 130px 120px 100px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.order-row{display:grid;grid-template-columns:40px 110px 1fr 130px 120px 100px 140px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
 .order-row:last-child{border-bottom:none}
 .order-row:hover{background:var(--bg)}
 .order-row.hdr{background:var(--surface);cursor:default}
@@ -80,7 +81,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn:hover{background:var(--bg)}
 .btn-primary{background:var(--umbra);color:var(--linen);border-color:var(--umbra)}
 .btn-primary:hover{background:var(--umbra2);border-color:var(--umbra2)}
-.btn-new-order{border:1.5px solid rgba(245,240,234,0.2)!important}
 .m-onum{font-size:12px;font-weight:500;color:var(--umbra);margin-bottom:4px}
 .m-cname{font-size:18px;font-weight:500;margin-bottom:3px}
 .m-phone{font-size:13px;color:var(--muted)}
@@ -134,7 +134,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .svc-btn:hover{background:var(--bg);border-color:var(--umbra)}
 .svc-btn.active{background:var(--linen);border-color:var(--umbra)}
 .svc-price{color:var(--umbra);font-weight:500;flex-shrink:0;margin-left:8px}
-@media(max-width:768px){.stats-row{grid-template-columns:repeat(2,1fr)}.order-row{grid-template-columns:36px 100px 1fr 100px}.order-row .cell:nth-child(5),.order-row .cell:nth-child(6){display:none}.analytics-grid{grid-template-columns:1fr}.modal{width:95vw}.page{padding:12px}.search-wrap{margin-left:0;width:100%}.search-wrap input{width:100%}}
+@media(max-width:768px){.stats-row{grid-template-columns:repeat(2,1fr)}.order-row{grid-template-columns:30px 90px 1fr 100px}.cell:nth-child(5),.cell:nth-child(6),.cell:nth-child(7){display:none}.analytics-grid{grid-template-columns:1fr}.modal{width:95vw}.page{padding:12px}.topnav{padding:0 10px;overflow-x:hidden}.topnav-brand{margin-right:14px}.nav-tab{padding:0 8px;font-size:12px}.logout-btn{font-size:0;padding:5px 8px;width:22px;height:22px;display:flex;align-items:center;justify-content:center}.logout-btn::before{content:"⏻";font-size:13px}}
 </style>
 </head>
 <body>
@@ -173,16 +173,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="fbtn" onclick="setFilter('ready',this)">✅ Готові</button>
       <button class="fbtn" onclick="setFilter('issued',this)">📦 Видані</button>
       <button class="fbtn" onclick="setFilter('postponed',this)">⏳ Відкладені</button>
-    </div>
-    <div class="toolbar" style="gap:8px">
-      <div class="search-wrap" style="margin-left:0;flex:1">
+      <div class="search-wrap">
         <span class="search-ico">⌕</span>
-        <input type="text" id="search-input" placeholder="Пошук..." oninput="renderOrders()" style="width:100%">
+        <input type="text" id="search-input" placeholder="Пошук..." oninput="renderOrders()">
       </div>
-      <button class="btn" onclick="printPlan()" style="white-space:nowrap;flex-shrink:0">🖨 План</button>
-    </div>
-    <div style="text-align:center;margin-bottom:14px">
-      <button class="btn btn-primary btn-new-order" onclick="openNewOrder()" style="padding:10px 32px">+ Нове замовлення</button>
+      <button class="btn" onclick="printPlan()" style="white-space:nowrap">🖨 План</button>
+      <button class="btn btn-primary" onclick="openNewOrder()" style="white-space:nowrap">+ Нове замовлення</button>
     </div>
     <div class="toolbar" id="manager-filters" style="margin-top:-6px"></div>
     <div class="orders-wrap">
@@ -193,6 +189,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="cell hdr">Статус</div>
         <div class="cell hdr">Приймальник</div>
         <div class="cell hdr">Термін</div>
+        <div class="cell hdr">Оплата</div>
       </div>
       <div id="orders-body"></div>
     </div>
@@ -408,6 +405,7 @@ function renderOrders() {
       "<div class='cell' style='gap:6px'>" + statusBadge(num) + (urgent ? "<span class='badge b-urgent'>⚡</span>" : "") + "</div>" +
       "<div class='cell' style='color:var(--muted)'>" + gv(o,"Приймальник") + "</div>" +
       "<div class='cell' style='color:" + (urgent ? "#A32D2D" : "var(--muted)") + "'>" + gv(o,"Термін") + "</div>" +
+      "<div class='cell' style='color:var(--muted);font-size:12px'>" + gv(o,"Оплата") + "</div>" +
       "</div>";
   }).join("");
 }
