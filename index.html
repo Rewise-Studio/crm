@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="uk">
 <head>
 <link rel="icon" href="favicon.ico">
@@ -10,7 +11,6 @@
 <meta name="apple-mobile-web-app-title" content="Rewise CRM">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link href="https://fonts.googleapis.com/css2?family=Tenor+Sans&family=Commissioner:wght@300;400;500&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Tenor+Sans&family=Commissioner:wght@300;400;500&display=swap" rel="stylesheet">
 <title>Rewise CRM</title>
 <style>
@@ -489,906 +489,931 @@ function printOrder(num) {
   const se = (v) => stripEmoji(String(v || ""));
   const w = window.open("","_blank");
   w.document.write("<html><head><title>Квитанція " + num + "</title><style>body{font-family:Arial,sans-serif;padding:20px;font-size:13px;max-width:320px}h2{font-size:16px;margin-bottom:2px}.sub{color:#888;font-size:11px;margin-bottom:14px}hr{border:none;border-top:1px dashed #ccc;margin:10px 0}.row{display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px}.label{color:#888}table{width:100%;border-collapse:collapse;margin-top:8px}td{padding:4px 0;font-size:12px;vertical-align:top}td:last-child{text-align:right}.footer{margin-top:14px;font-size:10px;color:#aaa;text-align:center}.sig{margin-top:20px;display:flex;justify-content:space-between;font-size:11px;color:#888}</style></head><body>" +
-    "<h2>Rewise Studio</h2><div class='sub'>Одеса · @rewise.studio · +380 XX XXX XX XX</div><hr>" +
-    "<div class='row'><span class='label'>Замовлення</span><span><b>" + num + "</b></span></div>" +
-    "<div class='row'><span class='label'>Дата</span><span>" + gv(order,"Дата створення") + "</span></div>" +
-    "<div class='row'><span class='label'>Клієнт</span><span>" + gv(order,"Ім'я клієнта") + "</span></div>" +
-    "<div class='row'><span class='label'>Телефон</span><span>" + gv(order,"Телефон") + "</span></div>" +
-    "<div class='row'><span class='label'>Термін</span><span>" + gv(order,"Термін") + "</span></div><hr>" +
-    "<table>" + items.map(i => "<tr><td>" + gv(i,"Номер виробу") + "<br><small style='color:#888'>" + gv(i,"Тип") + " — " + gv(i,"Бренд") + "</small><br><small style='color:#888'>" + gv(i,"Послуги") + "</small></td><td><b>" + gv(i,"Сума") + "</b></td></tr>").join("") + "</table><hr>" +
-    "<div class='row' style='font-size:14px;font-weight:bold'><span>Разом</span><span>" + total.toLocaleString("uk-UA") + " ₴</span></div>" +
-    "<div class='row'><span class='label'>Оплата</span><span>" + gv(order,"Оплата") + "</span></div>" +
-    "<div class='sig'><span>Підпис майстра: _______</span><span>Підпис клієнта: _______</span></div>" +
-    "<div class='footer'>Не є фіскальним чеком · Дякуємо за довіру · Rewise Studio</div>" +
-    "<script>window.onload=()=>window.print()<\/script></body></html>");
+
+```
+"<h2>Rewise Studio</h2><div class='sub'>Одеса · @rewise.studio · +380 XX XXX XX XX</div><hr>" +
+"<div class='row'><span class='label'>Замовлення</span><span><b>" + num + "</b></span></div>" +
+"<div class='row'><span class='label'>Дата</span><span>" + gv(order,"Дата створення") + "</span></div>" +
+"<div class='row'><span class='label'>Клієнт</span><span>" + gv(order,"Ім'я клієнта") + "</span></div>" +
+"<div class='row'><span class='label'>Телефон</span><span>" + gv(order,"Телефон") + "</span></div>" +
+"<div class='row'><span class='label'>Термін</span><span>" + gv(order,"Термін") + "</span></div><hr>" +
+"<table>" + items.map(i => "<tr><td>" + gv(i,"Номер виробу") + "<br><small style='color:#888'>" + gv(i,"Тип") + " — " + gv(i,"Бренд") + "</small><br><small style='color:#888'>" + gv(i,"Послуги") + "</small></td><td><b>" + gv(i,"Сума") + "</b></td></tr>").join("") + "</table><hr>" +
+"<div class='row' style='font-size:14px;font-weight:bold'><span>Разом</span><span>" + total.toLocaleString("uk-UA") + " ₴</span></div>" +
+"<div class='row'><span class='label'>Оплата</span><span>" + gv(order,"Оплата") + "</span></div>" +
+"<div class='sig'><span>Підпис майстра: _______</span><span>Підпис клієнта: _______</span></div>" +
+"<div class='footer'>Не є фіскальним чеком · Дякуємо за довіру · Rewise Studio</div>" +
+"<script>window.onload=()=>window.print()<\/script></body></html>");
+```
+
 }
 
 function printPlan() {
-  const q = (document.getElementById("search-input")?.value || "").toLowerCase();
-  const filtered = ORDERS.filter(o => {
-    const num = gv(o,"Номер замовлення");
-    const st = getStatus(num);
-    const mf = currentFilter === "all" || st === currentFilter;
-    const mm = currentManager === "all" || gv(o,"Приймальник") === currentManager;
-    const mq = !q || gv(o,"Ім'я клієнта").toLowerCase().includes(q) || num.toLowerCase().includes(q);
-    return mf && mm && mq;
-  });
-  if (!filtered.length) { alert("Немає замовлень для друку"); return; }
-  const now = new Date();
-  const pad = n => String(n).padStart(2,"0");
-  const dateStr = pad(now.getDate()) + "." + pad(now.getMonth()+1) + "." + now.getFullYear();
-  const se = (v) => stripEmoji(String(v || ""));
-  const w = window.open("","_blank");
-  w.document.write("<html><head><title>План " + dateStr + "</title><style>body{font-family:Arial,sans-serif;padding:20px;font-size:13px;max-width:700px}h2{font-size:16px;margin-bottom:2px}.sub{color:#888;font-size:12px;margin-bottom:20px}.block{margin-bottom:14px;border:1px solid #e0d9d3;border-radius:8px;overflow:hidden}.block-head{background:#f5f0ea;padding:8px 12px;display:flex;justify-content:space-between}.bnum{font-weight:bold;color:#6B4F3A}.irow{padding:8px 12px;border-top:1px solid #e0d9d3}.inum{font-size:11px;color:#6B4F3A;font-weight:bold;margin-bottom:2px}.iname{font-size:12px;font-weight:500;margin-bottom:2px}.isvcs{font-size:11px;color:#888}.footer{margin-top:16px;font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:10px;text-align:center}</style></head><body>" +
-    "<h2>Rewise Studio — План</h2><div class='sub'>" + dateStr + " · Замовлень: " + filtered.length + "</div>" +
-    filtered.map(o => {
-      const num = gv(o,"Номер замовлення");
-      const items = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
-      const urgent = gv(o,"Термін") === "Терміново";
-      return "<div class='block'><div class='block-head'><div><span class='bnum'>" + num + "</span> · " + gv(o,"Ім'я клієнта") + " · " + gv(o,"Телефон") + "</div><div style='color:#888'>" + (urgent ? "⚡ ТЕРМІНОВО" : gv(o,"Термін")) + "</div></div>" +
-        items.map(i => "<div class='irow'><div class='inum'>" + gv(i,"Номер виробу") + "</div><div class='iname'>" + gv(i,"Тип") + " — " + gv(i,"Бренд") + "</div><div class='isvcs'>" + gv(i,"Послуги") + "</div></div>").join("") +
-        (gv(o,"Примітка") ? "<div style='padding:6px 12px;font-size:11px;color:#888;border-top:1px solid #f0e8e0;font-style:italic'>📝 " + gv(o,"Примітка") + "</div>" : "") +
-        "</div>";
-    }).join("") +
-    "<div class='footer'>Rewise Studio · Одеса</div><script>window.onload=()=>window.print()<\/script></body></html>");
+const q = (document.getElementById(“search-input”)?.value || “”).toLowerCase();
+const filtered = ORDERS.filter(o => {
+const num = gv(o,“Номер замовлення”);
+const st = getStatus(num);
+const mf = currentFilter === “all” || st === currentFilter;
+const mm = currentManager === “all” || gv(o,“Приймальник”) === currentManager;
+const mq = !q || gv(o,“Ім’я клієнта”).toLowerCase().includes(q) || num.toLowerCase().includes(q);
+return mf && mm && mq;
+});
+if (!filtered.length) { alert(“Немає замовлень для друку”); return; }
+const now = new Date();
+const pad = n => String(n).padStart(2,“0”);
+const dateStr = pad(now.getDate()) + “.” + pad(now.getMonth()+1) + “.” + now.getFullYear();
+const se = (v) => stripEmoji(String(v || “”));
+const w = window.open(””,”_blank”);
+w.document.write(”<html><head><title>План “ + dateStr + “</title><style>body{font-family:Arial,sans-serif;padding:20px;font-size:13px;max-width:700px}h2{font-size:16px;margin-bottom:2px}.sub{color:#888;font-size:12px;margin-bottom:20px}.block{margin-bottom:14px;border:1px solid #e0d9d3;border-radius:8px;overflow:hidden}.block-head{background:#f5f0ea;padding:8px 12px;display:flex;justify-content:space-between}.bnum{font-weight:bold;color:#6B4F3A}.irow{padding:8px 12px;border-top:1px solid #e0d9d3}.inum{font-size:11px;color:#6B4F3A;font-weight:bold;margin-bottom:2px}.iname{font-size:12px;font-weight:500;margin-bottom:2px}.isvcs{font-size:11px;color:#888}.footer{margin-top:16px;font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:10px;text-align:center}</style></head><body>” +
+“<h2>Rewise Studio — План</h2><div class='sub'>” + dateStr + “ · Замовлень: “ + filtered.length + “</div>” +
+filtered.map(o => {
+const num = gv(o,“Номер замовлення”);
+const items = ITEMS.filter(i => gv(i,“Номер замовлення”) === num);
+const urgent = gv(o,“Термін”) === “Терміново”;
+return “<div class='block'><div class='block-head'><div><span class='bnum'>” + num + “</span> · “ + gv(o,“Ім’я клієнта”) + “ · “ + gv(o,“Телефон”) + “</div><div style='color:#888'>” + (urgent ? “⚡ ТЕРМІНОВО” : gv(o,“Термін”)) + “</div></div>” +
+items.map(i => “<div class='irow'><div class='inum'>” + gv(i,“Номер виробу”) + “</div><div class='iname'>” + gv(i,“Тип”) + “ — “ + gv(i,“Бренд”) + “</div><div class='isvcs'>” + gv(i,“Послуги”) + “</div></div>”).join(””) +
+(gv(o,“Примітка”) ? “<div style='padding:6px 12px;font-size:11px;color:#888;border-top:1px solid #f0e8e0;font-style:italic'>📝 “ + gv(o,“Примітка”) + “</div>” : “”) +
+“</div>”;
+}).join(””) +
+“<div class='footer'>Rewise Studio · Одеса</div><script>window.onload=()=>window.print()</script></body></html>”);
 }
 
 function renderClients() {
-  const q = (document.getElementById("client-search")?.value || "").toLowerCase();
-  const map = {};
-  ORDERS.forEach(o => {
-    const k = gv(o,"Телефон");
-    if (!map[k]) map[k] = {name: gv(o,"Ім'я клієнта"), phone: k, orders: [], total: 0};
-    const num = gv(o,"Номер замовлення");
-    map[k].orders.push(num);
-    ITEMS.filter(i => gv(i,"Номер замовлення") === num).forEach(i => { map[k].total += extractAmt(gv(i,"Сума")); });
-  });
-  const clients = Object.values(map).filter(c => !q || c.name.toLowerCase().includes(q) || c.phone.includes(q));
-  document.getElementById("clients-grid").innerHTML = clients.map(c => {
-    const initials = c.name.split(" ").map(w => w[0]).filter(Boolean).join("").slice(0,2).toUpperCase();
-    const lastOrder = c.orders[c.orders.length-1] || "";
-    const ph = c.phone.replace(/'/g, "");
-    return "<div class='ccard' onclick='openClient(\"" + ph + "\")'>" +
-      "<div class='cavatar'>" + initials + "</div>" +
-      "<div class='cname'>" + c.name + "</div>" +
-      "<div class='cphone'>" + c.phone + "</div>" +
-      "<div class='cmeta'>Замовлень: " + c.orders.length + " · " + c.total.toLocaleString("uk-UA") + " ₴</div>" +
-      "</div>";
-  }).join("");
+const q = (document.getElementById(“client-search”)?.value || “”).toLowerCase();
+const map = {};
+ORDERS.forEach(o => {
+const k = gv(o,“Телефон”);
+if (!map[k]) map[k] = {name: gv(o,“Ім’я клієнта”), phone: k, orders: [], total: 0};
+const num = gv(o,“Номер замовлення”);
+map[k].orders.push(num);
+ITEMS.filter(i => gv(i,“Номер замовлення”) === num).forEach(i => { map[k].total += extractAmt(gv(i,“Сума”)); });
+});
+const clients = Object.values(map).filter(c => !q || c.name.toLowerCase().includes(q) || c.phone.includes(q));
+document.getElementById(“clients-grid”).innerHTML = clients.map(c => {
+const initials = c.name.split(” “).map(w => w[0]).filter(Boolean).join(””).slice(0,2).toUpperCase();
+const lastOrder = c.orders[c.orders.length-1] || “”;
+const ph = c.phone.replace(/’/g, “”);
+return “<div class='ccard' onclick='openClient(\"" + ph + "\")'>” +
+“<div class='cavatar'>” + initials + “</div>” +
+“<div class='cname'>” + c.name + “</div>” +
+“<div class='cphone'>” + c.phone + “</div>” +
+“<div class='cmeta'>Замовлень: “ + c.orders.length + “ · “ + c.total.toLocaleString(“uk-UA”) + “ ₴</div>” +
+“</div>”;
+}).join(””);
 }
 
-let analyticsPeriod = "month";
+let analyticsPeriod = “month”;
 
 function parseOrderDate(dateStr) {
-  if (!dateStr) return null;
-  const m = dateStr.match(/(\d{2})\.(\d{2})\.(\d{4})/);
-  if (!m) return null;
-  return new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]));
+if (!dateStr) return null;
+const m = dateStr.match(/(\d{2}).(\d{2}).(\d{4})/);
+if (!m) return null;
+return new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]));
 }
 
 function getClientRating(phone) {
-  const orders = ORDERS.filter(o => gv(o,"Телефон") === phone);
-  const issuedDelays = [];
-  orders.forEach(o => {
-    const num = gv(o,"Номер замовлення");
-    const items = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
-    items.forEach(item => {
-      if (gv(item,"Статус") !== "📦 Виданий") return;
-      const ready = parseOrderDate(gv(item,"Дата готово"));
-      const issued = parseOrderDate(gv(item,"Дата видачі"));
-      if (ready && issued) {
-        const days = Math.round((issued - ready) / 86400000);
-        if (days >= 0) issuedDelays.push(days);
-      }
-    });
-  });
-  if (issuedDelays.length < 2) return null; // недостатньо історії — без оцінки
-  const avg = issuedDelays.reduce((a,b) => a+b, 0) / issuedDelays.length;
-  if (avg <= 7) return {level:"good", label:"🟢 Надійний", avg};
-  if (avg <= 14) return {level:"mid", label:"🟡 Звичайний", avg};
-  return {level:"bad", label:"🔴 Уважно", avg};
+const orders = ORDERS.filter(o => gv(o,“Телефон”) === phone);
+const delays = [];
+orders.forEach(o => {
+const num = gv(o,“Номер замовлення”);
+const items = ITEMS.filter(i => gv(i,“Номер замовлення”) === num);
+items.forEach(item => {
+if (gv(item,“Статус”) !== “📦 Виданий”) return;
+const ready = parseOrderDate(gv(item,“Дата готово”));
+const issued = parseOrderDate(gv(item,“Дата видачі”));
+if (ready && issued) {
+const days = Math.round((issued - ready) / 86400000);
+if (days >= 0) delays.push(days);
+}
+});
+});
+if (delays.length < 2) return null;
+const avg = Math.round(delays.reduce((a,b) => a+b, 0) / delays.length);
+if (avg <= 7) return {level:“good”, label:“🟢 Надійний”, avg};
+if (avg <= 14) return {level:“mid”, label:“🟡 Звичайний”, avg};
+return {level:“bad”, label:“🔴 Уважно”, avg};
 }
 
 function clientRatingBadge(phone) {
-  const r = getClientRating(phone);
-  if (!r) return "";
-  const colors = {good:"b-ready", mid:"b-work", bad:"b-urgent"};
-  return "<span class='badge-rating " + colors[r.level] + "' title='Середнє очікування: " + r.avg + " дн.'>" + r.label + "</span>";
+const r = getClientRating(phone);
+if (!r) return “”;
+const colors = {good:“b-ready”, mid:“b-work”, bad:“b-urgent”};
+return “<span class='badge-rating “ + colors[r.level] + “' title='Середнє очікування: “ + r.avg + “ дн.'>” + r.label + “</span>”;
 }
 
 function getAnalyticsDates() {
-  const now = new Date();
-  if (analyticsPeriod === "week") {
-    const from = new Date(now); from.setDate(now.getDate() - 7);
-    return {from, label: "за тиждень"};
-  } else if (analyticsPeriod === "month") {
-    const from = new Date(now.getFullYear(), now.getMonth(), 1);
-    return {from, label: "за місяць"};
-  } else if (analyticsPeriod === "year") {
-    const from = new Date(now.getFullYear(), 0, 1);
-    return {from, label: "за рік"};
-  }
-  return {from: null, label: "за весь час"};
+const now = new Date();
+if (analyticsPeriod === “week”) {
+const from = new Date(now); from.setDate(now.getDate() - 7);
+return {from, label: “за тиждень”};
+} else if (analyticsPeriod === “month”) {
+const from = new Date(now.getFullYear(), now.getMonth(), 1);
+return {from, label: “за місяць”};
+} else if (analyticsPeriod === “year”) {
+const from = new Date(now.getFullYear(), 0, 1);
+return {from, label: “за рік”};
+}
+return {from: null, label: “за весь час”};
 }
 
 function setPeriod(p, btn) {
-  analyticsPeriod = p;
-  document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  renderAnalytics();
+analyticsPeriod = p;
+document.querySelectorAll(”.period-btn”).forEach(b => b.classList.remove(“active”));
+btn.classList.add(“active”);
+renderAnalytics();
 }
 
 function renderAnalytics() {
-  const {from, label} = getAnalyticsDates();
+const {from, label} = getAnalyticsDates();
 
-  const filteredOrders = ORDERS.filter(o => {
-    if (!from) return true;
-    const d = parseOrderDate(gv(o,"Дата створення"));
-    return d && d >= from;
-  });
+const filteredOrders = ORDERS.filter(o => {
+if (!from) return true;
+const d = parseOrderDate(gv(o,“Дата створення”));
+return d && d >= from;
+});
 
-  const filteredOrderNums = new Set(filteredOrders.map(o => gv(o,"Номер замовлення")));
+const filteredOrderNums = new Set(filteredOrders.map(o => gv(o,“Номер замовлення”)));
 
-  const issued = filteredOrders.filter(o => getStatus(gv(o,"Номер замовлення")) === "issued");
-  const issuedItems = ITEMS.filter(i => gv(i,"Статус") === "📦 Виданий" && filteredOrderNums.has(gv(i,"Номер замовлення")));
-  const total = issuedItems.reduce((s,i) => s + extractAmt(gv(i,"Сума")), 0);
-  const avg = issued.length ? Math.round(total / issued.length) : 0;
-  const clients = new Set(filteredOrders.map(o => gv(o,"Телефон"))).size;
-  const active = filteredOrders.filter(o => getStatus(gv(o,"Номер замовлення")) !== "issued").length;
+const issued = filteredOrders.filter(o => getStatus(gv(o,“Номер замовлення”)) === “issued”);
+const issuedItems = ITEMS.filter(i => gv(i,“Статус”) === “📦 Виданий” && filteredOrderNums.has(gv(i,“Номер замовлення”)));
+const total = issuedItems.reduce((s,i) => s + extractAmt(gv(i,“Сума”)), 0);
+const avg = issued.length ? Math.round(total / issued.length) : 0;
+const clients = new Set(filteredOrders.map(o => gv(o,“Телефон”))).size;
+const active = filteredOrders.filter(o => getStatus(gv(o,“Номер замовлення”)) !== “issued”).length;
 
-  document.getElementById("analytics-stats").innerHTML =
-    "<div class='stat-card'><div class='stat-label'>Обіг " + label + "</div><div class='stat-val stat-accent'>" + total.toLocaleString("uk-UA") + " ₴</div></div>" +
-    "<div class='stat-card'><div class='stat-label'>Середній чек</div><div class='stat-val'>" + avg.toLocaleString("uk-UA") + " ₴</div></div>" +
-    "<div class='stat-card'><div class='stat-label'>Клієнтів</div><div class='stat-val'>" + clients + "</div></div>" +
-    "<div class='stat-card'><div class='stat-label'>Замовлень</div><div class='stat-val'>" + filteredOrders.length + "</div></div>";
+document.getElementById(“analytics-stats”).innerHTML =
+“<div class='stat-card'><div class='stat-label'>Обіг “ + label + “</div><div class='stat-val stat-accent'>” + total.toLocaleString(“uk-UA”) + “ ₴</div></div>” +
+“<div class='stat-card'><div class='stat-label'>Середній чек</div><div class='stat-val'>” + avg.toLocaleString(“uk-UA”) + “ ₴</div></div>” +
+“<div class='stat-card'><div class='stat-label'>Клієнтів</div><div class='stat-val'>” + clients + “</div></div>” +
+“<div class='stat-card'><div class='stat-label'>Замовлень</div><div class='stat-val'>” + filteredOrders.length + “</div></div>”;
 
-  // Period buttons
-  document.getElementById("revenue-block").innerHTML =
-    "<div id='period-btns-wrap'></div>" +
-    "<div class='rev-big'>" + total.toLocaleString("uk-UA") + " ₴</div>" +
-    "<div class='rev-sub'>Підтверджений обіг " + label + "</div>" +
-    "<div class='rev-grid'>" +
-    "<div class='rev-cell'><div class='rev-cell-label'>Виданих</div><div class='rev-cell-val'>" + issued.length + "</div></div>" +
-    "<div class='rev-cell'><div class='rev-cell-label'>Середній чек</div><div class='rev-cell-val'>" + avg.toLocaleString("uk-UA") + " ₴</div></div>" +
-    "<div class='rev-cell'><div class='rev-cell-label'>Активних</div><div class='rev-cell-val'>" + active + "</div></div>" +
-    "</div>";
+// Period buttons
+document.getElementById(“revenue-block”).innerHTML =
+“<div id='period-btns-wrap'></div>” +
+“<div class='rev-big'>” + total.toLocaleString(“uk-UA”) + “ ₴</div>” +
+“<div class='rev-sub'>Підтверджений обіг “ + label + “</div>” +
+“<div class='rev-grid'>” +
+“<div class='rev-cell'><div class='rev-cell-label'>Виданих</div><div class='rev-cell-val'>” + issued.length + “</div></div>” +
+“<div class='rev-cell'><div class='rev-cell-label'>Середній чек</div><div class='rev-cell-val'>” + avg.toLocaleString(“uk-UA”) + “ ₴</div></div>” +
+“<div class='rev-cell'><div class='rev-cell-label'>Активних</div><div class='rev-cell-val'>” + active + “</div></div>” +
+“</div>”;
 
-  const svcCount = {};
-  ITEMS.filter(i => filteredOrderNums.has(gv(i,"Номер замовлення"))).forEach(i => {
-    (gv(i,"Послуги") || "").split(",").forEach(s => {
-      const k = s.trim().split("—")[0].trim().slice(0,22);
-      if (k) svcCount[k] = (svcCount[k] || 0) + 1;
-    });
-  });
-  const top = Object.entries(svcCount).sort((a,b) => b[1]-a[1]).slice(0,6);
-  const maxS = top[0] ? top[0][1] : 1;
+const svcCount = {};
+ITEMS.filter(i => filteredOrderNums.has(gv(i,“Номер замовлення”))).forEach(i => {
+(gv(i,“Послуги”) || “”).split(”,”).forEach(s => {
+const k = s.trim().split(”—”)[0].trim().slice(0,22);
+if (k) svcCount[k] = (svcCount[k] || 0) + 1;
+});
+});
+const top = Object.entries(svcCount).sort((a,b) => b[1]-a[1]).slice(0,6);
+const maxS = top[0] ? top[0][1] : 1;
 
-  const mgrMap = {};
-  filteredOrders.forEach(o => {
-    const m = gv(o,"Приймальник") || "—";
-    if (!mgrMap[m]) mgrMap[m] = {orders:0, revenue:0};
-    mgrMap[m].orders++;
-    ITEMS.filter(i => gv(i,"Номер замовлення") === gv(o,"Номер замовлення") && gv(i,"Статус") === "📦 Виданий")
-      .forEach(i => { mgrMap[m].revenue += extractAmt(gv(i,"Сума")); });
-  });
-  const mgrs = Object.entries(mgrMap).sort((a,b) => b[1].revenue-a[1].revenue);
-  const maxM = mgrs[0] ? mgrs[0][1].revenue : 1;
+const mgrMap = {};
+filteredOrders.forEach(o => {
+const m = gv(o,“Приймальник”) || “—”;
+if (!mgrMap[m]) mgrMap[m] = {orders:0, revenue:0};
+mgrMap[m].orders++;
+ITEMS.filter(i => gv(i,“Номер замовлення”) === gv(o,“Номер замовлення”) && gv(i,“Статус”) === “📦 Виданий”)
+.forEach(i => { mgrMap[m].revenue += extractAmt(gv(i,“Сума”)); });
+});
+const mgrs = Object.entries(mgrMap).sort((a,b) => b[1].revenue-a[1].revenue);
+const maxM = mgrs[0] ? mgrs[0][1].revenue : 1;
 
-  // Render period buttons
-  const pbWrap = document.getElementById("period-btns-wrap");
-  if (pbWrap) {
-    pbWrap.style.cssText = "display:flex;gap:8px;margin-bottom:16px";
-    const pLabels = {week:"Тиждень",month:"Місяць",year:"Рік",all:"Весь час"};
-    ["week","month","year","all"].forEach(function(p) {
-      const btn = document.createElement("button");
-      btn.className = analyticsPeriod === p ? "fbtn active" : "fbtn";
-      btn.textContent = pLabels[p];
-      btn.addEventListener("click", function() { setPeriod(p, btn); });
-      pbWrap.appendChild(btn);
-    });
-  }
+// Render period buttons
+const pbWrap = document.getElementById(“period-btns-wrap”);
+if (pbWrap) {
+pbWrap.style.cssText = “display:flex;gap:8px;margin-bottom:16px”;
+const pLabels = {week:“Тиждень”,month:“Місяць”,year:“Рік”,all:“Весь час”};
+[“week”,“month”,“year”,“all”].forEach(function(p) {
+const btn = document.createElement(“button”);
+btn.className = analyticsPeriod === p ? “fbtn active” : “fbtn”;
+btn.textContent = pLabels[p];
+btn.addEventListener(“click”, function() { setPeriod(p, btn); });
+pbWrap.appendChild(btn);
+});
+}
 
-  document.getElementById("analytics-grid").innerHTML =
-    "<div class='chart-card'><div class='chart-title'>Топ послуг " + label + "</div>" +
-    (top.length ? top.map(([n,c]) => "<div class='bar-row'><div class='bar-label'>" + n + "</div><div class='bar-track'><div class='bar-fill' style='width:" + Math.round(c/maxS*100) + "%'></div></div><div class='bar-val'>" + c + " шт.</div></div>").join("") : "<div style='color:var(--muted);font-size:13px'>Немає даних</div>") +
-    "</div><div class='chart-card'><div class='chart-title'>По приймальниках " + label + "</div>" +
-    (mgrs.length ? mgrs.map(([n,d]) => "<div class='bar-row'><div class='bar-label'>" + n + "</div><div class='bar-track'><div class='bar-fill' style='width:" + Math.round(d.revenue/maxM*100) + "%'></div></div><div class='bar-val'>" + d.revenue.toLocaleString("uk-UA") + " ₴</div></div>").join("") : "<div style='color:var(--muted);font-size:13px'>Немає даних</div>") +
-    "</div>";
+document.getElementById(“analytics-grid”).innerHTML =
+“<div class='chart-card'><div class='chart-title'>Топ послуг “ + label + “</div>” +
+(top.length ? top.map(([n,c]) => “<div class='bar-row'><div class='bar-label'>” + n + “</div><div class='bar-track'><div class='bar-fill' style='width:" + Math.round(c/maxS*100) + "%'></div></div><div class='bar-val'>” + c + “ шт.</div></div>”).join(””) : “<div style='color:var(--muted);font-size:13px'>Немає даних</div>”) +
+“</div><div class='chart-card'><div class='chart-title'>По приймальниках “ + label + “</div>” +
+(mgrs.length ? mgrs.map(([n,d]) => “<div class='bar-row'><div class='bar-label'>” + n + “</div><div class='bar-track'><div class='bar-fill' style='width:" + Math.round(d.revenue/maxM*100) + "%'></div></div><div class='bar-val'>” + d.revenue.toLocaleString(“uk-UA”) + “ ₴</div></div>”).join(””) : “<div style='color:var(--muted);font-size:13px'>Немає даних</div>”) +
+“</div>”;
 }
 
 function stripEmoji(str) {
-  if (!str) return "";
-  return str.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{1F300}-\u{1FAFF}]/gu, "").replace(/\s+/g, " ").trim();
+if (!str) return “”;
+return str.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{1F300}-\u{1FAFF}]/gu, “”).replace(/\s+/g, “ “).trim();
 }
 
 function downloadPDF(num) {
-  const order = ORDERS.find(o => gv(o,"Номер замовлення") === num);
-  const items = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
-  const total = items.reduce((s,i) => s + extractAmt(gv(i,"Сума")), 0);
-  const se = (v) => stripEmoji(String(v || ""));
-  const w = window.open("","_blank");
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Квитанція ${num}</title>
-  <style>
-    @page{size:A6;margin:8mm}
-    body{font-family:Arial,sans-serif;font-size:10px;color:#111;max-width:100mm}
-    h2{font-size:13px;margin:0 0 2px}
-    .sub{color:#888;font-size:8px;margin-bottom:8px}
-    hr{border:none;border-top:1px dashed #ccc;margin:6px 0}
-    .row{display:flex;justify-content:space-between;margin-bottom:3px}
-    .lbl{color:#888}
-    .iblock{margin-bottom:6px}
-    .inum{font-size:9px;font-weight:bold;color:#6B4F3A}
-    .iname{font-weight:bold;margin:2px 0}
-    .isvcs{color:#888;font-size:8px}
-    .total{font-size:13px;font-weight:bold;color:#6B4F3A}
-    .sig{margin-top:10px;display:flex;justify-content:space-between;font-size:8px;color:#888}
-    .footer{margin-top:8px;font-size:7px;color:#aaa;text-align:center}
-    @media print{body{margin:0}}
-  </style></head><body>
-  <h2>Rewise Studio</h2>
-  <div class="sub">Одеса · @rewise.studio · +380 XX XXX XX XX</div>
-  <hr>
-  <div style="font-size:12px;font-weight:bold;margin-bottom:6px">${num}</div>
-  <div class="row"><span class="lbl">Клієнт:</span><span>${se(gv(order,"Ім'я клієнта"))}</span></div>
-  <div class="row"><span class="lbl">Телефон:</span><span>${se(gv(order,"Телефон"))}</span></div>
-  <div class="row"><span class="lbl">Дата:</span><span>${se(gv(order,"Дата створення"))}</span></div>
-  <div class="row"><span class="lbl">Термін:</span><span>${se(gv(order,"Термін"))}</span></div>
-  <div class="row"><span class="lbl">Оплата:</span><span>${se(gv(order,"Оплата"))}</span></div>
-  <hr>
-  ${items.map(item => `<div class="iblock">
-    <div class="inum">${se(gv(item,"Номер виробу"))}</div>
-    <div class="iname">${se(gv(item,"Тип"))} — ${se(gv(item,"Бренд"))}</div>
-    <div class="isvcs">${se(gv(item,"Послуги"))}</div>
-    <div style="text-align:right;font-weight:bold">${se(gv(item,"Сума"))}</div>
-  </div>`).join("<hr style='border-top:1px dotted #eee'>")}
-  <hr>
-  <div class="row total"><span>Разом:</span><span>${total.toLocaleString("uk-UA")} ₴</span></div>
-  <div class="sig">
-    <span>Підпис клієнта: ___________________________</span>
-  </div>
-  <div class="footer">Не є фіскальним чеком · Дякуємо за довіру · Rewise Studio</div>
-  <script>
-    window.onload = function() {
-      window.print();
-    };
-  <\/script>
-  </body></html>`);
-  w.document.close();
+const order = ORDERS.find(o => gv(o,“Номер замовлення”) === num);
+const items = ITEMS.filter(i => gv(i,“Номер замовлення”) === num);
+const total = items.reduce((s,i) => s + extractAmt(gv(i,“Сума”)), 0);
+const se = (v) => stripEmoji(String(v || “”));
+
+const receiptHTML =
+“<div style='background:#F0EBE3;border-radius:8px;padding:20px;font-family:Arial,sans-serif;font-size:12px;color:#1E1E1E'>” +
+“<div style='text-align:center;margin-bottom:14px'>” +
+“<div style='font-size:11px;letter-spacing:3px;color:#3A3228;text-transform:uppercase;margin-bottom:3px'>REWISE · STUDIO</div>” +
+“<div style='font-size:9px;letter-spacing:2px;color:#A0845C;text-transform:uppercase'>Квитанція</div>” +
+“</div>” +
+“<div style='border-top:1px solid rgba(58,50,40,0.15);margin-bottom:12px'></div>” +
+“<div style='font-size:10px;color:#3A3228;margin-bottom:10px'>” + se(gv(order,“Дата створення”)) + “</div>” +
+“<div style='background:rgba(160,132,92,0.1);border-radius:5px;padding:10px 12px;margin-bottom:14px;font-size:11px'>” +
+“<div style='display:flex;justify-content:space-between;padding:2px 0'><span style='color:#3A3228'>Клієнт</span><span style='font-weight:600;color:#3A3228'>” + se(gv(order,“Ім’я клієнта”)) + “</span></div>” +
+“<div style='display:flex;justify-content:space-between;padding:2px 0'><span style='color:#3A3228'>Телефон</span><span style='font-weight:600;color:#3A3228'>” + se(gv(order,“Телефон”)) + “</span></div>” +
+“<div style='display:flex;justify-content:space-between;padding:2px 0'><span style='color:#3A3228'>Замовлення</span><span style='font-weight:600;color:#3A3228'>” + num + “</span></div>” +
+“<div style='display:flex;justify-content:space-between;padding:2px 0'><span style='color:#3A3228'>Термін</span><span style='font-weight:600;color:#3A3228'>” + se(gv(order,“Термін”)) + “</span></div>” +
+“</div>” +
+items.map(function(item) {
+return “<div style='margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(58,50,40,0.1)'>” +
+“<div style='display:flex;align-items:baseline;gap:8px;margin-bottom:4px'>” +
+“<span style='font-size:9px;color:#A0845C;letter-spacing:1px'>№” + se(gv(item,“Номер виробу”)) + “</span>” +
+“<span style='font-weight:600;font-size:12px'>” + se(gv(item,“Тип”)) + “ — “ + se(gv(item,“Бренд”)) + “</span>” +
+“</div>” +
+“<div style='display:flex;justify-content:space-between;font-size:12px'>” +
+“<span>” + se(gv(item,“Послуги”)) + “</span>” +
+“<span style='font-weight:600;color:#3A3228;margin-left:8px'>” + se(gv(item,“Сума”)) + “</span>” +
+“</div>” +
+“</div>”;
+}).join(””) +
+“<div style='border-top:1px solid rgba(58,50,40,0.2);margin:12px 0'></div>” +
+“<div style='display:flex;justify-content:space-between;align-items:baseline'>” +
+“<span style='font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#1E1E1E'>Разом</span>” +
+“<span style='font-size:20px;font-weight:700;color:#1E1E1E'>” + total.toLocaleString(“uk-UA”) + “ ₴</span>” +
+“</div>” +
+“<div style='margin-top:16px;font-size:10px;color:rgba(58,50,40,0.7);font-style:italic;text-align:center'>Не є фіскальним чеком</div>” +
+“<div style='margin-top:14px;font-size:10px;color:#3A3228'>Підпис клієнта: ___________________________</div>” +
+“<div style='text-align:center;margin-top:14px;font-size:9px;color:rgba(58,50,40,0.5);letter-spacing:2px;text-transform:uppercase;border-top:1px solid rgba(58,50,40,0.1);padding-top:10px'>rewise-studio · ukraine</div>” +
+“</div>”;
+
+if (window.innerWidth <= 768) {
+document.getElementById(“modal-title”).textContent = “Квитанція “ + num;
+document.getElementById(“modal-body”).innerHTML = receiptHTML;
+document.getElementById(“modal-footer”).innerHTML =
+“<button class='btn' onclick='closeModal()'>← Назад</button>” +
+“<button class='btn btn-primary' onclick='window.print()'>🖨 Друк</button>”;
+document.getElementById(“modal-bg”).classList.add(“open”);
+return;
+}
+
+const w = window.open(””,”_blank”);
+w.document.write(”<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Квитанція “ + num + “</title><link href='https://fonts.googleapis.com/css2?family=Tenor+Sans&family=Commissioner:wght@400;500;600&display=swap' rel='stylesheet'><style>*{box-sizing:border-box;margin:0;padding:0}body{background:#F0EBE3;font-family:Commissioner,Arial,sans-serif;font-weight:500;display:flex;justify-content:center;padding:20px}#receipt{background:#F0EBE3;padding:40px 36px;max-width:480px;width:100%}.rh{text-align:center;padding-bottom:20px;border-bottom:1px solid rgba(58,50,40,0.15);margin-bottom:20px}.rl{font-family:‘Tenor Sans’,serif;font-size:13px;letter-spacing:0.25em;color:#3A3228;text-transform:uppercase;margin-bottom:4px}.rt{font-size:10px;color:#3A3228;letter-spacing:0.15em;text-transform:uppercase}.rm{font-size:11px;color:#1E1E1E;margin-bottom:16px}.rc{background:rgba(160,132,92,0.1);border-radius:5px;padding:12px 16px;margin-bottom:20px;font-size:12px}.rcr{display:flex;justify-content:space-between;padding:3px 0}.rcl{color:#3A3228}.rcv{color:#3A3228;font-weight:600}.ri{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(58,50,40,0.1)}.ri:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}.rit{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}.rin{font-family:‘Tenor Sans’,serif;font-size:10px;color:#A0845C;letter-spacing:0.15em}.rina{font-size:13px;font-weight:600;color:#1E1E1E}.ris{display:flex;justify-content:space-between;font-size:13px;color:#1E1E1E;font-weight:500}.risp{color:#3A3228;font-weight:600}.div{border:none;border-top:1px solid rgba(58,50,40,0.2);margin:18px 0}.tot{display:flex;justify-content:space-between;align-items:baseline}.totl{font-size:11px;color:#1E1E1E;text-transform:uppercase;letter-spacing:0.1em}.tota{font-family:‘Tenor Sans’,serif;font-size:22px;color:#1E1E1E}.note{font-size:10px;color:rgba(58,50,40,0.75);text-align:center;margin-top:16px;line-height:1.6;font-style:italic}.sig{margin-top:20px;padding-top:14px;border-top:1px solid rgba(58,50,40,0.1);font-size:12px;color:#3A3228}.foot{text-align:center;margin-top:16px;padding-top:14px;border-top:1px solid rgba(58,50,40,0.1);font-size:9px;color:rgba(58,50,40,0.55);letter-spacing:0.2em;text-transform:uppercase}@page{size:A6;margin:8mm}@media print{body{background:#F0EBE3;padding:0}#receipt{padding:20px}}</style></head><body><div id='receipt'>” +
+“<div class='rh'><div class='rl'>REWISE · STUDIO</div><div class='rt'>Квитанція</div></div>” +
+“<div class='rm'>” + se(gv(order,“Дата створення”)) + “</div>” +
+“<div class='rc'>” +
+“<div class='rcr'><span class='rcl'>Клієнт</span><span class='rcv'>” + se(gv(order,“Ім’я клієнта”)) + “</span></div>” +
+“<div class='rcr'><span class='rcl'>Телефон</span><span class='rcv'>” + se(gv(order,“Телефон”)) + “</span></div>” +
+“<div class='rcr'><span class='rcl'>Замовлення</span><span class='rcv'>” + num + “</span></div>” +
+“<div class='rcr'><span class='rcl'>Термін</span><span class='rcv'>” + se(gv(order,“Термін”)) + “</span></div>” +
+“</div>” +
+“<div>” + items.map(function(item) {
+return “<div class='ri'>” +
+“<div class='rit'><span class='rin'>№” + se(gv(item,“Номер виробу”)) + “</span><span class='rina'>” + se(gv(item,“Тип”)) + “ — “ + se(gv(item,“Бренд”)) + “</span></div>” +
+“<div class='ris'><span>” + se(gv(item,“Послуги”)) + “</span><span class='risp'>” + se(gv(item,“Сума”)) + “</span></div>” +
+“</div>”;
+}).join(””) + “</div>” +
+“<hr class='div'>” +
+“<div class='tot'><span class='totl'>Разом</span><span class='tota'>” + total.toLocaleString(“uk-UA”) + “ ₴</span></div>” +
+“<div class='note'>Не є фіскальним чеком</div>” +
+“<div class='sig'>Підпис клієнта: ___________________________</div>” +
+“<div class='foot'>rewise-studio · ukraine</div>” +
+“</div><script>window.onload=function(){window.print()}</script></body></html>”);
+w.document.close();
 }
 
 async function saveNote(num) {
-  const note = document.getElementById("note-input")?.value || "";
-  try {
-    const res = await fetch("https://price-production-97b5.up.railway.app/note", {
-      method: "POST",
-      mode: "cors",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({order_num: num, note: note})
-    });
-    const result = await res.json();
-    if (result.status === "ok") {
-      // Update local data
-      const order = ORDERS.find(o => gv(o,"Номер замовлення") === num);
-      if (order) order["Примітка"] = note;
-      const btn = document.querySelector("#modal-body button[onclick*='saveNote']");
-      if (btn) { btn.textContent = "✓ Збережено"; setTimeout(() => { btn.textContent = "Зберегти примітку"; }, 2000); }
-    }
-  } catch(e) {
-    alert("Помилка збереження: " + e.message);
-  }
+const note = document.getElementById(“note-input”)?.value || “”;
+try {
+const res = await fetch(“https://price-production-97b5.up.railway.app/note”, {
+method: “POST”,
+mode: “cors”,
+headers: {“Content-Type”: “application/json”},
+body: JSON.stringify({order_num: num, note: note})
+});
+const result = await res.json();
+if (result.status === “ok”) {
+// Update local data
+const order = ORDERS.find(o => gv(o,“Номер замовлення”) === num);
+if (order) order[“Примітка”] = note;
+const btn = document.querySelector(”#modal-body button[onclick*=‘saveNote’]”);
+if (btn) { btn.textContent = “✓ Збережено”; setTimeout(() => { btn.textContent = “Зберегти примітку”; }, 2000); }
+}
+} catch(e) {
+alert(“Помилка збереження: “ + e.message);
+}
 }
 
 function openClient(phone) {
-  const orders = ORDERS.filter(o => gv(o,"Телефон") === phone);
-  if (!orders.length) return;
-  const clientName = gv(orders[0],"Ім'я клієнта");
-  const total = orders.reduce((sum, o) => {
-    const items = ITEMS.filter(i => gv(i,"Номер замовлення") === gv(o,"Номер замовлення"));
-    return sum + items.reduce((s, i) => s + extractAmt(gv(i,"Сума")), 0);
-  }, 0);
-  const issued = orders.filter(o => getStatus(gv(o,"Номер замовлення")) === "issued").length;
-  const active = orders.length - issued;
-  const dates = orders.map(o => gv(o,"Дата створення")).filter(Boolean);
-  const firstDate = dates[0] || "—";
-  const lastDate = dates[dates.length-1] || "—";
+const orders = ORDERS.filter(o => gv(o,“Телефон”) === phone);
+if (!orders.length) return;
+const clientName = gv(orders[0],“Ім’я клієнта”);
+const total = orders.reduce((sum, o) => {
+const items = ITEMS.filter(i => gv(i,“Номер замовлення”) === gv(o,“Номер замовлення”));
+return sum + items.reduce((s, i) => s + extractAmt(gv(i,“Сума”)), 0);
+}, 0);
+const issued = orders.filter(o => getStatus(gv(o,“Номер замовлення”)) === “issued”).length;
+const active = orders.length - issued;
+const dates = orders.map(o => gv(o,“Дата створення”)).filter(Boolean);
+const firstDate = dates[0] || “—”;
+const lastDate = dates[dates.length-1] || “—”;
 
-  document.getElementById("modal-title").textContent = clientName;
+document.getElementById(“modal-title”).textContent = clientName;
 
-  const rating = getClientRating(phone);
-  let ratingHTML = "";
-  if (rating) {
-    const colors = {good:"b-ready", mid:"b-work", bad:"b-urgent"};
-    const descs = {good:"Забирає вчасно", mid:"Бувають затримки", bad:"Системно затримує отримання"};
-    ratingHTML = "<div class='info-cell' style='margin-bottom:16px;display:flex;align-items:center;justify-content:space-between'>" +
-      "<div><div class='info-cell-label'>Рейтинг клієнта</div><div style='font-size:13px;color:var(--muted)'>" + descs[rating.level] + " · в середньому " + rating.avg + " дн.</div></div>" +
-      "<span class='badge " + colors[rating.level] + "'>" + rating.label + "</span></div>";
-  }
+const rating = getClientRating(phone);
+let ratingHTML = “”;
+if (rating) {
+const rColors = {good:“b-ready”, mid:“b-work”, bad:“b-urgent”};
+const rDescs = {good:“Забирає вчасно”, mid:“Бувають затримки”, bad:“Системно затримує”};
+ratingHTML = “<div class='info-cell' style='margin-bottom:16px;display:flex;align-items:center;justify-content:space-between'>” +
+“<div><div class='info-cell-label'>Рейтинг клієнта</div><div style='font-size:12px;color:var(--muted)'>” + rDescs[rating.level] + “ · “ + rating.avg + “ дн. в середньому</div></div>” +
+“<span class='badge " + rColors[rating.level] + "'>” + rating.label + “</span></div>”;
+}
 
-  let ordersHTML = orders.map(o => {
-    const num = gv(o,"Номер замовлення");
-    const items = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
-    const orderTotal = items.reduce((s,i) => s + extractAmt(gv(i,"Сума")), 0);
-    return "<div class='icard' style='cursor:pointer' onclick=\"closeModal();setTimeout(function(){openOrder(\'" + num + "\')},100)\">" +
-      "<div class='icard-head'><span class='inum-badge'>" + num + "</span>" + statusBadge(num) + "</div>" +
-      "<div class='itype' style='font-size:12px;margin-top:4px'>" + gv(o,"Дата створення") + " · " + gv(o,"Приймальник") + "</div>" +
-      "<div class='ifooter' style='margin-top:6px'><div class='idates'>" + items.map(i => gv(i,"Тип") + " — " + gv(i,"Бренд")).join("<br>") + "</div>" +
-      "<div class='iprice'>" + orderTotal.toLocaleString("uk-UA") + " ₴</div></div></div>";
-  }).join("");
+let ordersHTML = orders.map(o => {
+const num = gv(o,“Номер замовлення”);
+const items = ITEMS.filter(i => gv(i,“Номер замовлення”) === num);
+const orderTotal = items.reduce((s,i) => s + extractAmt(gv(i,“Сума”)), 0);
+return “<div class=‘icard’ style=‘cursor:pointer’ onclick="closeModal();setTimeout(function(){openOrder('” + num + “')},100)">” +
+“<div class='icard-head'><span class='inum-badge'>” + num + “</span>” + statusBadge(num) + “</div>” +
+“<div class='itype' style='font-size:12px;margin-top:4px'>” + gv(o,“Дата створення”) + “ · “ + gv(o,“Приймальник”) + “</div>” +
+“<div class='ifooter' style='margin-top:6px'><div class='idates'>” + items.map(i => gv(i,“Тип”) + “ — “ + gv(i,“Бренд”)).join(”<br>”) + “</div>” +
+“<div class='iprice'>” + orderTotal.toLocaleString(“uk-UA”) + “ ₴</div></div></div>”;
+}).join(””);
 
-  document.getElementById("modal-body").innerHTML =
-    "<div style='display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px'>" +
-    "<div class='info-cell'><div class='info-cell-label'>Загальний обіг</div><div style='font-size:18px;font-weight:500;color:var(--umbra)'>" + total.toLocaleString("uk-UA") + " ₴</div></div>" +
-    "<div class='info-cell'><div class='info-cell-label'>Замовлень</div><div style='font-size:18px;font-weight:500'>" + orders.length + "</div></div>" +
-    "<div class='info-cell'><div class='info-cell-label'>Активних</div><div style='font-size:18px;font-weight:500;color:var(--umbra)'>" + active + "</div></div>" +
-    "</div>" +
-    ratingHTML +
-    "<div class='info-cell' style='margin-bottom:16px'><div class='info-cell-label'>Телефон</div><div>" + phone + "</div></div>" +
-    "<div class='info-cell' style='margin-bottom:16px'><div class='info-cell-label'>Перший візит · Останній візит</div><div style='font-size:12px'>" + firstDate + " · " + lastDate + "</div></div>" +
-    "<div class='sec-title' style='margin-bottom:8px'>Замовлення</div>" +
-    ordersHTML;
+document.getElementById(“modal-body”).innerHTML =
+“<div style='display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px'>” +
+“<div class='info-cell'><div class='info-cell-label'>Загальний обіг</div><div style='font-size:18px;font-weight:500;color:var(--umbra)'>” + total.toLocaleString(“uk-UA”) + “ ₴</div></div>” +
+“<div class='info-cell'><div class='info-cell-label'>Замовлень</div><div style='font-size:18px;font-weight:500'>” + orders.length + “</div></div>” +
+“<div class='info-cell'><div class='info-cell-label'>Активних</div><div style='font-size:18px;font-weight:500;color:var(--umbra)'>” + active + “</div></div>” +
+“</div>” +
+ratingHTML +
+“<div class='info-cell' style='margin-bottom:16px'><div class='info-cell-label'>Телефон</div><div>” + phone + “</div></div>” +
+“<div class='info-cell' style='margin-bottom:16px'><div class='info-cell-label'>Перший візит · Останній візит</div><div style='font-size:12px'>” + firstDate + “ · “ + lastDate + “</div></div>” +
+“<div class='sec-title' style='margin-bottom:8px'>Замовлення</div>” +
+ordersHTML;
 
-  document.getElementById("modal-footer").innerHTML = "<button class='btn btn-primary' onclick='closeModal()'>Закрити</button>";
-  document.getElementById("modal-bg").classList.add("open");
+document.getElementById(“modal-footer”).innerHTML = “<button class='btn btn-primary' onclick='closeModal()'>Закрити</button>”;
+document.getElementById(“modal-bg”).classList.add(“open”);
 }
 
 async function updateItemStatus(itemNum, status) {
-  try {
-    const res = await fetch("https://price-production-97b5.up.railway.app/status", {
-      method: "POST",
-      mode: "cors",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({item_num: itemNum, status: status})
-    });
-    const result = await res.json();
-    if (result.status === "ok") {
-      await loadData();
-      // Reopen the order card
-      const orderNum = itemNum.rsplit ? itemNum.split("-").slice(0,2).join("-") : itemNum.split("-").slice(0,2).join("-");
-      openOrder(orderNum);
-    }
-  } catch(e) {
-    alert("Помилка оновлення статусу: " + e.message);
-  }
+try {
+const res = await fetch(“https://price-production-97b5.up.railway.app/status”, {
+method: “POST”,
+mode: “cors”,
+headers: {“Content-Type”: “application/json”},
+body: JSON.stringify({item_num: itemNum, status: status})
+});
+const result = await res.json();
+if (result.status === “ok”) {
+await loadData();
+// Reopen the order card
+const orderNum = itemNum.rsplit ? itemNum.split(”-”).slice(0,2).join(”-”) : itemNum.split(”-”).slice(0,2).join(”-”);
+openOrder(orderNum);
+}
+} catch(e) {
+alert(“Помилка оновлення статусу: “ + e.message);
+}
 }
 
 function showPage(name, tab) {
-  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-  document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
-  document.getElementById("page-" + name).classList.add("active");
-  tab.classList.add("active");
+document.querySelectorAll(”.page”).forEach(p => p.classList.remove(“active”));
+document.querySelectorAll(”.nav-tab”).forEach(t => t.classList.remove(“active”));
+document.getElementById(“page-” + name).classList.add(“active”);
+tab.classList.add(“active”);
 }
 
 // ─── NEW ORDER ────────────────────────────────────────────────────────────────
 const SERVICES = {
-  shoes: {
-    cleaning: [
-      ["Чистка — літнє взуття",1200],
-      ["Чистка — низьке взуття",1400],
-      ["Чистка — середнє взуття",1600],
-      ["Чистка — високі чоботи",1800],
-      ["Чистка — UGG та хутряне",1400],
-      ["Базовий догляд — низьке взуття",1400],
-      ["Базовий догляд — середнє взуття",1600],
-      ["Базовий догляд — високі чоботи",1800],
-      ["Базовий догляд — UGG та хутряне",1400],
-    ],
-    painting: [
-      ["Фарбування — літнє взуття",1400],
-      ["Фарбування — низьке взуття",1800],
-      ["Фарбування — середнє взуття",2000],
-      ["Фарбування — високі чоботи",2800],
-      ["Фарбування — UGG та хутряне",1800],
-      ["Фарбування / відбілювання Midsole (бокова частина підошви)",1100],
-      ["Відбілювання підошви взуття Loro Piana",1100],
-      ["Фарбування каблуків",900],
-      ["Фарбування ранта взуття",700],
-      ["Фарбування танкетки",1200],
-      ["Глясаж — полірування гладкої шкіри до блиску (окрема послуга)",600],
-      ["Реставрація — літнє взуття",1600],
-      ["Реставрація — низьке взуття",2000],
-      ["Реставрація — середнє взуття",2200],
-      ["Реставрація — високі чоботи",3200],
-      ["Реставрація — UGG та хутряне",2400],
-      ["Реставрація носочної частини взуття",1200],
-      ["Реставрація каблуків (гладка шкіра)",900],
-      ["Реставрація каблуків (лакова шкіра)",1200],
-      ["Реставрація устілок — відкрите літнє взуття",1200],
-      ["Усунення пошкоджень верху взуття",1000],
-    ],
-    heels: [
-      ["Набійки листові",700],
-      ["Набійки формовані",850],
-      ["Набійки штифтові поліуретанові",550],
-      ["Набійки металеві",700],
-      ["Нарощування каблуків",400],
-      ["Вирівнювання каблука під набійку",250],
-      ["Демонтаж металевого штифта",250],
-      ["Заміна каблуків без обтяжки",1800],
-      ["Заміна каблуків з обтяжкою шкірою",2600],
-      ["Заміна обтяжки каблуків — нова набійка включена",2400],
-      ["Заміна обтяжки танкетки",2600],
-      ["Закріплення каблука",400],
-    ],
-    sole: [
-      ["Профілактика жіноча",1200],
-      ["Профілактика чоловіча",1200],
-      ["Профілактика жіноча комбінована",1500],
-      ["Профілактика на всю площу підошви",1400],
-      ["Профілактика повний слід спортивного взуття",1800],
-      ["Нарощування носочної частини підошви",400],
-      ["Полірування ранта взуття",400],
-      ["Локальна підклейка",300],
-      ["Підклейка підошви по периметру",600],
-      ["Переклейка підошви / сліду",900],
-      ["Переклейка + прошивка підошви",1400],
-      ["Підклейка / переклейка устілок",400],
-      ["Прошивка підошви",800],
-      ["Прошивка підошви сегментами",600],
-      ["Виготовлення та заміна основних устілок із картону",700],
-      ["Перетяжка основних устілок — відкрите взуття",2600],
-      ["Перетяжка устілок у носочній частині — відкрите взуття",1600],
-      ["Тиснення брендового лого на устілці",600],
-      ["Заміна задників взуття",900],
-      ["Заміна задників з розбором підошви",1300],
-      ["Заміна гумової підошви",2400],
-      ["Заміна підошви кожволон",3000],
-      ["Заміна шкіряної підошви — клейовий метод",4000],
-      ["Заміна шкіряної підошви — прошивний метод",6000],
-      ["Заміна підошви Loro Piana",4000],
-      ["Заміна підошви Golden Goose",4000],
-      ["Заміна супінатора",600],
-    ],
-    sewing: [
-      ["Відновлення машинної строчки (одне місце)",300],
-      ["Відновлення ручної строчки (одне місце)",500],
-      ["Виготовлення та заміна шкіряних устілок — закрите взуття",900],
-      ["Виготовлення та заміна шкіряних устілок — відкрите взуття",900],
-      ["Заміна підкладки задника із сітки",1600],
-      ["Заміна підкладки задника Balenciaga",1800],
-      ["Заміна кармана задника зі шкіри",1300],
-      ["Заміна підкладки задника зі шкіри",2000],
-      ["Внутрішня латка",450],
-      ["Декоративна латка",600],
-      ["Виготовлення та заміна нової деталі взуття",700],
-      ["Заміна союзки у кросівках",1600],
-      ["Внутрішня латка у носочній частині кросівок",400],
-      ["Заміна деталей верху у босоніжках",2800],
-      ["Ушивання халяви — по висоті",1600],
-      ["Ушивання халяви — по ширині",2000],
-      ["Заміна резинок з обтяжкою шкірою",900],
-      ["Заміна резинок на пряжках взуття",500],
-      ["Заміна взуттєвої резинки в халяві",500],
-      ["Вшивання резинок в халяву",1600],
-      ["Заміна липучок",550],
-      ["Виготовлення та заміна ремінців взуття",1600],
-    ],
-    zippers: [
-      ["Заміна блискавки до 20 см (без вартості матеріалу)",700],
-      ["Заміна блискавки від 21 см (без вартості матеріалу)",900],
-      ["Заміна бігунка блискавки",300],
-      ["Врізання блискавки у халяву (без вартості матеріалу)",2200],
-    ],
-    stretch: [
-      ["Розтяжка взуття у підйомі / ширина",600],
-      ["Розтяжка халяви чобіт / черевиків",1000],
-    ],
-    hardware: [
-      ["Заміна гачків + резинка",500],
-      ["Заміна пряжки (без вартості матеріалу)",450],
-      ["Заміна блочка та люверса",200],
-      ["Заміна кнопки (без розбору виробу)",200],
-    ],
-  },
-  bags: {
-    cleaning: [
-      ["Чистка — шкіряна сумка S",1400],
-      ["Чистка — шкіряна сумка M",1600],
-      ["Чистка — шкіряна сумка L",1800],
-      ["Чистка — текстильна сумка S",1400],
-      ["Чистка — текстильна сумка M",1600],
-      ["Чистка — текстильна сумка L",1800],
-    ],
-    painting: [
-      ["Фарбування — шкіряна сумка S",1800],
-      ["Фарбування — шкіряна сумка M",2200],
-      ["Фарбування — шкіряна сумка L",2600],
-      ["Фарбування — поясний ремінь",1400],
-      ["Реставрація — шкіряна сумка S",2200],
-      ["Реставрація — шкіряна сумка M",2700],
-      ["Реставрація — шкіряна сумка L",3200],
-      ["Локальна реставрація шкіри сумки",1000],
-      ["Реставрація кутиків сумки",450],
-      ["Реставрация ручок сумки",1600],
-      ["Реставрація плечового ременя сумки",1600],
-    ],
-    edges: [
-      ["Торцювання урізу шкіри",12],
-      ["Торцювання ручок сумки (2 сторони)",1200],
-      ["Торцювання ручок сумки (4 сторони)",1400],
-      ["Торцювання плечового ременя сумки",1400],
-      ["Торцювання тренчика / пулера / тримача ручок",400],
-    ],
-    sewing: [
-      ["Відновлення машинного шва сумки",300],
-      ["Підклейка шкіри / деталі сумки",300],
-      ["Ремонт кріплення ручок сумки (без заміни деталей)",450],
-      ["Виготовлення шкіряного пулера на бігунок",500],
-      ["Виготовлення та заміна тренчика сумки",500],
-      ["Виготовлення та перешивання деталей сумки",900],
-      ["Виготовлення та заміна настрочних кріплень ручок сумки",600],
-      ["Виготовлення та заміна втачних кріплень ручок сумки",400],
-      ["Заміна канту у гаманці / клатчі",1200],
-      ["Заміна окантовки сумки — кедер",1200],
-    ],
-    hardware: [
-      ["Заміна карабіна сумки (без вартості матеріалу)",250],
-      ["Заміна пряжки ременя сумки (без вартості матеріалу)",250],
-      ["Заміна кнопки / заклепки / люверса сумки",200],
-      ["Заміна магніту сумки (без вартості матеріалу)",500],
-      ["Встановлення декоративної латки",900],
-      ["Встановлення внутрішньої латки",450],
-      ["Встановлення кільця / напівкільця (без вартості матеріалу)",250],
-    ],
-    zippers: [
-      ["Заміна блискавки сумки до 25 см (без вартості матеріалу)",1400],
-      ["Заміна блискавки сумки від 25 см (без вартості матеріалу)",1600],
-      ["Заміна блискавки у гаманці / органайзері (без вартості матеріалу)",1800],
-      ["Заміна блискавки рюкзака / великої сумки (без вартості матеріалу)",1600],
-      ["Заміна бігунка блискавки сумки",300],
-    ],
-    handles: [
-      ["Вкорочення плечового ременя сумки",450],
-      ["Заміна плечового ременя сумки з підбором шкіри",2000],
-      ["Заміна ручок сумки типу шопер",1600],
-      ["Заміна ручок шкіряної сумки з підбором шкіри",2800],
-      ["Заміна ручок рюкзака з наповнювачем",3200],
-      ["Пробивання отворів в плечовому ремені",200],
-    ],
-    lining: [
-      ["Заміна підкладки — сумка S",1800],
-      ["Заміна підкладки — сумка M",2200],
-      ["Заміна підкладки — сумка L",2600],
-      ["Заміна підкладки — гаманець / органайзер",2600],
-    ],
-    belt: [
-      ["Пробивання отворів",200],
-      ["Вкорочення шкіряного поясного ременя",450],
-      ["Вкорочення поясного ременя з перешиванням пряжки",600],
-      ["Заміна підкладу поясного ременя",2000],
-      ["Реставрація поясного ременя (проклейка, прошивка)",800],
-    ],
-  },
+shoes: {
+cleaning: [
+[“Чистка — літнє взуття”,1200],
+[“Чистка — низьке взуття”,1400],
+[“Чистка — середнє взуття”,1600],
+[“Чистка — високі чоботи”,1800],
+[“Чистка — UGG та хутряне”,1400],
+[“Базовий догляд — низьке взуття”,1400],
+[“Базовий догляд — середнє взуття”,1600],
+[“Базовий догляд — високі чоботи”,1800],
+[“Базовий догляд — UGG та хутряне”,1400],
+],
+painting: [
+[“Фарбування — літнє взуття”,1400],
+[“Фарбування — низьке взуття”,1800],
+[“Фарбування — середнє взуття”,2000],
+[“Фарбування — високі чоботи”,2800],
+[“Фарбування — UGG та хутряне”,1800],
+[“Фарбування / відбілювання Midsole (бокова частина підошви)”,1100],
+[“Відбілювання підошви взуття Loro Piana”,1100],
+[“Фарбування каблуків”,900],
+[“Фарбування ранта взуття”,700],
+[“Фарбування танкетки”,1200],
+[“Глясаж — полірування гладкої шкіри до блиску (окрема послуга)”,600],
+[“Реставрація — літнє взуття”,1600],
+[“Реставрація — низьке взуття”,2000],
+[“Реставрація — середнє взуття”,2200],
+[“Реставрація — високі чоботи”,3200],
+[“Реставрація — UGG та хутряне”,2400],
+[“Реставрація носочної частини взуття”,1200],
+[“Реставрація каблуків (гладка шкіра)”,900],
+[“Реставрація каблуків (лакова шкіра)”,1200],
+[“Реставрація устілок — відкрите літнє взуття”,1200],
+[“Усунення пошкоджень верху взуття”,1000],
+],
+heels: [
+[“Набійки листові”,700],
+[“Набійки формовані”,850],
+[“Набійки штифтові поліуретанові”,550],
+[“Набійки металеві”,700],
+[“Нарощування каблуків”,400],
+[“Вирівнювання каблука під набійку”,250],
+[“Демонтаж металевого штифта”,250],
+[“Заміна каблуків без обтяжки”,1800],
+[“Заміна каблуків з обтяжкою шкірою”,2600],
+[“Заміна обтяжки каблуків — нова набійка включена”,2400],
+[“Заміна обтяжки танкетки”,2600],
+[“Закріплення каблука”,400],
+],
+sole: [
+[“Профілактика жіноча”,1200],
+[“Профілактика чоловіча”,1200],
+[“Профілактика жіноча комбінована”,1500],
+[“Профілактика на всю площу підошви”,1400],
+[“Профілактика повний слід спортивного взуття”,1800],
+[“Нарощування носочної частини підошви”,400],
+[“Полірування ранта взуття”,400],
+[“Локальна підклейка”,300],
+[“Підклейка підошви по периметру”,600],
+[“Переклейка підошви / сліду”,900],
+[“Переклейка + прошивка підошви”,1400],
+[“Підклейка / переклейка устілок”,400],
+[“Прошивка підошви”,800],
+[“Прошивка підошви сегментами”,600],
+[“Виготовлення та заміна основних устілок із картону”,700],
+[“Перетяжка основних устілок — відкрите взуття”,2600],
+[“Перетяжка устілок у носочній частині — відкрите взуття”,1600],
+[“Тиснення брендового лого на устілці”,600],
+[“Заміна задників взуття”,900],
+[“Заміна задників з розбором підошви”,1300],
+[“Заміна гумової підошви”,2400],
+[“Заміна підошви кожволон”,3000],
+[“Заміна шкіряної підошви — клейовий метод”,4000],
+[“Заміна шкіряної підошви — прошивний метод”,6000],
+[“Заміна підошви Loro Piana”,4000],
+[“Заміна підошви Golden Goose”,4000],
+[“Заміна супінатора”,600],
+],
+sewing: [
+[“Відновлення машинної строчки (одне місце)”,300],
+[“Відновлення ручної строчки (одне місце)”,500],
+[“Виготовлення та заміна шкіряних устілок — закрите взуття”,900],
+[“Виготовлення та заміна шкіряних устілок — відкрите взуття”,900],
+[“Заміна підкладки задника із сітки”,1600],
+[“Заміна підкладки задника Balenciaga”,1800],
+[“Заміна кармана задника зі шкіри”,1300],
+[“Заміна підкладки задника зі шкіри”,2000],
+[“Внутрішня латка”,450],
+[“Декоративна латка”,600],
+[“Виготовлення та заміна нової деталі взуття”,700],
+[“Заміна союзки у кросівках”,1600],
+[“Внутрішня латка у носочній частині кросівок”,400],
+[“Заміна деталей верху у босоніжках”,2800],
+[“Ушивання халяви — по висоті”,1600],
+[“Ушивання халяви — по ширині”,2000],
+[“Заміна резинок з обтяжкою шкірою”,900],
+[“Заміна резинок на пряжках взуття”,500],
+[“Заміна взуттєвої резинки в халяві”,500],
+[“Вшивання резинок в халяву”,1600],
+[“Заміна липучок”,550],
+[“Виготовлення та заміна ремінців взуття”,1600],
+],
+zippers: [
+[“Заміна блискавки до 20 см (без вартості матеріалу)”,700],
+[“Заміна блискавки від 21 см (без вартості матеріалу)”,900],
+[“Заміна бігунка блискавки”,300],
+[“Врізання блискавки у халяву (без вартості матеріалу)”,2200],
+],
+stretch: [
+[“Розтяжка взуття у підйомі / ширина”,600],
+[“Розтяжка халяви чобіт / черевиків”,1000],
+],
+hardware: [
+[“Заміна гачків + резинка”,500],
+[“Заміна пряжки (без вартості матеріалу)”,450],
+[“Заміна блочка та люверса”,200],
+[“Заміна кнопки (без розбору виробу)”,200],
+],
+},
+bags: {
+cleaning: [
+[“Чистка — шкіряна сумка S”,1400],
+[“Чистка — шкіряна сумка M”,1600],
+[“Чистка — шкіряна сумка L”,1800],
+[“Чистка — текстильна сумка S”,1400],
+[“Чистка — текстильна сумка M”,1600],
+[“Чистка — текстильна сумка L”,1800],
+],
+painting: [
+[“Фарбування — шкіряна сумка S”,1800],
+[“Фарбування — шкіряна сумка M”,2200],
+[“Фарбування — шкіряна сумка L”,2600],
+[“Фарбування — поясний ремінь”,1400],
+[“Реставрація — шкіряна сумка S”,2200],
+[“Реставрація — шкіряна сумка M”,2700],
+[“Реставрація — шкіряна сумка L”,3200],
+[“Локальна реставрація шкіри сумки”,1000],
+[“Реставрація кутиків сумки”,450],
+[“Реставрация ручок сумки”,1600],
+[“Реставрація плечового ременя сумки”,1600],
+],
+edges: [
+[“Торцювання урізу шкіри”,12],
+[“Торцювання ручок сумки (2 сторони)”,1200],
+[“Торцювання ручок сумки (4 сторони)”,1400],
+[“Торцювання плечового ременя сумки”,1400],
+[“Торцювання тренчика / пулера / тримача ручок”,400],
+],
+sewing: [
+[“Відновлення машинного шва сумки”,300],
+[“Підклейка шкіри / деталі сумки”,300],
+[“Ремонт кріплення ручок сумки (без заміни деталей)”,450],
+[“Виготовлення шкіряного пулера на бігунок”,500],
+[“Виготовлення та заміна тренчика сумки”,500],
+[“Виготовлення та перешивання деталей сумки”,900],
+[“Виготовлення та заміна настрочних кріплень ручок сумки”,600],
+[“Виготовлення та заміна втачних кріплень ручок сумки”,400],
+[“Заміна канту у гаманці / клатчі”,1200],
+[“Заміна окантовки сумки — кедер”,1200],
+],
+hardware: [
+[“Заміна карабіна сумки (без вартості матеріалу)”,250],
+[“Заміна пряжки ременя сумки (без вартості матеріалу)”,250],
+[“Заміна кнопки / заклепки / люверса сумки”,200],
+[“Заміна магніту сумки (без вартості матеріалу)”,500],
+[“Встановлення декоративної латки”,900],
+[“Встановлення внутрішньої латки”,450],
+[“Встановлення кільця / напівкільця (без вартості матеріалу)”,250],
+],
+zippers: [
+[“Заміна блискавки сумки до 25 см (без вартості матеріалу)”,1400],
+[“Заміна блискавки сумки від 25 см (без вартості матеріалу)”,1600],
+[“Заміна блискавки у гаманці / органайзері (без вартості матеріалу)”,1800],
+[“Заміна блискавки рюкзака / великої сумки (без вартості матеріалу)”,1600],
+[“Заміна бігунка блискавки сумки”,300],
+],
+handles: [
+[“Вкорочення плечового ременя сумки”,450],
+[“Заміна плечового ременя сумки з підбором шкіри”,2000],
+[“Заміна ручок сумки типу шопер”,1600],
+[“Заміна ручок шкіряної сумки з підбором шкіри”,2800],
+[“Заміна ручок рюкзака з наповнювачем”,3200],
+[“Пробивання отворів в плечовому ремені”,200],
+],
+lining: [
+[“Заміна підкладки — сумка S”,1800],
+[“Заміна підкладки — сумка M”,2200],
+[“Заміна підкладки — сумка L”,2600],
+[“Заміна підкладки — гаманець / органайзер”,2600],
+],
+belt: [
+[“Пробивання отворів”,200],
+[“Вкорочення шкіряного поясного ременя”,450],
+[“Вкорочення поясного ременя з перешиванням пряжки”,600],
+[“Заміна підкладу поясного ременя”,2000],
+[“Реставрація поясного ременя (проклейка, прошивка)”,800],
+],
+},
 };
 
 const DEPT_LABELS = {
-  shoes: {
-    cleaning: "Чистка / Базовий догляд",
-    painting: "Фарбування / Реставрація",
-    heels: "Каблуки та набійки",
-    sole: "Підошва",
-    sewing: "Швейні роботи та деталі",
-    zippers: "Блискавки",
-    stretch: "Розтяжка",
-    hardware: "Фурнітура",
-  },
-  bags: {
-    cleaning: "Чистка / Базовий догляд",
-    painting: "Фарбування / Реставрація",
-    edges: "Реставрація урізів",
-    sewing: "Швейні роботи та деталі",
-    hardware: "Фурнітура",
-    zippers: "Блискавки",
-    handles: "Ручки та ремінь",
-    lining: "Підкладка",
-    belt: "Поясний ремінь",
-  },
+shoes: {
+cleaning: “Чистка / Базовий догляд”,
+painting: “Фарбування / Реставрація”,
+heels: “Каблуки та набійки”,
+sole: “Підошва”,
+sewing: “Швейні роботи та деталі”,
+zippers: “Блискавки”,
+stretch: “Розтяжка”,
+hardware: “Фурнітура”,
+},
+bags: {
+cleaning: “Чистка / Базовий догляд”,
+painting: “Фарбування / Реставрація”,
+edges: “Реставрація урізів”,
+sewing: “Швейні роботи та деталі”,
+hardware: “Фурнітура”,
+zippers: “Блискавки”,
+handles: “Ручки та ремінь”,
+lining: “Підкладка”,
+belt: “Поясний ремінь”,
+},
 };
 
-
-
-let NO = {manager:"",client:"",phone:"",items:[],payment:"",deadline:""};
+let NO = {manager:””,client:””,phone:””,items:[],payment:””,deadline:””};
 let curItem = -1;
 
 function openNewOrder() {
-  NO = {manager:"",client:"",phone:"",items:[],payment:"",deadline:""};
-  document.getElementById("modal-title").textContent = "Нове замовлення";
-  showStep1();
-  document.getElementById("modal-bg").classList.add("open");
+NO = {manager:””,client:””,phone:””,items:[],payment:””,deadline:””};
+document.getElementById(“modal-title”).textContent = “Нове замовлення”;
+showStep1();
+document.getElementById(“modal-bg”).classList.add(“open”);
 }
 
 function showStep1() {
-  const body = document.getElementById("modal-body");
-  body.innerHTML = "";
-  // Manager
-  const mg = document.createElement("div");
-  mg.className = "form-group";
-  const ml = document.createElement("div");
-  ml.className = "form-label";
-  ml.textContent = "Хто приймає";
-  const mb = document.createElement("div");
-  mb.className = "btn-group";
-  mb.id = "mgr-btns";
-  PARTNERS.forEach(p => {
-    const btn = document.createElement("button");
-    btn.className = "fbtn" + (NO.manager === p ? " active" : "");
-    btn.textContent = p;
-    btn.onclick = () => { NO.manager = p; mb.querySelectorAll(".fbtn").forEach(b => b.classList.remove("active")); btn.classList.add("active"); };
-    mb.appendChild(btn);
-  });
-  mg.appendChild(ml); mg.appendChild(mb); body.appendChild(mg);
-  // Client
-  const cg = document.createElement("div");
-  cg.className = "form-group";
-  cg.innerHTML = "<div class='form-label'>Ім'я клієнта</div><input class='form-input' id='no-client' placeholder=\"Ім'я або назва магазину\" value='" + (NO.client || "") + "'>";
-  body.appendChild(cg);
-  // Phone
-  const pg = document.createElement("div");
-  pg.className = "form-group";
-  pg.innerHTML = "<div class='form-label'>Номер телефону</div><input class='form-input' id='no-phone' placeholder='+380...' value='" + (NO.phone || "") + "'>";
-  body.appendChild(pg);
-  document.getElementById("modal-footer").innerHTML = "<button class='btn' onclick='closeModal()'>Скасувати</button><button class='btn btn-primary' onclick='step1Next()'>Далі →</button>";
+const body = document.getElementById(“modal-body”);
+body.innerHTML = “”;
+// Manager
+const mg = document.createElement(“div”);
+mg.className = “form-group”;
+const ml = document.createElement(“div”);
+ml.className = “form-label”;
+ml.textContent = “Хто приймає”;
+const mb = document.createElement(“div”);
+mb.className = “btn-group”;
+mb.id = “mgr-btns”;
+PARTNERS.forEach(p => {
+const btn = document.createElement(“button”);
+btn.className = “fbtn” + (NO.manager === p ? “ active” : “”);
+btn.textContent = p;
+btn.onclick = () => { NO.manager = p; mb.querySelectorAll(”.fbtn”).forEach(b => b.classList.remove(“active”)); btn.classList.add(“active”); };
+mb.appendChild(btn);
+});
+mg.appendChild(ml); mg.appendChild(mb); body.appendChild(mg);
+// Client
+const cg = document.createElement(“div”);
+cg.className = “form-group”;
+cg.innerHTML = “<div class='form-label'>Ім’я клієнта</div><input class=‘form-input’ id=‘no-client’ placeholder="Ім’я або назва магазину" value=’” + (NO.client || “”) + “’>”;
+body.appendChild(cg);
+// Phone
+const pg = document.createElement(“div”);
+pg.className = “form-group”;
+pg.innerHTML = “<div class='form-label'>Номер телефону</div><input class='form-input' id='no-phone' placeholder='+380...' value='" + (NO.phone || "") + "'>”;
+body.appendChild(pg);
+document.getElementById(“modal-footer”).innerHTML = “<button class='btn' onclick='closeModal()'>Скасувати</button><button class='btn btn-primary' onclick='step1Next()'>Далі →</button>”;
 }
 
 function step1Next() {
-  if (!NO.manager) { alert("Оберіть приймальника"); return; }
-  NO.client = document.getElementById("no-client").value.trim();
-  NO.phone = document.getElementById("no-phone").value.trim();
-  if (!NO.client) { alert("Введіть ім'я клієнта"); return; }
-  if (!NO.phone) { alert("Введіть номер телефону"); return; }
-  addItem();
+if (!NO.manager) { alert(“Оберіть приймальника”); return; }
+NO.client = document.getElementById(“no-client”).value.trim();
+NO.phone = document.getElementById(“no-phone”).value.trim();
+if (!NO.client) { alert(“Введіть ім’я клієнта”); return; }
+if (!NO.phone) { alert(“Введіть номер телефону”); return; }
+addItem();
 }
 
 function showItemsList() {
-  document.getElementById("modal-title").textContent = "Замовлення — " + NO.client;
-  const body = document.getElementById("modal-body");
-  body.innerHTML = "";
-  const sec = document.createElement("div");
-  sec.className = "form-group";
-  const lbl = document.createElement("div");
-  lbl.className = "form-label";
-  lbl.textContent = "Вироби";
-  sec.appendChild(lbl);
-  if (NO.items.length === 0) {
-    const empty = document.createElement("div");
-    empty.style.cssText = "color:var(--muted);font-size:13px;padding:8px 0";
-    empty.textContent = "Ще немає виробів";
-    sec.appendChild(empty);
-  } else {
-    NO.items.forEach((item, i) => {
-      const card = document.createElement("div");
-      card.className = "item-list-card";
-      card.innerHTML = "<div class='item-list-info'><div class='item-list-name'>" + item.typeLabel + " — " + item.brand + "</div><div class='item-list-meta'>" + item.services + " · " + item.total + "</div></div>";
-      const rm = document.createElement("button");
-      rm.className = "item-list-remove";
-      rm.textContent = "×";
-      rm.onclick = () => { NO.items.splice(i, 1); showItemsList(); };
-      card.appendChild(rm);
-      sec.appendChild(card);
-    });
-  }
-  const addBtn = document.createElement("button");
-  addBtn.className = "btn";
-  addBtn.style.cssText = "width:100%;margin-top:8px";
-  addBtn.textContent = "+ Ще один виріб";
-  addBtn.onclick = addItem;
-  sec.appendChild(addBtn);
-  body.appendChild(sec);
-  if (NO.items.length > 0) {
-    document.getElementById("modal-footer").innerHTML = "<button class='btn' onclick='showStep1()'>← Назад</button><button class='btn' onclick='addItem()'>+ Ще один виріб</button><button class='btn btn-primary' onclick='showStep3()'>Далі →</button>";
-  } else {
-    document.getElementById("modal-footer").innerHTML = "<button class='btn' onclick='showStep1()'>← Назад</button><button class='btn btn-primary' onclick='addItem()'>Додати виріб</button>";
-  }
+document.getElementById(“modal-title”).textContent = “Замовлення — “ + NO.client;
+const body = document.getElementById(“modal-body”);
+body.innerHTML = “”;
+const sec = document.createElement(“div”);
+sec.className = “form-group”;
+const lbl = document.createElement(“div”);
+lbl.className = “form-label”;
+lbl.textContent = “Вироби”;
+sec.appendChild(lbl);
+if (NO.items.length === 0) {
+const empty = document.createElement(“div”);
+empty.style.cssText = “color:var(–muted);font-size:13px;padding:8px 0”;
+empty.textContent = “Ще немає виробів”;
+sec.appendChild(empty);
+} else {
+NO.items.forEach((item, i) => {
+const card = document.createElement(“div”);
+card.className = “item-list-card”;
+card.innerHTML = “<div class='item-list-info'><div class='item-list-name'>” + item.typeLabel + “ — “ + item.brand + “</div><div class='item-list-meta'>” + item.services + “ · “ + item.total + “</div></div>”;
+const rm = document.createElement(“button”);
+rm.className = “item-list-remove”;
+rm.textContent = “×”;
+rm.onclick = () => { NO.items.splice(i, 1); showItemsList(); };
+card.appendChild(rm);
+sec.appendChild(card);
+});
+}
+const addBtn = document.createElement(“button”);
+addBtn.className = “btn”;
+addBtn.style.cssText = “width:100%;margin-top:8px”;
+addBtn.textContent = “+ Ще один виріб”;
+addBtn.onclick = addItem;
+sec.appendChild(addBtn);
+body.appendChild(sec);
+if (NO.items.length > 0) {
+document.getElementById(“modal-footer”).innerHTML = “<button class='btn' onclick='showStep1()'>← Назад</button><button class='btn' onclick='addItem()'>+ Ще один виріб</button><button class='btn btn-primary' onclick='showStep3()'>Далі →</button>”;
+} else {
+document.getElementById(“modal-footer”).innerHTML = “<button class='btn' onclick='showStep1()'>← Назад</button><button class='btn btn-primary' onclick='addItem()'>Додати виріб</button>”;
+}
 }
 
 function addItem() {
-  curItem = NO.items.length;
-  NO.items.push({type:"",typeLabel:"",brand:"",dept:"",services:"",total:"",price:0,extra200:false});
-  showSelectType();
+curItem = NO.items.length;
+NO.items.push({type:””,typeLabel:””,brand:””,dept:””,services:””,total:””,price:0,extra200:false});
+showSelectType();
 }
 
 function showSelectType() {
-  const body = document.getElementById("modal-body");
-  body.innerHTML = "<div class='form-group'><div class='form-label'>Тип виробу</div><div class='btn-group' id='type-btns'></div></div>";
-  const btns = document.getElementById("type-btns");
-  [["shoes","👟 Взуття"],["bags","👜 Сумка / Аксесуар"]].forEach(([type, label]) => {
-    const btn = document.createElement("button");
-    btn.className = "fbtn" + (NO.items[curItem].type === type ? " active" : "");
-    btn.style.cssText = "flex:1;padding:14px;font-size:14px";
-    btn.textContent = label;
-    btn.onclick = () => { NO.items[curItem].type = type; NO.items[curItem].typeLabel = label.replace("👟 ","").replace("👜 ",""); btns.querySelectorAll(".fbtn").forEach(b => b.classList.remove("active")); btn.classList.add("active"); };
-    btns.appendChild(btn);
-  });
-  document.getElementById("modal-footer").innerHTML = "<button class='btn' onclick='showItemsList()'>← Назад</button><button class='btn btn-primary' onclick='goToBrand()'>Далі →</button>";
+const body = document.getElementById(“modal-body”);
+body.innerHTML = “<div class='form-group'><div class='form-label'>Тип виробу</div><div class='btn-group' id='type-btns'></div></div>”;
+const btns = document.getElementById(“type-btns”);
+[[“shoes”,“👟 Взуття”],[“bags”,“👜 Сумка / Аксесуар”]].forEach(([type, label]) => {
+const btn = document.createElement(“button”);
+btn.className = “fbtn” + (NO.items[curItem].type === type ? “ active” : “”);
+btn.style.cssText = “flex:1;padding:14px;font-size:14px”;
+btn.textContent = label;
+btn.onclick = () => { NO.items[curItem].type = type; NO.items[curItem].typeLabel = label.replace(“👟 “,””).replace(“👜 “,””); btns.querySelectorAll(”.fbtn”).forEach(b => b.classList.remove(“active”)); btn.classList.add(“active”); };
+btns.appendChild(btn);
+});
+document.getElementById(“modal-footer”).innerHTML = “<button class='btn' onclick='showItemsList()'>← Назад</button><button class='btn btn-primary' onclick='goToBrand()'>Далі →</button>”;
 }
 
 function goToBrand() {
-  if (!NO.items[curItem].type) { alert("Оберіть тип виробу"); return; }
-  const body = document.getElementById("modal-body");
-  body.innerHTML = "<div class='form-group'><div class='form-label'>Бренд та модель</div><input class='form-input' id='no-brand' placeholder=\"Gucci, LV, без бренду...\" value='" + (NO.items[curItem].brand || "") + "'></div>";
-  document.getElementById("modal-footer").innerHTML = "<button class='btn' onclick='showSelectType()'>← Назад</button><button class='btn btn-primary' onclick='goToDept()'>Далі →</button>";
-  document.getElementById("no-brand").focus();
+if (!NO.items[curItem].type) { alert(“Оберіть тип виробу”); return; }
+const body = document.getElementById(“modal-body”);
+body.innerHTML = “<div class='form-group'><div class='form-label'>Бренд та модель</div><input class=‘form-input’ id=‘no-brand’ placeholder="Gucci, LV, без бренду…" value=’” + (NO.items[curItem].brand || “”) + “’></div>”;
+document.getElementById(“modal-footer”).innerHTML = “<button class='btn' onclick='showSelectType()'>← Назад</button><button class='btn btn-primary' onclick='goToDept()'>Далі →</button>”;
+document.getElementById(“no-brand”).focus();
 }
 
 function goToDept() {
-  const brandInput = document.getElementById("no-brand");
-  const brand = brandInput ? brandInput.value.trim() : NO.items[curItem].brand;
-  if (!brand) { alert("Введіть бренд або «без бренду»"); return; }
-  NO.items[curItem].brand = brand;
-  const type = NO.items[curItem].type;
-  const body = document.getElementById("modal-body");
-  body.innerHTML = "<div class='form-group'><div class='form-label'>" + NO.items[curItem].typeLabel + " — " + brand + " · Відділ</div><div id='dept-list'></div></div>";
-  const list = document.getElementById("dept-list");
-  Object.entries(DEPT_LABELS[type]).forEach(([id, label]) => {
-    const btn = document.createElement("button");
-    btn.className = "fbtn" + (NO.items[curItem].dept === id ? " active" : "");
-    btn.style.cssText = "width:100%;text-align:left;margin-bottom:6px;padding:10px 14px";
-    btn.textContent = label;
-    btn.onclick = () => { NO.items[curItem].dept = id; list.querySelectorAll(".fbtn").forEach(b => b.classList.remove("active")); btn.classList.add("active"); };
-    list.appendChild(btn);
-  });
-  document.getElementById("modal-footer").innerHTML = "<button class='btn' onclick='goToBrand()'>← Назад</button><button class='btn btn-primary' onclick='goToService()'>Далі →</button>";
+const brandInput = document.getElementById(“no-brand”);
+const brand = brandInput ? brandInput.value.trim() : NO.items[curItem].brand;
+if (!brand) { alert(“Введіть бренд або «без бренду»”); return; }
+NO.items[curItem].brand = brand;
+const type = NO.items[curItem].type;
+const body = document.getElementById(“modal-body”);
+body.innerHTML = “<div class='form-group'><div class='form-label'>” + NO.items[curItem].typeLabel + “ — “ + brand + “ · Відділ</div><div id='dept-list'></div></div>”;
+const list = document.getElementById(“dept-list”);
+Object.entries(DEPT_LABELS[type]).forEach(([id, label]) => {
+const btn = document.createElement(“button”);
+btn.className = “fbtn” + (NO.items[curItem].dept === id ? “ active” : “”);
+btn.style.cssText = “width:100%;text-align:left;margin-bottom:6px;padding:10px 14px”;
+btn.textContent = label;
+btn.onclick = () => { NO.items[curItem].dept = id; list.querySelectorAll(”.fbtn”).forEach(b => b.classList.remove(“active”)); btn.classList.add(“active”); };
+list.appendChild(btn);
+});
+document.getElementById(“modal-footer”).innerHTML = “<button class='btn' onclick='goToBrand()'>← Назад</button><button class='btn btn-primary' onclick='goToService()'>Далі →</button>”;
 }
 
 function goToService() {
-  if (!NO.items[curItem].dept) { alert("Оберіть відділ"); return; }
-  const type = NO.items[curItem].type;
-  const dept = NO.items[curItem].dept;
-  const svcs = SERVICES[type] ? (SERVICES[type][dept] || []) : [];
-  const body = document.getElementById("modal-body");
-  body.innerHTML = "<div class='form-group'><div class='form-label'>Послуга</div><div id='svc-list' style='max-height:320px;overflow-y:auto'></div></div>";
-  const list = document.getElementById("svc-list");
-  svcs.forEach(s => {
-    const btn = document.createElement("button");
-    btn.className = "svc-btn" + (NO.items[curItem].services === s[0] ? " active" : "");
-    btn.innerHTML = "<span>" + s[0] + "</span><span class='svc-price'>" + s[1].toLocaleString("uk-UA") + " ₴</span>";
-    btn.onclick = function() { NO.items[curItem].services = s[0]; NO.items[curItem].price = s[1]; list.querySelectorAll(".svc-btn").forEach(b => b.classList.remove("active")); btn.classList.add("active"); };
-    list.appendChild(btn);
-  });
-  const manBtn = document.createElement("button");
-  manBtn.className = "svc-btn";
-  manBtn.style.color = "var(--umbra)";
-  manBtn.innerHTML = "<span>✏️ Ввести вручну</span>";
-  manBtn.onclick = showManualSvc;
-  list.appendChild(manBtn);
-  // Set footer separately via DOM to avoid conflicts
-  const footer = document.getElementById("modal-footer");
-  footer.innerHTML = "";
-  const backBtn = document.createElement("button");
-  backBtn.className = "btn";
-  backBtn.textContent = "← Назад";
-  backBtn.onclick = goToDept;
-  const nextBtn = document.createElement("button");
-  nextBtn.className = "btn btn-primary";
-  nextBtn.textContent = "Далі →";
-  nextBtn.onclick = goToQty;
-  footer.appendChild(backBtn);
-  footer.appendChild(nextBtn);
+if (!NO.items[curItem].dept) { alert(“Оберіть відділ”); return; }
+const type = NO.items[curItem].type;
+const dept = NO.items[curItem].dept;
+const svcs = SERVICES[type] ? (SERVICES[type][dept] || []) : [];
+const body = document.getElementById(“modal-body”);
+body.innerHTML = “<div class='form-group'><div class='form-label'>Послуга</div><div id='svc-list' style='max-height:320px;overflow-y:auto'></div></div>”;
+const list = document.getElementById(“svc-list”);
+svcs.forEach(s => {
+const btn = document.createElement(“button”);
+btn.className = “svc-btn” + (NO.items[curItem].services === s[0] ? “ active” : “”);
+btn.innerHTML = “<span>” + s[0] + “</span><span class='svc-price'>” + s[1].toLocaleString(“uk-UA”) + “ ₴</span>”;
+btn.onclick = function() { NO.items[curItem].services = s[0]; NO.items[curItem].price = s[1]; list.querySelectorAll(”.svc-btn”).forEach(b => b.classList.remove(“active”)); btn.classList.add(“active”); };
+list.appendChild(btn);
+});
+const manBtn = document.createElement(“button”);
+manBtn.className = “svc-btn”;
+manBtn.style.color = “var(–umbra)”;
+manBtn.innerHTML = “<span>✏️ Ввести вручну</span>”;
+manBtn.onclick = showManualSvc;
+list.appendChild(manBtn);
+// Set footer separately via DOM to avoid conflicts
+const footer = document.getElementById(“modal-footer”);
+footer.innerHTML = “”;
+const backBtn = document.createElement(“button”);
+backBtn.className = “btn”;
+backBtn.textContent = “← Назад”;
+backBtn.onclick = goToDept;
+const nextBtn = document.createElement(“button”);
+nextBtn.className = “btn btn-primary”;
+nextBtn.textContent = “Далі →”;
+nextBtn.onclick = goToQty;
+footer.appendChild(backBtn);
+footer.appendChild(nextBtn);
 }
 
 function showManualSvc() {
-  const body = document.getElementById("modal-body");
-  body.innerHTML = "<div class='form-group'><div class='form-label'>Назва послуги</div><input class='form-input' id='man-name' placeholder='Введіть назву...'></div><div class='form-group'><div class='form-label'>Ціна (₴)</div><input class='form-input' type='number' id='man-price' placeholder='500'></div>";
-  document.getElementById("modal-footer").innerHTML = "<button class='btn' onclick='goToService()'>← Назад</button><button class='btn btn-primary' onclick='confirmManual()'>Далі →</button>";
+const body = document.getElementById(“modal-body”);
+body.innerHTML = “<div class='form-group'><div class='form-label'>Назва послуги</div><input class='form-input' id='man-name' placeholder='Введіть назву...'></div><div class='form-group'><div class='form-label'>Ціна (₴)</div><input class='form-input' type='number' id='man-price' placeholder='500'></div>”;
+document.getElementById(“modal-footer”).innerHTML = “<button class='btn' onclick='goToService()'>← Назад</button><button class='btn btn-primary' onclick='confirmManual()'>Далі →</button>”;
 }
 
 function confirmManual() {
-  const name = document.getElementById("man-name").value.trim();
-  const price = parseInt(document.getElementById("man-price").value || "0");
-  if (!name || !price) { alert("Заповніть всі поля"); return; }
-  NO.items[curItem].services = "📝 " + name;
-  NO.items[curItem].price = price;
-  NO.items[curItem].total = price.toLocaleString("uk-UA") + " ₴";
-  NO.items.pop();
-  NO.items.push(NO.items[curItem]);
-  showItemsList();
+const name = document.getElementById(“man-name”).value.trim();
+const price = parseInt(document.getElementById(“man-price”).value || “0”);
+if (!name || !price) { alert(“Заповніть всі поля”); return; }
+NO.items[curItem].services = “📝 “ + name;
+NO.items[curItem].price = price;
+NO.items[curItem].total = price.toLocaleString(“uk-UA”) + “ ₴”;
+NO.items.pop();
+NO.items.push(NO.items[curItem]);
+showItemsList();
 }
 
 function goToQty() {
-  if (!NO.items[curItem].services) { alert("Оберіть послугу"); return; }
-  const dept = NO.items[curItem].dept;
-  const showExtra = dept === "cleaning" || dept === "painting";
-  const body = document.getElementById("modal-body");
-  body.innerHTML = "<div class='form-group'><div class='form-label'>Кількість</div><div class='btn-group' id='qty-btns'></div></div><div class='form-group'><div class='form-label'>Вартість (₴)</div><input class='form-input' type='number' id='no-price' placeholder='1400'></div>" +
-    (showExtra ? "<div class='form-group'><div class='form-label'>Додатковий колір або матеріал?</div><div class='btn-group' id='extra-btns'><button class='fbtn' id='extra-yes' onclick='setExtra(true)'>Так — +200 ₴</button><button class='fbtn active' id='extra-no' onclick='setExtra(false)'>Ні</button></div></div>" : "");
-  const qtyBtns = document.getElementById("qty-btns");
-  [1,2,3,"Інше"].forEach(n => {
-    const btn = document.createElement("button");
-    btn.className = "fbtn";
-    btn.style.cssText = "flex:1;padding:10px;font-size:" + (typeof n === "number" ? "16px" : "13px");
-    btn.textContent = n;
-    btn.onclick = () => { qtyBtns.querySelectorAll(".fbtn").forEach(b => b.classList.remove("active")); btn.classList.add("active"); if (typeof n === "number") { const p = NO.items[curItem].price; document.getElementById("no-price").value = p * n; } };
-    qtyBtns.appendChild(btn);
-  });
-  // Auto-fill price
-  document.getElementById("no-price").value = NO.items[curItem].price || "";
-  NO.items[curItem].extra200 = false;
-  document.getElementById("modal-footer").innerHTML = "<button class='btn' onclick='goToService()'>← Назад</button><button class='btn btn-primary' onclick='confirmItem()'>Додати виріб</button>";
+if (!NO.items[curItem].services) { alert(“Оберіть послугу”); return; }
+const dept = NO.items[curItem].dept;
+const showExtra = dept === “cleaning” || dept === “painting”;
+const body = document.getElementById(“modal-body”);
+body.innerHTML = “<div class='form-group'><div class='form-label'>Кількість</div><div class='btn-group' id='qty-btns'></div></div><div class='form-group'><div class='form-label'>Вартість (₴)</div><input class='form-input' type='number' id='no-price' placeholder='1400'></div>” +
+(showExtra ? “<div class='form-group'><div class='form-label'>Додатковий колір або матеріал?</div><div class='btn-group' id='extra-btns'><button class='fbtn' id='extra-yes' onclick='setExtra(true)'>Так — +200 ₴</button><button class='fbtn active' id='extra-no' onclick='setExtra(false)'>Ні</button></div></div>” : “”);
+const qtyBtns = document.getElementById(“qty-btns”);
+[1,2,3,“Інше”].forEach(n => {
+const btn = document.createElement(“button”);
+btn.className = “fbtn”;
+btn.style.cssText = “flex:1;padding:10px;font-size:” + (typeof n === “number” ? “16px” : “13px”);
+btn.textContent = n;
+btn.onclick = () => { qtyBtns.querySelectorAll(”.fbtn”).forEach(b => b.classList.remove(“active”)); btn.classList.add(“active”); if (typeof n === “number”) { const p = NO.items[curItem].price; document.getElementById(“no-price”).value = p * n; } };
+qtyBtns.appendChild(btn);
+});
+// Auto-fill price
+document.getElementById(“no-price”).value = NO.items[curItem].price || “”;
+NO.items[curItem].extra200 = false;
+document.getElementById(“modal-footer”).innerHTML = “<button class='btn' onclick='goToService()'>← Назад</button><button class='btn btn-primary' onclick='confirmItem()'>Додати виріб</button>”;
 }
 
 function setExtra(yes) {
-  NO.items[curItem].extra200 = yes;
-  document.getElementById("extra-yes").classList.toggle("active", yes);
-  document.getElementById("extra-no").classList.toggle("active", !yes);
+NO.items[curItem].extra200 = yes;
+document.getElementById(“extra-yes”).classList.toggle(“active”, yes);
+document.getElementById(“extra-no”).classList.toggle(“active”, !yes);
 }
 
 function confirmItem() {
-  const priceVal = parseInt(document.getElementById("no-price").value || "0");
-  if (!priceVal) { alert("Введіть вартість"); return; }
-  const extra = NO.items[curItem].extra200 ? 200 : 0;
-  const total = priceVal + extra;
-  NO.items[curItem].total = total.toLocaleString("uk-UA") + " ₴";
-  showItemsList();
+const priceVal = parseInt(document.getElementById(“no-price”).value || “0”);
+if (!priceVal) { alert(“Введіть вартість”); return; }
+const extra = NO.items[curItem].extra200 ? 200 : 0;
+const total = priceVal + extra;
+NO.items[curItem].total = total.toLocaleString(“uk-UA”) + “ ₴”;
+showItemsList();
 }
 
 function showStep3() {
-  const body = document.getElementById("modal-body");
-  body.innerHTML = "<div class='form-group'><div class='form-label'>Тип оплати</div><div class='btn-group' id='pay-btns'><button class='fbtn' style='flex:1;padding:10px' onclick='selectPay(\"Передоплата\",this)'>💳 Передоплата</button><button class='fbtn' style='flex:1;padding:10px' onclick='selectPay(\"Після­оплата\",this)'>📦 Після­оплата</button></div></div><div id='prepay-wrap' style='display:none' class='form-group'><div class='form-label'>Сума передоплати</div><input class='form-input' type='number' id='prepay-amt' placeholder='500'></div><div class='form-group'><div class='form-label'>Термін виконання</div><div class='btn-group' id='deadline-btns'><button class='fbtn' onclick='selectDeadline(\"⚡ Терміново\",this)'>⚡ Терміново</button><button class='fbtn' onclick='selectDeadline(\"Без терміну\",this)'>🕐 Без терміну</button><button class='fbtn' onclick='selectDeadline(\"date\",this)'>📅 Вказати дату</button></div><input class='form-input' id='deadline-date' placeholder='10.06 або п'\''ятниця' style='display:none;margin-top:8px'></div>";
-  document.getElementById("modal-footer").innerHTML = "<button class='btn' onclick='showItemsList()'>← Назад</button><button class='btn btn-primary' onclick='submitOrder()'>Оформити замовлення</button>";
+const body = document.getElementById(“modal-body”);
+body.innerHTML = “<div class='form-group'><div class='form-label'>Тип оплати</div><div class='btn-group' id='pay-btns'><button class='fbtn' style='flex:1;padding:10px' onclick='selectPay(\"Передоплата\",this)'>💳 Передоплата</button><button class='fbtn' style='flex:1;padding:10px' onclick='selectPay(\"Після­оплата\",this)'>📦 Після­оплата</button></div></div><div id='prepay-wrap' style='display:none' class='form-group'><div class='form-label'>Сума передоплати</div><input class='form-input' type='number' id='prepay-amt' placeholder='500'></div><div class='form-group'><div class='form-label'>Термін виконання</div><div class='btn-group' id='deadline-btns'><button class='fbtn' onclick='selectDeadline(\"⚡ Терміново\",this)'>⚡ Терміново</button><button class='fbtn' onclick='selectDeadline(\"Без терміну\",this)'>🕐 Без терміну</button><button class='fbtn' onclick='selectDeadline(\"date\",this)'>📅 Вказати дату</button></div><input class=‘form-input’ id=‘deadline-date’ placeholder=‘10.06 або п’'‘ятниця’ style=‘display:none;margin-top:8px’></div>”;
+document.getElementById(“modal-footer”).innerHTML = “<button class='btn' onclick='showItemsList()'>← Назад</button><button class='btn btn-primary' onclick='submitOrder()'>Оформити замовлення</button>”;
 }
 
 function selectPay(type, btn) {
-  NO.payment = type;
-  document.querySelectorAll("#pay-btns .fbtn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  document.getElementById("prepay-wrap").style.display = type === "Передоплата" ? "block" : "none";
+NO.payment = type;
+document.querySelectorAll(”#pay-btns .fbtn”).forEach(b => b.classList.remove(“active”));
+btn.classList.add(“active”);
+document.getElementById(“prepay-wrap”).style.display = type === “Передоплата” ? “block” : “none”;
 }
 
 function selectDeadline(val, btn) {
-  document.querySelectorAll("#deadline-btns .fbtn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  const di = document.getElementById("deadline-date");
-  if (val === "date") { di.style.display = "block"; NO.deadline = ""; }
-  else { di.style.display = "none"; NO.deadline = val; }
+document.querySelectorAll(”#deadline-btns .fbtn”).forEach(b => b.classList.remove(“active”));
+btn.classList.add(“active”);
+const di = document.getElementById(“deadline-date”);
+if (val === “date”) { di.style.display = “block”; NO.deadline = “”; }
+else { di.style.display = “none”; NO.deadline = val; }
 }
 
 async function submitOrder() {
-  if (!NO.payment) { alert("Оберіть тип оплати"); return; }
-  if (!NO.deadline) {
-    const dv = document.getElementById("deadline-date")?.value.trim();
-    if (!dv) { alert("Вкажіть термін виконання"); return; }
-    NO.deadline = dv;
-  }
-  if (NO.payment === "Передоплата") {
-    const amt = document.getElementById("prepay-amt")?.value;
-    if (amt) NO.payment = "Передоплата: " + parseInt(amt).toLocaleString("uk-UA") + " ₴";
-  }
-  const now = new Date();
-  const pad = n => String(n).padStart(2,"0");
-  const dateStr = pad(now.getDate()) + "." + pad(now.getMonth()+1) + "." + now.getFullYear() + " " + pad(now.getHours()) + ":" + pad(now.getMinutes());
-  const payload = {
-    date: dateStr,
-    manager: NO.manager,
-    client: NO.client,
-    phone: NO.phone,
-    payment: NO.payment,
-    deadline: NO.deadline,
-    items: NO.items.map((item, i) => ({
-      type: item.typeLabel,
-      brand: item.brand,
-      services: item.services,
-      total: item.total
-    }))
-  };
-  document.getElementById("modal-body").innerHTML = "<div style='text-align:center;padding:32px;color:var(--muted);font-size:13px'>⏳ Збереження...</div>";
-  document.getElementById("modal-footer").innerHTML = "";
-  try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      mode: "cors",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(payload)
-    });
-    const result = await res.json();
-    if (result.status === "ok") {
-      document.getElementById("modal-body").innerHTML = "<div style='text-align:center;padding:32px;color:#3B6D11;font-size:15px'>✅ Замовлення " + result.order_num + " збережено!</div>";
-      setTimeout(() => { closeModal(); setTimeout(loadData, 1000); }, 2000);
-    } else {
-      document.getElementById("modal-body").innerHTML = "<div style='text-align:center;padding:32px;color:#a33030;font-size:13px'>Помилка: " + result.message + "</div>";
-    }
-  } catch(e) {
-    document.getElementById("modal-body").innerHTML = "<div style='text-align:center;padding:32px;color:#a33030;font-size:13px'>Помилка збереження: " + e.message + "</div>";
-  }
+if (!NO.payment) { alert(“Оберіть тип оплати”); return; }
+if (!NO.deadline) {
+const dv = document.getElementById(“deadline-date”)?.value.trim();
+if (!dv) { alert(“Вкажіть термін виконання”); return; }
+NO.deadline = dv;
+}
+if (NO.payment === “Передоплата”) {
+const amt = document.getElementById(“prepay-amt”)?.value;
+if (amt) NO.payment = “Передоплата: “ + parseInt(amt).toLocaleString(“uk-UA”) + “ ₴”;
+}
+const now = new Date();
+const pad = n => String(n).padStart(2,“0”);
+const dateStr = pad(now.getDate()) + “.” + pad(now.getMonth()+1) + “.” + now.getFullYear() + “ “ + pad(now.getHours()) + “:” + pad(now.getMinutes());
+const payload = {
+date: dateStr,
+manager: NO.manager,
+client: NO.client,
+phone: NO.phone,
+payment: NO.payment,
+deadline: NO.deadline,
+items: NO.items.map((item, i) => ({
+type: item.typeLabel,
+brand: item.brand,
+services: item.services,
+total: item.total
+}))
+};
+document.getElementById(“modal-body”).innerHTML = “<div style='text-align:center;padding:32px;color:var(--muted);font-size:13px'>⏳ Збереження…</div>”;
+document.getElementById(“modal-footer”).innerHTML = “”;
+try {
+const res = await fetch(API_URL, {
+method: “POST”,
+mode: “cors”,
+headers: {“Content-Type”: “application/json”},
+body: JSON.stringify(payload)
+});
+const result = await res.json();
+if (result.status === “ok”) {
+document.getElementById(“modal-body”).innerHTML = “<div style='text-align:center;padding:32px;color:#3B6D11;font-size:15px'>✅ Замовлення “ + result.order_num + “ збережено!</div>”;
+setTimeout(() => { closeModal(); setTimeout(loadData, 1000); }, 2000);
+} else {
+document.getElementById(“modal-body”).innerHTML = “<div style='text-align:center;padding:32px;color:#a33030;font-size:13px'>Помилка: “ + result.message + “</div>”;
+}
+} catch(e) {
+document.getElementById(“modal-body”).innerHTML = “<div style='text-align:center;padding:32px;color:#a33030;font-size:13px'>Помилка збереження: “ + e.message + “</div>”;
+}
 }
 </script>
+
 </body>
 </html>
