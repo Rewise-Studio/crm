@@ -27,9 +27,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .app{display:none;flex-direction:column;min-height:100vh}
 .topnav{background:var(--umbra);padding:0 20px;display:flex;align-items:center;height:52px}
 .topnav-brand{display:flex;align-items:center;margin-right:28px}
-.logo-stack{display:flex;flex-direction:column;justify-content:center;gap:2px}
+.logo-stack{display:flex;flex-direction:column;justify-content:center;gap:3px}
 .logo-rewise{font-family:'Tenor Sans',serif;font-size:15px;letter-spacing:0.18em;color:var(--linen);text-transform:uppercase;line-height:1}
-.logo-crm{font-size:8px;letter-spacing:0.18em;color:rgba(160,132,92,0.85);text-transform:uppercase;line-height:1}
+.logo-crm{font-size:7.5px;letter-spacing:0.42em;color:rgba(160,132,92,0.85);text-transform:uppercase;line-height:1;text-align:center}
 .nav-tab{padding:0 14px;height:52px;display:flex;align-items:center;font-size:13px;color:rgba(245,240,234,.6);cursor:pointer;border-bottom:2px solid transparent}
 .nav-tab:hover{color:var(--linen)}
 .nav-tab.active{color:var(--linen);border-bottom-color:var(--linen)}
@@ -52,7 +52,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .search-wrap input{padding:7px 12px 7px 32px;font-size:13px;border:1px solid var(--border);border-radius:10px;font-family:inherit;background:var(--card);width:200px}
 .search-wrap input:focus{outline:none;border-color:var(--umbra)}
 .orders-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-.order-row{display:grid;grid-template-columns:40px 110px 1fr 130px 120px 100px 140px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.order-row{display:grid;grid-template-columns:40px 110px 1fr 130px 120px 100px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
 .order-row:last-child{border-bottom:none}
 .order-row:hover{background:var(--bg)}
 .order-row.hdr{background:var(--surface);cursor:default}
@@ -79,8 +79,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn{padding:9px 18px;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;border:1px solid var(--border);background:var(--card);color:var(--graphite);transition:background .1s}
 .btn:hover{background:var(--bg)}
 .btn-primary{background:var(--umbra);color:var(--linen);border-color:var(--umbra)}
-.btn-primary[onclick="openNewOrder()"]{border:1.5px solid rgba(245,240,234,0.2)}
 .btn-primary:hover{background:var(--umbra2);border-color:var(--umbra2)}
+.btn-new-order{border:1.5px solid rgba(245,240,234,0.2)!important}
 .m-onum{font-size:12px;font-weight:500;color:var(--umbra);margin-bottom:4px}
 .m-cname{font-size:18px;font-weight:500;margin-bottom:3px}
 .m-phone{font-size:13px;color:var(--muted)}
@@ -134,35 +134,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .svc-btn:hover{background:var(--bg);border-color:var(--umbra)}
 .svc-btn.active{background:var(--linen);border-color:var(--umbra)}
 .svc-price{color:var(--umbra);font-weight:500;flex-shrink:0;margin-left:8px}
-@media(max-width:768px){.stats-row{grid-template-columns:repeat(2,1fr)}.order-row{grid-template-columns:30px 90px 1fr 100px}.cell:nth-child(4),.cell:nth-child(5),.cell:nth-child(6){display:none}.analytics-grid{grid-template-columns:1fr}.modal{width:95vw}.page{padding:12px}}
-
-@media(max-width:768px){
-  .stats-row{grid-template-columns:repeat(2,1fr)}
-  
-  /* Filters horizontal scroll */
-  #status-filters{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin:0 -12px;padding-left:12px;padding-right:12px;scrollbar-width:none}
-  #status-filters::-webkit-scrollbar{display:none}
-  #status-filters .fbtn{flex-shrink:0}
-  #manager-filters{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin:0 -12px;padding-left:12px;padding-right:12px;scrollbar-width:none}
-  #manager-filters::-webkit-scrollbar{display:none}
-  #manager-filters .fbtn{flex-shrink:0}
-  
-  /* Search + plan in one row, new order full width */
-  .toolbar{flex-wrap:wrap}
-  
-  /* Orders list - hide payment column on mobile */
-  .order-row{grid-template-columns:50px 1fr 110px}
-  .order-row > .cell:nth-child(5),
-  .order-row > .cell:nth-child(6),
-  .order-row.hdr > .cell:nth-child(5),
-  .order-row.hdr > .cell:nth-child(6){display:none}
-  
-  /* New order button full width */
-  .btn-primary[onclick="openNewOrder()"]{width:100%;justify-content:center;margin-left:0;margin-top:8px;order:10}
-  
-  .page{padding:12px}
-  .modal{width:95vw;max-height:92vh}
-}
+@media(max-width:768px){.stats-row{grid-template-columns:repeat(2,1fr)}.order-row{grid-template-columns:36px 100px 1fr 100px}.order-row .cell:nth-child(5),.order-row .cell:nth-child(6){display:none}.analytics-grid{grid-template-columns:1fr}.modal{width:95vw}.page{padding:12px}.search-wrap{margin-left:0;width:100%}.search-wrap input{width:100%}}
 </style>
 </head>
 <body>
@@ -201,12 +173,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="fbtn" onclick="setFilter('ready',this)">✅ Готові</button>
       <button class="fbtn" onclick="setFilter('issued',this)">📦 Видані</button>
       <button class="fbtn" onclick="setFilter('postponed',this)">⏳ Відкладені</button>
-      <div class="search-wrap">
+    </div>
+    <div class="toolbar" style="gap:8px">
+      <div class="search-wrap" style="margin-left:0;flex:1">
         <span class="search-ico">⌕</span>
-        <input type="text" id="search-input" placeholder="Пошук..." oninput="renderOrders()">
+        <input type="text" id="search-input" placeholder="Пошук..." oninput="renderOrders()" style="width:100%">
       </div>
-      <button class="btn" onclick="printPlan()" style="white-space:nowrap">🖨 План</button>
-      <button class="btn btn-primary" onclick="openNewOrder()" style="white-space:nowrap">+ Нове замовлення</button>
+      <button class="btn" onclick="printPlan()" style="white-space:nowrap;flex-shrink:0">🖨 План</button>
+    </div>
+    <div style="text-align:center;margin-bottom:14px">
+      <button class="btn btn-primary btn-new-order" onclick="openNewOrder()" style="padding:10px 32px">+ Нове замовлення</button>
     </div>
     <div class="toolbar" id="manager-filters" style="margin-top:-6px"></div>
     <div class="orders-wrap">
@@ -217,7 +193,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="cell hdr">Статус</div>
         <div class="cell hdr">Приймальник</div>
         <div class="cell hdr">Термін</div>
-        <div class="cell hdr">Оплата</div>
       </div>
       <div id="orders-body"></div>
     </div>
@@ -433,7 +408,6 @@ function renderOrders() {
       "<div class='cell' style='gap:6px'>" + statusBadge(num) + (urgent ? "<span class='badge b-urgent'>⚡</span>" : "") + "</div>" +
       "<div class='cell' style='color:var(--muted)'>" + gv(o,"Приймальник") + "</div>" +
       "<div class='cell' style='color:" + (urgent ? "#A32D2D" : "var(--muted)") + "'>" + gv(o,"Термін") + "</div>" +
-      "<div class='cell' style='color:var(--muted);font-size:12px'>" + gv(o,"Оплата") + "</div>" +
       "</div>";
   }).join("");
 }
@@ -704,80 +678,52 @@ function downloadPDF(num) {
   const total = items.reduce((s,i) => s + extractAmt(gv(i,"Сума")), 0);
   const se = (v) => stripEmoji(String(v || ""));
   const w = window.open("","_blank");
-  w.document.write(`<!DOCTYPE html>
-<html><head><meta charset="UTF-8">
-<title>Квитанція \${num}</title>
-<link href="https://fonts.googleapis.com/css2?family=Tenor+Sans&family=Commissioner:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{--dark:#1E1E1E;--cognac:#A0845C;--linen:#F0EBE3;--brown:#3A3228}
-body{background:var(--linen);font-family:Commissioner,sans-serif;font-weight:500;padding:0;margin:0;display:flex;justify-content:center;align-items:flex-start}
-#receipt{background:var(--linen);color:var(--dark);padding:40px 36px;width:100%;max-width:480px;font-family:Commissioner,sans-serif;font-weight:500}
-.receipt-header{text-align:center;padding-bottom:20px;border-bottom:1px solid rgba(58,50,40,0.15);margin-bottom:20px}
-.receipt-logo{font-family:'Tenor Sans',serif;font-size:13px;letter-spacing:0.25em;color:var(--brown);text-transform:uppercase;margin-bottom:4px}
-.receipt-tagline{font-size:10px;color:var(--brown);letter-spacing:0.15em;text-transform:uppercase}
-.receipt-meta{font-size:11px;color:var(--dark);margin-bottom:16px}
-.receipt-client{background:rgba(160,132,92,0.1);border-radius:5px;padding:12px 16px;margin-bottom:20px;font-size:12px}
-.receipt-client-row{display:flex;justify-content:space-between;padding:3px 0}
-.rc-label{color:var(--brown)}
-.rc-value{color:var(--brown);font-weight:600}
-.receipt-items{margin-bottom:20px}
-.receipt-item{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(58,50,40,0.1)}
-.receipt-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
-.receipt-item-title{display:flex;align-items:baseline;margin-bottom:6px;gap:8px}
-.ri-num{font-family:'Tenor Sans',serif;font-size:10px;color:var(--cognac);letter-spacing:0.15em;white-space:nowrap}
-.ri-name{font-size:13px;font-weight:600;color:var(--dark)}
-.ri-sub{font-size:11px;color:rgba(58,50,40,0.5);margin-bottom:4px}
-.receipt-service-row{display:flex;justify-content:space-between;font-size:13px;color:var(--dark);padding:3px 0;font-weight:500}
-.rs-price{color:var(--brown);font-weight:600}
-.receipt-divider{border:none;border-top:1px solid rgba(58,50,40,0.2);margin:18px 0}
-.receipt-total-row{display:flex;justify-content:space-between;align-items:baseline}
-.rt-label{font-size:11px;color:var(--dark);text-transform:uppercase;letter-spacing:0.1em}
-.rt-amount{font-family:'Tenor Sans',serif;font-size:22px;color:var(--dark)}
-.receipt-sig{margin-top:24px;padding-top:16px;border-top:1px solid rgba(58,50,40,0.1);font-size:12px;color:var(--brown)}
-.receipt-note{font-size:10px;color:rgba(58,50,40,0.75);text-align:center;margin-top:16px;line-height:1.6;font-style:italic}
-.receipt-footer{text-align:center;margin-top:16px;padding-top:14px;border-top:1px solid rgba(58,50,40,0.1);font-size:9px;color:rgba(58,50,40,0.65);letter-spacing:0.2em;text-transform:uppercase}
-@media print{body{background:var(--linen)}@page{size:A6;margin:0}}
-</style></head><body>
-<div id="receipt">
-  <div class="receipt-header">
-    <div class="receipt-logo">REWISE · STUDIO</div>
-    <div class="receipt-tagline">Квитанція</div>
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Квитанція ${num}</title>
+  <style>
+    @page{size:A6;margin:8mm}
+    body{font-family:Arial,sans-serif;font-size:10px;color:#111;max-width:100mm}
+    h2{font-size:13px;margin:0 0 2px}
+    .sub{color:#888;font-size:8px;margin-bottom:8px}
+    hr{border:none;border-top:1px dashed #ccc;margin:6px 0}
+    .row{display:flex;justify-content:space-between;margin-bottom:3px}
+    .lbl{color:#888}
+    .iblock{margin-bottom:6px}
+    .inum{font-size:9px;font-weight:bold;color:#6B4F3A}
+    .iname{font-weight:bold;margin:2px 0}
+    .isvcs{color:#888;font-size:8px}
+    .total{font-size:13px;font-weight:bold;color:#6B4F3A}
+    .sig{margin-top:10px;display:flex;justify-content:space-between;font-size:8px;color:#888}
+    .footer{margin-top:8px;font-size:7px;color:#aaa;text-align:center}
+    @media print{body{margin:0}}
+  </style></head><body>
+  <h2>Rewise Studio</h2>
+  <div class="sub">Одеса · @rewise.studio · +380 XX XXX XX XX</div>
+  <hr>
+  <div style="font-size:12px;font-weight:bold;margin-bottom:6px">${num}</div>
+  <div class="row"><span class="lbl">Клієнт:</span><span>${se(gv(order,"Ім'я клієнта"))}</span></div>
+  <div class="row"><span class="lbl">Телефон:</span><span>${se(gv(order,"Телефон"))}</span></div>
+  <div class="row"><span class="lbl">Дата:</span><span>${se(gv(order,"Дата створення"))}</span></div>
+  <div class="row"><span class="lbl">Термін:</span><span>${se(gv(order,"Термін"))}</span></div>
+  <div class="row"><span class="lbl">Оплата:</span><span>${se(gv(order,"Оплата"))}</span></div>
+  <hr>
+  ${items.map(item => `<div class="iblock">
+    <div class="inum">${se(gv(item,"Номер виробу"))}</div>
+    <div class="iname">${se(gv(item,"Тип"))} — ${se(gv(item,"Бренд"))}</div>
+    <div class="isvcs">${se(gv(item,"Послуги"))}</div>
+    <div style="text-align:right;font-weight:bold">${se(gv(item,"Сума"))}</div>
+  </div>`).join("<hr style='border-top:1px dotted #eee'>")}
+  <hr>
+  <div class="row total"><span>Разом:</span><span>${total.toLocaleString("uk-UA")} ₴</span></div>
+  <div class="sig">
+    <span>Підпис клієнта: ___________________________</span>
   </div>
-  <div class="receipt-meta">\${se(gv(order,"Дата створення"))}</div>
-  <div class="receipt-client">
-    <div class="receipt-client-row"><span class="rc-label">Клієнт</span><span class="rc-value">\${se(gv(order,"Ім'я клієнта"))}</span></div>
-    <div class="receipt-client-row"><span class="rc-label">Телефон</span><span class="rc-value">\${se(gv(order,"Телефон"))}</span></div>
-    <div class="receipt-client-row"><span class="rc-label">Замовлення</span><span class="rc-value">\${num}</span></div>
-    <div class="receipt-client-row"><span class="rc-label">Термін</span><span class="rc-value">\${se(gv(order,"Термін"))}</span></div>
-  </div>
-  <div class="receipt-items">
-    \${items.map((item,idx) => {
-      const iNum = se(gv(item,"Номер виробу"));
-      const iType = se(gv(item,"Тип"));
-      const iBrand = se(gv(item,"Бренд"));
-      const iSvcs = se(gv(item,"Послуги"));
-      const iSum = se(gv(item,"Сума"));
-      return \`<div class="receipt-item">
-        <div class="receipt-item-title">
-          <span class="ri-num">\${iNum}</span>
-          <span class="ri-name">\${iType} — \${iBrand}</span>
-        </div>
-        <div class="receipt-service-row"><span>\${iSvcs}</span><span class="rs-price">\${iSum}</span></div>
-      </div>\`;
-    }).join("")}
-  </div>
-  <hr class="receipt-divider">
-  <div class="receipt-total-row">
-    <span class="rt-label">Разом</span>
-    <span class="rt-amount">\${total.toLocaleString("uk-UA")} ₴</span>
-  </div>
-  <div class="receipt-note">Не є фіскальним чеком<br>Остаточна вартість узгоджується після огляду виробу</div>
-  <div class="receipt-sig">Підпис клієнта: ___________________________</div>
-  <div class="receipt-footer">rewise-studio · ukraine</div>
-</div>
-<script>window.onload=()=>window.print()<\/script>
-</body></html>`);
+  <div class="footer">Не є фіскальним чеком · Дякуємо за довіру · Rewise Studio</div>
+  <script>
+    window.onload = function() {
+      window.print();
+    };
+  <\/script>
+  </body></html>`);
   w.document.close();
 }
 
