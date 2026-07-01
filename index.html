@@ -649,8 +649,15 @@ function stripEmoji(str) {
   return str.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{1F300}-\u{1FAFF}]/gu, "").replace(/\s+/g, " ").trim();
 }
 
-function shareImage(elementId, filename) {
+function printElement(elementId) {
   const el = document.getElementById(elementId);
+  if (!el) return;
+  const w = window.open("","_blank");
+  w.document.write("<!DOCTYPE html><html><head><meta charset='UTF-8'><style>body{margin:0;padding:16px;background:#F0EBE3}@page{size:A6;margin:8mm}@media print{body{padding:0}}<\/style><\/head><body>" + el.outerHTML + "<script>window.onload=function(){window.print();window.onafterprint=function(){window.close()}}<\/script><\/body><\/html>");
+  w.document.close();
+}
+
+function shareImage(elementId, filename) {  const el = document.getElementById(elementId);
   if (!el) return;
   html2canvas(el, {backgroundColor: "#F0EBE3", scale: 2, useCORS: true}).then(function(canvas) {
     canvas.toBlob(function(blob) {
@@ -712,6 +719,7 @@ function downloadPDF(num) {
   document.getElementById("modal-body").innerHTML = receiptHTML;
   document.getElementById("modal-footer").innerHTML =
     "<button class='btn' onclick='closeModal()'>← Назад</button>" +
+    "<button class='btn' onclick='printElement(\"receipt-print\")' style='margin-left:4px'>🖨 Друк</button>" +
     "<button class='btn btn-primary' onclick='shareImage(\"receipt-print\", \"rewise-receipt\")' style='margin-left:4px'>⬆ Поділитися</button>";
   document.getElementById("modal-bg").classList.add("open");
 }
@@ -757,6 +765,7 @@ function printPlan() {
   document.getElementById("modal-body").innerHTML = planHTML;
   document.getElementById("modal-footer").innerHTML =
     "<button class='btn' onclick='closeModal()'>← Назад</button>" +
+    "<button class='btn' onclick='printElement(\"plan-print\")' style='margin-left:4px'>🖨 Друк</button>" +
     "<button class='btn btn-primary' onclick='shareImage(\"plan-print\", \"rewise-plan\")' style='margin-left:4px'>⬆ Поділитися</button>";
   document.getElementById("modal-bg").classList.add("open");
 }
