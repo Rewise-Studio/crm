@@ -481,57 +481,6 @@ function openOrder(num) {
 function closeBg(e) { if (e.target === document.getElementById("modal-bg")) closeModal(); }
 function closeModal() { document.getElementById("modal-bg").classList.remove("open"); }
 
-function printOrder(num) {
-  const order = ORDERS.find(o => gv(o,"Номер замовлення") === num);
-  const items = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
-  const total = items.reduce((s,i) => s + extractAmt(gv(i,"Сума")), 0);
-  const se = (v) => stripEmoji(String(v || ""));
-  const w = window.open("","_blank");
-  w.document.write("<html><head><title>Квитанція " + num + "</title><style>body{font-family:Arial,sans-serif;padding:20px;font-size:13px;max-width:320px}h2{font-size:16px;margin-bottom:2px}.sub{color:#888;font-size:11px;margin-bottom:14px}hr{border:none;border-top:1px dashed #ccc;margin:10px 0}.row{display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px}.label{color:#888}table{width:100%;border-collapse:collapse;margin-top:8px}td{padding:4px 0;font-size:12px;vertical-align:top}td:last-child{text-align:right}.footer{margin-top:14px;font-size:10px;color:#aaa;text-align:center}.sig{margin-top:20px;display:flex;justify-content:space-between;font-size:11px;color:#888}</style></head><body>" +
-    "<h2>Rewise Studio</h2><div class='sub'>Одеса · @rewise.studio · +380 XX XXX XX XX</div><hr>" +
-    "<div class='row'><span class='label'>Замовлення</span><span><b>" + num + "</b></span></div>" +
-    "<div class='row'><span class='label'>Дата</span><span>" + gv(order,"Дата створення") + "</span></div>" +
-    "<div class='row'><span class='label'>Клієнт</span><span>" + gv(order,"Ім'я клієнта") + "</span></div>" +
-    "<div class='row'><span class='label'>Телефон</span><span>" + gv(order,"Телефон") + "</span></div>" +
-    "<div class='row'><span class='label'>Термін</span><span>" + gv(order,"Термін") + "</span></div><hr>" +
-    "<table>" + items.map(i => "<tr><td>" + gv(i,"Номер виробу") + "<br><small style='color:#888'>" + gv(i,"Тип") + " — " + gv(i,"Бренд") + "</small><br><small style='color:#888'>" + gv(i,"Послуги") + "</small></td><td><b>" + gv(i,"Сума") + "</b></td></tr>").join("") + "</table><hr>" +
-    "<div class='row' style='font-size:14px;font-weight:bold'><span>Разом</span><span>" + total.toLocaleString("uk-UA") + " ₴</span></div>" +
-    "<div class='row'><span class='label'>Оплата</span><span>" + gv(order,"Оплата") + "</span></div>" +
-    "<div class='sig'><span>Підпис майстра: _______</span><span>Підпис клієнта: _______</span></div>" +
-    "<div class='footer'>Не є фіскальним чеком · Дякуємо за довіру · Rewise Studio</div>" +
-    "<script>window.onload=()=>window.print()<\/script></body></html>");
-}
-
-function printPlan() {
-  const q = (document.getElementById("search-input")?.value || "").toLowerCase();
-  const filtered = ORDERS.filter(o => {
-    const num = gv(o,"Номер замовлення");
-    const st = getStatus(num);
-    const mf = currentFilter === "all" || st === currentFilter;
-    const mm = currentManager === "all" || gv(o,"Приймальник") === currentManager;
-    const mq = !q || gv(o,"Ім'я клієнта").toLowerCase().includes(q) || num.toLowerCase().includes(q);
-    return mf && mm && mq;
-  });
-  if (!filtered.length) { alert("Немає замовлень для друку"); return; }
-  const now = new Date();
-  const pad = n => String(n).padStart(2,"0");
-  const dateStr = pad(now.getDate()) + "." + pad(now.getMonth()+1) + "." + now.getFullYear();
-  const se = (v) => stripEmoji(String(v || ""));
-  const w = window.open("","_blank");
-  w.document.write("<html><head><title>План " + dateStr + "</title><style>body{font-family:Arial,sans-serif;padding:20px;font-size:13px;max-width:700px}h2{font-size:16px;margin-bottom:2px}.sub{color:#888;font-size:12px;margin-bottom:20px}.block{margin-bottom:14px;border:1px solid #e0d9d3;border-radius:8px;overflow:hidden}.block-head{background:#f5f0ea;padding:8px 12px;display:flex;justify-content:space-between}.bnum{font-weight:bold;color:#6B4F3A}.irow{padding:8px 12px;border-top:1px solid #e0d9d3}.inum{font-size:11px;color:#6B4F3A;font-weight:bold;margin-bottom:2px}.iname{font-size:12px;font-weight:500;margin-bottom:2px}.isvcs{font-size:11px;color:#888}.footer{margin-top:16px;font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:10px;text-align:center}</style></head><body>" +
-    "<h2>Rewise Studio — План</h2><div class='sub'>" + dateStr + " · Замовлень: " + filtered.length + "</div>" +
-    filtered.map(o => {
-      const num = gv(o,"Номер замовлення");
-      const items = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
-      const urgent = gv(o,"Термін") === "Терміново";
-      return "<div class='block'><div class='block-head'><div><span class='bnum'>" + num + "</span> · " + gv(o,"Ім'я клієнта") + " · " + gv(o,"Телефон") + "</div><div style='color:#888'>" + (urgent ? "⚡ ТЕРМІНОВО" : gv(o,"Термін")) + "</div></div>" +
-        items.map(i => "<div class='irow'><div class='inum'>" + gv(i,"Номер виробу") + "</div><div class='iname'>" + gv(i,"Тип") + " — " + gv(i,"Бренд") + "</div><div class='isvcs'>" + gv(i,"Послуги") + "</div></div>").join("") +
-        (gv(o,"Примітка") ? "<div style='padding:6px 12px;font-size:11px;color:#888;border-top:1px solid #f0e8e0;font-style:italic'>📝 " + gv(o,"Примітка") + "</div>" : "") +
-        "</div>";
-    }).join("") +
-    "<div class='footer'>Rewise Studio · Одеса</div><script>window.onload=()=>window.print()<\/script></body></html>");
-}
-
 function renderClients() {
   const q = (document.getElementById("client-search")?.value || "").toLowerCase();
   const map = {};
