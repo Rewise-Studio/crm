@@ -137,8 +137,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 @media(max-width:768px){.stats-row{grid-template-columns:repeat(2,1fr)}.order-row{grid-template-columns:24px 1fr 1fr 120px}.cell:nth-child(5),.cell:nth-child(6),.cell:nth-child(7){display:none}.analytics-grid{grid-template-columns:1fr}.modal{width:95vw}.page{padding:12px}.topnav{padding:0 10px;overflow-x:hidden}.topnav-brand{margin-right:14px}.nav-tab{padding:0 8px;font-size:12px}.logout-btn{font-size:0;padding:0;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%}.logout-btn::before{content:"";width:14px;height:14px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F5F0EA' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'%3E%3C/path%3E%3Cpolyline points='16 17 21 12 16 7'%3E%3C/polyline%3E%3Cline x1='21' y1='12' x2='9' y2='12'%3E%3C/line%3E%3C/svg%3E");background-size:contain;background-repeat:no-repeat;background-position:center;opacity:.7}.toolbar .btn-primary{width:100%;text-align:center;order:99}.search-wrap{margin-left:0!important;width:100%}.search-wrap input{width:100%}.logo-crm{letter-spacing:0.305em}#plan-btn{display:none}}
 @media print{body *{visibility:hidden}#modal-body,#modal-body *{visibility:visible}#modal-body{position:fixed;top:0;left:0;width:100%;padding:20px;background:#F0EBE3;overflow:visible}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
-<body>
 
 <div class="login-wrap" id="login-wrap">
   <div class="login-card">
@@ -700,10 +700,22 @@ function stripEmoji(str) {
   return str.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{1F300}-\u{1FAFF}]/gu, "").replace(/\s+/g, " ").trim();
 }
 
-function printMobileReceipt(num) {
-  // На мобільному PWA — window.open() ламає навігацію.
-  // Друкуємо через CSS @media print прямо з модального вікна.
-  window.print();
+function shareImage(elementId, filename) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  html2canvas(el, {backgroundColor: "#F0EBE3", scale: 2, useCORS: true}).then(function(canvas) {
+    canvas.toBlob(function(blob) {
+      const file = new File([blob], filename + ".png", {type: "image/png"});
+      if (navigator.canShare && navigator.canShare({files: [file]})) {
+        navigator.share({files: [file], title: "Rewise Studio"}).catch(function(){});
+      } else {
+        const link = document.createElement("a");
+        link.download = filename + "-" + Date.now() + ".png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      }
+    }, "image/png");
+  });
 }
 
 function downloadPDF(num) {
@@ -713,74 +725,93 @@ function downloadPDF(num) {
   const se = (v) => stripEmoji(String(v || ""));
 
   const receiptHTML =
-    "<div style='background:#F0EBE3;border-radius:8px;padding:20px;font-family:Arial,sans-serif;font-size:12px;color:#1E1E1E'>" +
-    "<div style='text-align:center;margin-bottom:14px'>" +
+    "<div id='receipt-print' style='background:#F0EBE3;border-radius:8px;padding:28px 24px;font-family:Arial,sans-serif;font-weight:500;color:#1E1E1E;max-width:400px;margin:0 auto'>" +
+    "<div style='text-align:center;padding-bottom:16px;border-bottom:1px solid rgba(58,50,40,0.15);margin-bottom:16px'>" +
       "<div style='font-size:11px;letter-spacing:3px;color:#3A3228;text-transform:uppercase;margin-bottom:3px'>REWISE · STUDIO</div>" +
       "<div style='font-size:9px;letter-spacing:2px;color:#A0845C;text-transform:uppercase'>Квитанція</div>" +
     "</div>" +
-    "<div style='border-top:1px solid rgba(58,50,40,0.15);margin-bottom:12px'></div>" +
-    "<div style='font-size:10px;color:#3A3228;margin-bottom:10px'>" + se(gv(order,"Дата створення")) + "</div>" +
-    "<div style='background:rgba(160,132,92,0.1);border-radius:5px;padding:10px 12px;margin-bottom:14px;font-size:11px'>" +
-      "<div style='display:flex;justify-content:space-between;padding:2px 0'><span style='color:#3A3228'>Клієнт</span><span style='font-weight:600;color:#3A3228'>" + se(gv(order,"Ім'я клієнта")) + "</span></div>" +
-      "<div style='display:flex;justify-content:space-between;padding:2px 0'><span style='color:#3A3228'>Телефон</span><span style='font-weight:600;color:#3A3228'>" + se(gv(order,"Телефон")) + "</span></div>" +
-      "<div style='display:flex;justify-content:space-between;padding:2px 0'><span style='color:#3A3228'>Замовлення</span><span style='font-weight:600;color:#3A3228'>" + num + "</span></div>" +
-      "<div style='display:flex;justify-content:space-between;padding:2px 0'><span style='color:#3A3228'>Термін</span><span style='font-weight:600;color:#3A3228'>" + se(gv(order,"Термін")) + "</span></div>" +
+    "<div style='font-size:10px;color:#3A3228;margin-bottom:12px'>" + se(gv(order,"Дата створення")) + "</div>" +
+    "<div style='background:rgba(160,132,92,0.1);border-radius:5px;padding:10px 12px;margin-bottom:16px'>" +
+      "<div style='display:flex;justify-content:space-between;padding:2px 0;font-size:11px'><span style='color:#3A3228'>Клієнт</span><span style='font-weight:700;color:#3A3228'>" + se(gv(order,"Ім\'я клієнта")) + "</span></div>" +
+      "<div style='display:flex;justify-content:space-between;padding:2px 0;font-size:11px'><span style='color:#3A3228'>Телефон</span><span style='font-weight:700;color:#3A3228'>" + se(gv(order,"Телефон")) + "</span></div>" +
+      "<div style='display:flex;justify-content:space-between;padding:2px 0;font-size:11px'><span style='color:#3A3228'>Замовлення</span><span style='font-weight:700;color:#3A3228'>" + num + "</span></div>" +
+      "<div style='display:flex;justify-content:space-between;padding:2px 0;font-size:11px'><span style='color:#3A3228'>Термін</span><span style='font-weight:700;color:#3A3228'>" + se(gv(order,"Термін")) + "</span></div>" +
     "</div>" +
     items.map(function(item) {
       return "<div style='margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(58,50,40,0.1)'>" +
-        "<div style='display:flex;align-items:baseline;gap:8px;margin-bottom:4px'>" +
+        "<div style='display:flex;align-items:baseline;gap:6px;margin-bottom:4px'>" +
           "<span style='font-size:9px;color:#A0845C;letter-spacing:1px'>№" + se(gv(item,"Номер виробу")) + "</span>" +
-          "<span style='font-weight:600;font-size:12px'>" + se(gv(item,"Тип")) + " — " + se(gv(item,"Бренд")) + "</span>" +
+          "<span style='font-weight:700;font-size:12px'>" + se(gv(item,"Тип")) + " — " + se(gv(item,"Бренд")) + "</span>" +
         "</div>" +
         "<div style='display:flex;justify-content:space-between;font-size:12px'>" +
           "<span>" + se(gv(item,"Послуги")) + "</span>" +
-          "<span style='font-weight:600;color:#3A3228;margin-left:8px'>" + se(gv(item,"Сума")) + "</span>" +
+          "<span style='font-weight:700;color:#3A3228;margin-left:8px'>" + se(gv(item,"Сума")) + "</span>" +
         "</div>" +
       "</div>";
     }).join("") +
-    "<div style='border-top:1px solid rgba(58,50,40,0.2);margin:12px 0'></div>" +
+    "<div style='border-top:1px solid rgba(58,50,40,0.2);margin:14px 0'></div>" +
     "<div style='display:flex;justify-content:space-between;align-items:baseline'>" +
-      "<span style='font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#1E1E1E'>Разом</span>" +
-      "<span style='font-size:20px;font-weight:700;color:#1E1E1E'>" + total.toLocaleString("uk-UA") + " ₴</span>" +
+      "<span style='font-size:10px;text-transform:uppercase;letter-spacing:1px'>Разом</span>" +
+      "<span style='font-size:20px;font-weight:700'>" + total.toLocaleString("uk-UA") + " ₴</span>" +
     "</div>" +
-    "<div style='margin-top:16px;font-size:10px;color:rgba(58,50,40,0.7);font-style:italic;text-align:center'>Не є фіскальним чеком</div>" +
-    "<div style='margin-top:14px;font-size:10px;color:#3A3228'>Підпис клієнта: ___________________________</div>" +
-    "<div style='text-align:center;margin-top:14px;font-size:9px;color:rgba(58,50,40,0.5);letter-spacing:2px;text-transform:uppercase;border-top:1px solid rgba(58,50,40,0.1);padding-top:10px'>rewise-studio · ukraine</div>" +
+    "<div style='font-size:9px;color:rgba(58,50,40,0.7);font-style:italic;text-align:center;margin-top:14px'>Не є фіскальним чеком</div>" +
+    "<div style='margin-top:14px;padding-top:12px;border-top:1px solid rgba(58,50,40,0.1);font-size:11px;color:#3A3228'>Підпис клієнта: ___________________________</div>" +
+    "<div style='text-align:center;margin-top:12px;font-size:8px;color:rgba(58,50,40,0.5);letter-spacing:2px;text-transform:uppercase;border-top:1px solid rgba(58,50,40,0.1);padding-top:10px'>rewise-studio · ukraine</div>" +
     "</div>";
 
-  if (window.innerWidth <= 768) {
-    document.getElementById("modal-title").textContent = "Квитанція " + num;
-    document.getElementById("modal-body").innerHTML = receiptHTML;
-    document.getElementById("modal-footer").innerHTML =
-      "<button class='btn btn-primary' onclick='closeModal()'>← Назад</button>";
-    document.getElementById("modal-bg").classList.add("open");
-    return;
-  }
-
-  const w = window.open("","_blank");
-  w.document.write("<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Квитанція " + num + "<\/title><link href='https://fonts.googleapis.com/css2?family=Tenor+Sans&family=Commissioner:wght@400;500;600&display=swap' rel='stylesheet'><style>*{box-sizing:border-box;margin:0;padding:0}body{background:#F0EBE3;font-family:Commissioner,Arial,sans-serif;font-weight:500;display:flex;justify-content:center;padding:20px}#receipt{background:#F0EBE3;padding:40px 36px;max-width:480px;width:100%}.rh{text-align:center;padding-bottom:20px;border-bottom:1px solid rgba(58,50,40,0.15);margin-bottom:20px}.rl{font-family:'Tenor Sans',serif;font-size:13px;letter-spacing:0.25em;color:#3A3228;text-transform:uppercase;margin-bottom:4px}.rt{font-size:10px;color:#3A3228;letter-spacing:0.15em;text-transform:uppercase}.rm{font-size:11px;color:#1E1E1E;margin-bottom:16px}.rc{background:rgba(160,132,92,0.1);border-radius:5px;padding:12px 16px;margin-bottom:20px;font-size:12px}.rcr{display:flex;justify-content:space-between;padding:3px 0}.rcl{color:#3A3228}.rcv{color:#3A3228;font-weight:600}.ri{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(58,50,40,0.1)}.ri:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}.rit{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}.rin{font-family:'Tenor Sans',serif;font-size:10px;color:#A0845C;letter-spacing:0.15em}.rina{font-size:13px;font-weight:600;color:#1E1E1E}.ris{display:flex;justify-content:space-between;font-size:13px;color:#1E1E1E;font-weight:500}.risp{color:#3A3228;font-weight:600}.div{border:none;border-top:1px solid rgba(58,50,40,0.2);margin:18px 0}.tot{display:flex;justify-content:space-between;align-items:baseline}.totl{font-size:11px;color:#1E1E1E;text-transform:uppercase;letter-spacing:0.1em}.tota{font-family:'Tenor Sans',serif;font-size:22px;color:#1E1E1E}.note{font-size:10px;color:rgba(58,50,40,0.75);text-align:center;margin-top:16px;line-height:1.6;font-style:italic}.sig{margin-top:20px;padding-top:14px;border-top:1px solid rgba(58,50,40,0.1);font-size:12px;color:#3A3228}.foot{text-align:center;margin-top:16px;padding-top:14px;border-top:1px solid rgba(58,50,40,0.1);font-size:9px;color:rgba(58,50,40,0.55);letter-spacing:0.2em;text-transform:uppercase}@page{size:A6;margin:8mm}@media print{body{background:#F0EBE3;padding:0}#receipt{padding:20px}}<\/style><\/head><body><div id='receipt'>" +
-    "<div class='rh'><div class='rl'>REWISE · STUDIO<\/div><div class='rt'>Квитанція<\/div><\/div>" +
-    "<div class='rm'>" + se(gv(order,"Дата створення")) + "<\/div>" +
-    "<div class='rc'>" +
-      "<div class='rcr'><span class='rcl'>Клієнт<\/span><span class='rcv'>" + se(gv(order,"Ім'я клієнта")) + "<\/span><\/div>" +
-      "<div class='rcr'><span class='rcl'>Телефон<\/span><span class='rcv'>" + se(gv(order,"Телефон")) + "<\/span><\/div>" +
-      "<div class='rcr'><span class='rcl'>Замовлення<\/span><span class='rcv'>" + num + "<\/span><\/div>" +
-      "<div class='rcr'><span class='rcl'>Термін<\/span><span class='rcv'>" + se(gv(order,"Термін")) + "<\/span><\/div>" +
-    "<\/div>" +
-    "<div>" + items.map(function(item) {
-      return "<div class='ri'>" +
-        "<div class='rit'><span class='rin'>№" + se(gv(item,"Номер виробу")) + "<\/span><span class='rina'>" + se(gv(item,"Тип")) + " — " + se(gv(item,"Бренд")) + "<\/span><\/div>" +
-        "<div class='ris'><span>" + se(gv(item,"Послуги")) + "<\/span><span class='risp'>" + se(gv(item,"Сума")) + "<\/span><\/div>" +
-      "<\/div>";
-    }).join("") + "<\/div>" +
-    "<hr class='div'>" +
-    "<div class='tot'><span class='totl'>Разом<\/span><span class='tota'>" + total.toLocaleString("uk-UA") + " ₴<\/span><\/div>" +
-    "<div class='note'>Не є фіскальним чеком<\/div>" +
-    "<div class='sig'>Підпис клієнта: ___________________________<\/div>" +
-    "<div class='foot'>rewise-studio · ukraine<\/div>" +
-  "<\/div><script>window.onload=function(){window.print()}<\/script><\/body><\/html>");
-  w.document.close();
+  document.getElementById("modal-title").textContent = "Квитанція " + num;
+  document.getElementById("modal-body").innerHTML = receiptHTML;
+  document.getElementById("modal-footer").innerHTML =
+    "<button class='btn' onclick='closeModal()'>← Назад</button>" +
+    "<button class='btn btn-primary' onclick='shareImage(\"receipt-print\", \"rewise-receipt\")' style='margin-left:4px'>⬆ Поділитися</button>";
+  document.getElementById("modal-bg").classList.add("open");
 }
+
+function printPlan() {
+  const filtered = ORDERS.filter(o => {
+    const s = getStatus(gv(o,"Номер замовлення"));
+    return s !== "issued";
+  });
+
+  let planHTML = "<div id='plan-print' style='background:#fff;padding:20px;font-family:Arial,sans-serif;font-size:13px;color:#1E1E1E'>";
+  planHTML += "<div style='font-size:16px;font-weight:bold;color:#6B4F3A;margin-bottom:4px'>Rewise Studio — План роботи</div>";
+  const now = new Date();
+  const pad = n => String(n).padStart(2,"0");
+  const dateStr = pad(now.getDate()) + "." + pad(now.getMonth()+1) + "." + now.getFullYear();
+  planHTML += "<div style='font-size:12px;color:#888;margin-bottom:16px'>" + dateStr + " · Замовлень: " + filtered.length + "</div>";
+
+  filtered.forEach(o => {
+    const num = gv(o,"Номер замовлення");
+    const items = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+    const note = gv(o,"Примітка");
+    planHTML += "<div style='margin-bottom:12px;border:1px solid #e0d9d3;border-radius:8px;overflow:hidden'>";
+    planHTML += "<div style='background:#f5f0ea;padding:8px 12px;display:flex;justify-content:space-between;align-items:center'>";
+    planHTML += "<span style='font-weight:bold;color:#6B4F3A'>" + num + "</span>";
+    planHTML += "<span style='font-size:11px;color:#888'>" + gv(o,"Ім\'я клієнта") + " · " + gv(o,"Приймальник") + "</span>";
+    planHTML += "</div>";
+    items.forEach(item => {
+      planHTML += "<div style='padding:8px 12px;border-top:1px solid #e0d9d3'>";
+      planHTML += "<div style='font-size:11px;color:#6B4F3A;font-weight:bold;margin-bottom:2px'>" + gv(item,"Номер виробу") + "</div>";
+      planHTML += "<div style='font-size:12px;font-weight:500;margin-bottom:2px'>" + gv(item,"Тип") + " — " + gv(item,"Бренд") + "</div>";
+      planHTML += "<div style='font-size:11px;color:#888'>" + gv(item,"Послуги") + "</div>";
+      planHTML += "</div>";
+    });
+    if (note) {
+      planHTML += "<div style='padding:6px 12px;font-size:11px;color:#888;border-top:1px solid #f0e8e0;font-style:italic'>📝 " + note + "</div>";
+    }
+    planHTML += "</div>";
+  });
+  planHTML += "<div style='margin-top:14px;font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:10px;text-align:center'>Rewise Studio</div>";
+  planHTML += "</div>";
+
+  document.getElementById("modal-title").textContent = "План роботи · " + dateStr;
+  document.getElementById("modal-body").innerHTML = planHTML;
+  document.getElementById("modal-footer").innerHTML =
+    "<button class='btn' onclick='closeModal()'>← Назад</button>" +
+    "<button class='btn btn-primary' onclick='shareImage(\"plan-print\", \"rewise-plan\")' style='margin-left:4px'>⬆ Поділитися</button>";
+  document.getElementById("modal-bg").classList.add("open");
+}
+
 
 async function saveNote(num) {
   const note = document.getElementById("note-input")?.value || "";
