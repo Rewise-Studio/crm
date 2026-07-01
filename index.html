@@ -135,6 +135,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .svc-btn.active{background:var(--linen);border-color:var(--umbra)}
 .svc-price{color:var(--umbra);font-weight:500;flex-shrink:0;margin-left:8px}
 @media(max-width:768px){.stats-row{grid-template-columns:repeat(2,1fr)}.order-row{grid-template-columns:24px 1fr 1fr 120px}.cell:nth-child(5),.cell:nth-child(6),.cell:nth-child(7){display:none}.analytics-grid{grid-template-columns:1fr}.modal{width:95vw}.page{padding:12px}.topnav{padding:0 10px;overflow-x:hidden}.topnav-brand{margin-right:14px}.nav-tab{padding:0 8px;font-size:12px}.logout-btn{font-size:0;padding:0;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%}.logout-btn::before{content:"";width:14px;height:14px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F5F0EA' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'%3E%3C/path%3E%3Cpolyline points='16 17 21 12 16 7'%3E%3C/polyline%3E%3Cline x1='21' y1='12' x2='9' y2='12'%3E%3C/line%3E%3C/svg%3E");background-size:contain;background-repeat:no-repeat;background-position:center;opacity:.7}.toolbar .btn-primary{width:100%;text-align:center;order:99}.search-wrap{margin-left:0!important;width:100%}.search-wrap input{width:100%}.logo-crm{letter-spacing:0.305em}#plan-btn{display:none}}
+@media print{body *{visibility:hidden}#modal-body,#modal-body *{visibility:visible}#modal-body{position:fixed;top:0;left:0;width:100%;padding:20px;background:#F0EBE3;overflow:visible}}
 </style>
 </head>
 <body>
@@ -473,7 +474,6 @@ function openOrder(num) {
   }
   document.getElementById("modal-footer").innerHTML =
     "<button class='btn' onclick=\"printOrder('" + num + "')\">🖨 Друк</button>" +
-    "<button class='btn' onclick=\"downloadPDF('" + num + "')\" style='margin-left:4px'>📄 PDF</button>" +
     "<button class='btn btn-primary' onclick='closeModal()' style='margin-left:4px'>Закрити</button>";
   document.getElementById("modal-bg").classList.add("open");
 }
@@ -701,33 +701,9 @@ function stripEmoji(str) {
 }
 
 function printMobileReceipt(num) {
-  const order = ORDERS.find(o => gv(o,"Номер замовлення") === num);
-  const items = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
-  const total = items.reduce((s,i) => s + extractAmt(gv(i,"Сума")), 0);
-  const se = (v) => stripEmoji(String(v || ""));
-  const w = window.open("","_blank");
-  w.document.write("<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Квитанція " + num + "<\/title><style>*{box-sizing:border-box;margin:0;padding:0}body{background:#F0EBE3;font-family:Arial,sans-serif;font-size:12px;color:#1E1E1E;padding:20px}.rh{text-align:center;padding-bottom:16px;border-bottom:1px solid rgba(58,50,40,0.15);margin-bottom:16px}.rl{font-size:11px;letter-spacing:3px;color:#3A3228;text-transform:uppercase;margin-bottom:3px}.rt{font-size:9px;letter-spacing:2px;color:#A0845C;text-transform:uppercase}.rm{font-size:10px;color:#3A3228;margin-bottom:12px}.rc{background:rgba(160,132,92,0.1);border-radius:5px;padding:10px 12px;margin-bottom:16px}.rcr{display:flex;justify-content:space-between;padding:2px 0;font-size:11px}.rcl{color:#3A3228}.rcv{font-weight:600;color:#3A3228}.ri{margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(58,50,40,0.1)}.rit{display:flex;align-items:baseline;gap:6px;margin-bottom:4px}.rin{font-size:9px;color:#A0845C;letter-spacing:1px}.rina{font-weight:600;font-size:12px}.ris{display:flex;justify-content:space-between;font-size:12px}.risp{font-weight:600;color:#3A3228}.div{border:none;border-top:1px solid rgba(58,50,40,0.2);margin:14px 0}.tot{display:flex;justify-content:space-between;align-items:baseline}.totl{font-size:10px;text-transform:uppercase;letter-spacing:1px}.tota{font-size:20px;font-weight:700}.note{font-size:9px;color:rgba(58,50,40,0.7);text-align:center;margin-top:14px;font-style:italic}.sig{margin-top:16px;padding-top:12px;border-top:1px solid rgba(58,50,40,0.1);font-size:11px;color:#3A3228}.foot{text-align:center;margin-top:14px;padding-top:12px;border-top:1px solid rgba(58,50,40,0.1);font-size:8px;color:rgba(58,50,40,0.5);letter-spacing:2px;text-transform:uppercase}@media print{body{padding:0}}<\/style><\/head><body>" +
-    "<div class='rh'><div class='rl'>REWISE · STUDIO<\/div><div class='rt'>Квитанція<\/div><\/div>" +
-    "<div class='rm'>" + se(gv(order,"Дата створення")) + "<\/div>" +
-    "<div class='rc'>" +
-      "<div class='rcr'><span class='rcl'>Клієнт<\/span><span class='rcv'>" + se(gv(order,"Ім'я клієнта")) + "<\/span><\/div>" +
-      "<div class='rcr'><span class='rcl'>Телефон<\/span><span class='rcv'>" + se(gv(order,"Телефон")) + "<\/span><\/div>" +
-      "<div class='rcr'><span class='rcl'>Замовлення<\/span><span class='rcv'>" + num + "<\/span><\/div>" +
-      "<div class='rcr'><span class='rcl'>Термін<\/span><span class='rcv'>" + se(gv(order,"Термін")) + "<\/span><\/div>" +
-    "<\/div>" +
-    items.map(function(item) {
-      return "<div class='ri'>" +
-        "<div class='rit'><span class='rin'>№" + se(gv(item,"Номер виробу")) + "<\/span><span class='rina'>" + se(gv(item,"Тип")) + " — " + se(gv(item,"Бренд")) + "<\/span><\/div>" +
-        "<div class='ris'><span>" + se(gv(item,"Послуги")) + "<\/span><span class='risp'>" + se(gv(item,"Сума")) + "<\/span><\/div>" +
-      "<\/div>";
-    }).join("") +
-    "<hr class='div'>" +
-    "<div class='tot'><span class='totl'>Разом<\/span><span class='tota'>" + total.toLocaleString("uk-UA") + " ₴<\/span><\/div>" +
-    "<div class='note'>Не є фіскальним чеком<\/div>" +
-    "<div class='sig'>Підпис клієнта: ___________________________<\/div>" +
-    "<div class='foot'>rewise-studio · ukraine<\/div>" +
-    "<script>window.onload=function(){window.print()}<\/script><\/body><\/html>");
-  w.document.close();
+  // На мобільному PWA — window.open() ламає навігацію.
+  // Друкуємо через CSS @media print прямо з модального вікна.
+  window.print();
 }
 
 function downloadPDF(num) {
@@ -776,8 +752,7 @@ function downloadPDF(num) {
     document.getElementById("modal-title").textContent = "Квитанція " + num;
     document.getElementById("modal-body").innerHTML = receiptHTML;
     document.getElementById("modal-footer").innerHTML =
-      "<button class='btn' onclick='closeModal()'>← Назад</button>" +
-      "<button class='btn btn-primary' onclick='printMobileReceipt(\"" + num + "\")'>🖨 Друк</button>";
+      "<button class='btn btn-primary' onclick='closeModal()'>← Назад</button>";
     document.getElementById("modal-bg").classList.add("open");
     return;
   }
