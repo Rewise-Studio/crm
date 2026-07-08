@@ -1252,10 +1252,27 @@ function goToService() {
   const body = document.getElementById("modal-body");
   body.innerHTML = "<div class='form-group'><div class='form-label'>Послуга</div><div id='svc-list' style='max-height:320px;overflow-y:auto'></div></div>";
   const list = document.getElementById("svc-list");
+
+  const HINTS = {
+    "літнє взуття":   "сандалі, босоніжки, шльопанці, сабо, мюлі, еспадрильї",
+    "низьке взуття":  "туфлі, лофери, балетки, оксфорди, кросівки, кеді, мокасини",
+    "середнє взуття": "черевики (челсі, дезерти, ботильйони), хайтопи",
+    "високі чоботи":  "чоботи до коліна, ботфорти, берці",
+    "ugg та хутряне": "угги, дутики, хутряне та зимове взуття",
+  };
+
   svcs.forEach(s => {
     const btn = document.createElement("button");
     btn.className = "svc-btn" + (NO.items[curItem].services === s[0] ? " active" : "");
-    btn.innerHTML = "<span>" + s[0] + "</span><span class='svc-price'>" + s[1].toLocaleString("uk-UA") + " ₴</span>";
+    const nameLC = s[0].toLowerCase();
+    let hint = "";
+    for (const key in HINTS) {
+      if (nameLC.includes(key)) { hint = HINTS[key]; break; }
+    }
+    btn.innerHTML = "<span style='display:flex;flex-direction:column;gap:2px;text-align:left'>" +
+      "<span>" + s[0] + "</span>" +
+      (hint ? "<span style='font-size:10px;color:var(--muted);font-weight:400'>" + hint + "</span>" : "") +
+      "</span><span class='svc-price'>" + s[1].toLocaleString("uk-UA") + " ₴</span>";
     btn.onclick = function() { NO.items[curItem].services = s[0]; NO.items[curItem].price = s[1]; list.querySelectorAll(".svc-btn").forEach(b => b.classList.remove("active")); btn.classList.add("active"); };
     list.appendChild(btn);
   });
