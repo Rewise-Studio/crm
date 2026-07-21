@@ -201,6 +201,12 @@ body {
 .create-right { width: 34%; padding: 8px 26px 40px 4px; }
 .create-right-sticky { position: sticky; top: 8px; }
 
+.cr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+.cr-box { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 16px 18px; }
+.cr-box-full { grid-column: 1 / -1; }
+.cr-box .cr-block-label { margin-top: 16px; }
+.cr-box .cr-block-label.first { margin-top: 0; }
+
 .cr-block-label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cognac); margin: 22px 0 12px; }
 .cr-block-label.first { margin-top: 8px; }
 
@@ -236,7 +242,7 @@ body {
 .cr-msg-btn:hover { border-color: var(--cognac-border); color: var(--txt); }
 .cr-msg-btn.active { border-color: transparent; color: #fff; }
 
-.itemcard { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+.itemcard { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
 .itemcard-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .itemcard-num { font-family: 'Tenor Sans', serif; font-size: 11px; color: var(--cognac); letter-spacing: 0.15em; }
 .itemcard-rm { background: none; border: none; color: var(--txt-3); cursor: pointer; font-size: 17px; line-height: 1; padding: 0; transition: color 0.15s; }
@@ -317,11 +323,13 @@ body {
 
 /* ═══════════════ ДЕТАЛЬНА КАРТКА ЗАМОВЛЕННЯ ═══════════════ */
 .detail-scroll { flex: 1; overflow-y: auto; padding: 4px 28px 40px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+.dblock { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 17px 19px; margin-bottom: 0; }
+.dblock-full { grid-column: 1 / -1; }
 .detail-top { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
 .detail-back { background: transparent; border: none; color: var(--txt-2); cursor: pointer; font-size: 20px; line-height: 1; padding: 4px; border-radius: 6px; transition: background 0.15s; }
 .detail-back:hover { background: var(--hover); }
 .detail-title { font-family: 'Tenor Sans', serif; font-size: 19px; color: var(--txt); }
-.dblock { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 17px 19px; margin-bottom: 12px; }
 .dblock-label { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cognac); margin-bottom: 13px; }
 
 .d-client-head { display: flex; align-items: center; gap: 13px; margin-bottom: 14px; }
@@ -489,9 +497,11 @@ body {
   .create-left { width: 100%; padding: 4px 18px 20px; overflow-y: visible; }
   .create-right { width: 100%; padding: 4px 18px 30px; border-top: 1px solid var(--line); }
   .create-right-sticky { position: static; }
+  .cr-grid { grid-template-columns: 1fr; }
 
   .orders-scroll { padding: 12px 16px 24px; }
   .detail-scroll { padding: 4px 16px 30px; }
+  .detail-grid { grid-template-columns: 1fr; }
   .d-comm { gap: 6px; }
   .d-comm-btn { padding: 8px 11px; font-size: 11px; }
   .d-status-btn { padding: 7px 11px; }
@@ -782,30 +792,38 @@ renderers.create = function() {
     "<div class='page-header'><div class='page-title'>Нове замовлення</div></div>" +
     "<div class='create-wrap'>" +
       "<div class='create-left'>" +
-        "<div class='cr-block-label first'>Хто приймає</div>" +
-        "<div class='cr-pills' id='cr-mgr'></div>" +
-        "<div class='cr-block-label'>Клієнт</div>" +
-        "<div class='cr-client-suggest'>" +
-          "<input class='cr-input' id='cr-client' placeholder=\"Ім'я або назва магазину\" autocomplete='off' value=\"" + (NO.client||"").replace(/"/g,"&quot;") + "\" oninput='onClientInput(this.value)'>" +
-          "<div class='cr-suggest-dd' id='cr-suggest'></div>" +
+        "<div class='cr-grid'>" +
+          "<div class='cr-box'>" +
+            "<div class='cr-block-label first'>Хто приймає</div>" +
+            "<div class='cr-pills' id='cr-mgr'></div>" +
+            "<div class='cr-block-label'>Клієнт</div>" +
+            "<div class='cr-client-suggest'>" +
+              "<input class='cr-input' id='cr-client' placeholder=\"Ім'я або назва магазину\" autocomplete='off' value=\"" + (NO.client||"").replace(/"/g,"&quot;") + "\" oninput='onClientInput(this.value)'>" +
+              "<div class='cr-suggest-dd' id='cr-suggest'></div>" +
+            "</div>" +
+            "<input class='cr-input' id='cr-phone' placeholder='+380...' value=\"" + (NO.phone||"") + "\" oninput='onPhoneInput(this.value)'>" +
+            "<div class='cr-msg-pick' id='cr-msg'></div>" +
+          "</div>" +
+          "<div class='cr-box'>" +
+            "<div class='cr-block-label first'>Оплата та термін</div>" +
+            "<div class='cr-pills' id='cr-pay'>" +
+              "<button class='cr-pill cr-pill-wide" + (NO.payment==='Передоплата'?' active':'') + "' onclick=\"setPay('Передоплата',this)\">Передоплата</button>" +
+              "<button class='cr-pill cr-pill-wide" + (NO.payment==='Післяоплата'?' active':'') + "' onclick=\"setPay('Післяоплата',this)\">Післяоплата</button>" +
+            "</div>" +
+            "<input class='cr-input' id='cr-prepay' type='number' placeholder='Сума передоплати, ₴' style='display:" + (NO.payment==='Передоплата'?'block':'none') + "' value=\"" + (NO.prepay||"") + "\" oninput='NO.prepay=this.value'>" +
+            "<div class='cr-pills' id='cr-deadline' style='margin-top:10px'>" +
+              "<button class='cr-pill" + (NO.deadline==='⚡ Терміново'?' active':'') + "' onclick=\"setDeadline('⚡ Терміново',this)\">Терміново</button>" +
+              "<button class='cr-pill" + (NO.deadline==='Без терміну'?' active':'') + "' onclick=\"setDeadline('Без терміну',this)\">Без терміну</button>" +
+              "<button class='cr-pill' onclick=\"setDeadline('date',this)\">Вказати дату</button>" +
+            "</div>" +
+            "<input class='cr-input cr-deadline-date' id='cr-deadline-date' type='date' oninput='NO.deadline=formatDeadlineDate(this.value)'>" +
+          "</div>" +
+          "<div class='cr-box cr-box-full'>" +
+            "<div class='cr-block-label first'>Речі та послуги</div>" +
+            "<div id='cr-items'></div>" +
+            "<button class='add-item-btn' onclick='addItem()'>+ Додати річ</button>" +
+          "</div>" +
         "</div>" +
-        "<input class='cr-input' id='cr-phone' placeholder='+380...' value=\"" + (NO.phone||"") + "\" oninput='onPhoneInput(this.value)'>" +
-        "<div class='cr-msg-pick' id='cr-msg'></div>" +
-        "<div class='cr-block-label'>Речі та послуги</div>" +
-        "<div id='cr-items'></div>" +
-        "<button class='add-item-btn' onclick='addItem()'>+ Додати річ</button>" +
-        "<div class='cr-block-label'>Оплата та термін</div>" +
-        "<div class='cr-pills' id='cr-pay'>" +
-          "<button class='cr-pill cr-pill-wide" + (NO.payment==='Передоплата'?' active':'') + "' onclick=\"setPay('Передоплата',this)\">Передоплата</button>" +
-          "<button class='cr-pill cr-pill-wide" + (NO.payment==='Післяоплата'?' active':'') + "' onclick=\"setPay('Післяоплата',this)\">Післяоплата</button>" +
-        "</div>" +
-        "<input class='cr-input' id='cr-prepay' type='number' placeholder='Сума передоплати, ₴' style='display:" + (NO.payment==='Передоплата'?'block':'none') + "' value=\"" + (NO.prepay||"") + "\" oninput='NO.prepay=this.value'>" +
-        "<div class='cr-pills' id='cr-deadline' style='margin-top:10px'>" +
-          "<button class='cr-pill" + (NO.deadline==='⚡ Терміново'?' active':'') + "' onclick=\"setDeadline('⚡ Терміново',this)\">Терміново</button>" +
-          "<button class='cr-pill" + (NO.deadline==='Без терміну'?' active':'') + "' onclick=\"setDeadline('Без терміну',this)\">Без терміну</button>" +
-          "<button class='cr-pill' onclick=\"setDeadline('date',this)\">Вказати дату</button>" +
-        "</div>" +
-        "<input class='cr-input cr-deadline-date' id='cr-deadline-date' type='date' oninput='NO.deadline=formatDeadlineDate(this.value)'>" +
         "<button class='cr-create-btn' onclick='submitOrder()'>Створити замовлення</button>" +
       "</div>" +
       "<div class='create-right'><div class='create-right-sticky'>" +
@@ -1298,7 +1316,7 @@ function openOrder(num) {
       "<div class='d-item-svc'>" + gv(it,"Послуги") + "</div>" +
       "<div class='d-status-row'>" + statusBtns + "</div></div>";
   }).join("");
-  const itemsBlock = "<div class='dblock'><div class='dblock-label'>Вироби та статус</div>" + itemsHTML + "</div>";
+  const itemsBlock = "<div class='dblock dblock-full'><div class='dblock-label'>Вироби та статус</div>" + itemsHTML + "</div>";
 
   // Оплата
   const payStr = gv(o,"Оплата");
@@ -1338,7 +1356,9 @@ function openOrder(num) {
         "<span class='detail-title'>Замовлення " + num.replace("RW-","#") + "</span>" +
         "<span class='badge " + stMeta[1] + "'>" + stMeta[0] + "</span>" +
       "</div>" +
-      clientBlock + itemsBlock + payBlock + timelineBlock + notifyBlock +
+      "<div class='detail-grid'>" +
+        clientBlock + payBlock + itemsBlock + timelineBlock + notifyBlock +
+      "</div>" +
     "</div>";
 }
 
