@@ -197,8 +197,8 @@ body {
 
 /* ═══════════════ ВКЛАДКА СТВОРИТИ (КОШТОРИС) ═══════════════ */
 .create-wrap { display: flex; flex: 1; min-height: 0; }
-.create-left { width: 63%; padding: 8px 28px 40px; overflow-y: auto; }
-.create-right { width: 37%; padding: 8px 26px 40px 4px; }
+.create-left { width: 66%; padding: 8px 28px 40px; overflow-y: auto; }
+.create-right { width: 34%; padding: 8px 26px 40px 4px; }
 .create-right-sticky { position: sticky; top: 8px; }
 
 .cr-block-label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cognac); margin: 22px 0 12px; }
@@ -214,13 +214,27 @@ body {
 .cr-input:focus { border-color: var(--cognac); }
 .cr-input::placeholder { color: var(--txt-3); }
 
-.cr-client-suggest { position: relative; }
-.cr-suggest-dd { position: absolute; top: calc(100% - 4px); left: 0; right: 0; background: var(--surface-2); border: 1px solid var(--field-border); border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 40; display: none; box-shadow: var(--receipt-shadow); }
+.cr-client-suggest { position: relative; }.cr-suggest-dd { position: absolute; top: calc(100% - 4px); left: 0; right: 0; background: var(--surface-2); border: 1px solid var(--field-border); border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 40; display: none; box-shadow: var(--receipt-shadow); }
 .cr-suggest-dd.open { display: block; }
 .cr-suggest-opt { padding: 10px 13px; font-size: 13px; color: var(--txt); cursor: pointer; border-bottom: 1px solid var(--line-soft); display: flex; justify-content: space-between; }
 .cr-suggest-opt:last-child { border-bottom: none; }
 .cr-suggest-opt:hover { background: var(--hover); }
 .cr-suggest-opt .sug-phone { color: var(--txt-3); font-size: 11px; }
+
+.cr-msg-pick { display: flex; gap: 8px; margin-bottom: 4px; }
+.cr-msg-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 13px; border-radius: 8px;
+  border: 1px solid var(--field-border); background: transparent;
+  color: var(--txt-2); font-family: 'Commissioner', sans-serif;
+  font-size: 12px; font-weight: 300; cursor: pointer;
+  transition: all 0.15s;
+}
+.cr-msg-btn svg { width: 17px; height: 17px; }
+.cr-msg-btn .msg-ico { color: var(--txt-3); transition: color 0.15s; }
+.cr-msg-btn .msg-ico svg { fill: currentColor; }
+.cr-msg-btn:hover { border-color: var(--cognac-border); color: var(--txt); }
+.cr-msg-btn.active { border-color: transparent; color: #fff; }
 
 .itemcard { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
 .itemcard-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
@@ -239,7 +253,9 @@ body {
 .ic-svcrow { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line-soft); }
 .ic-svcrow:last-child { border-bottom: none; }
 .ic-svcname { flex: 1; font-size: 12px; color: var(--txt); }
-.ic-svcprice { font-size: 12px; color: var(--cognac); white-space: nowrap; }
+.ic-svcprice { font-size: 12px; color: var(--cognac); white-space: nowrap; cursor: pointer; border-bottom: 1px dashed transparent; transition: border-color 0.15s; }
+.ic-svcprice:hover { border-bottom-color: var(--cognac-border); }
+.ic-svcprice-input { width: 68px; background: var(--field-bg); border: 1px solid var(--cognac); border-radius: 5px; padding: 4px 7px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 12px; font-weight: 300; outline: none; text-align: right; }
 .ic-svcdel { background: none; border: none; color: var(--txt-3); cursor: pointer; font-size: 14px; padding: 0; transition: color 0.15s; }
 .ic-svcdel:hover { color: var(--st-postponed-fg); }
 
@@ -273,31 +289,95 @@ body {
 .btn-share:hover { background: var(--cognac); color: #fff; }
 .btn-share svg { width: 13px; height: 13px; stroke-width: 1.8; }
 
-#receipt { background: #FBF8F3; color: #1E1E1E; border-radius: 8px; padding: 34px 30px; font-family: 'Commissioner', sans-serif; font-weight: 500; box-shadow: var(--receipt-shadow); }
+#receipt { background: #FBF8F3; color: #1E1E1E; border-radius: 8px; padding: 28px 24px; font-family: 'Commissioner', sans-serif; font-weight: 500; box-shadow: var(--receipt-shadow); }
 [data-theme="dark"] #receipt { background: var(--linen); }
-.r-header { text-align: center; padding-bottom: 20px; border-bottom: 1px solid rgba(58,50,40,0.15); margin-bottom: 20px; }
-.r-logo { font-family: 'Tenor Sans', serif; font-size: 13px; letter-spacing: 0.25em; color: var(--brown); text-transform: uppercase; margin-bottom: 4px; }
-.r-tag { font-size: 10px; color: #3A3228; letter-spacing: 0.15em; text-transform: uppercase; }
-.r-meta { display: flex; justify-content: space-between; font-size: 11px; color: #1E1E1E; margin-bottom: 18px; }
-.r-client { background: rgba(160,132,92,0.1); border-radius: 5px; padding: 12px 16px; margin-bottom: 20px; font-size: 12px; }
+.r-header { text-align: center; padding-bottom: 16px; border-bottom: 1px solid rgba(58,50,40,0.15); margin-bottom: 16px; }
+.r-logo { font-family: 'Tenor Sans', serif; font-size: 12px; letter-spacing: 0.25em; color: var(--brown); text-transform: uppercase; margin-bottom: 3px; }
+.r-tag { font-size: 9px; color: #3A3228; letter-spacing: 0.15em; text-transform: uppercase; }
+.r-meta { display: flex; justify-content: space-between; font-size: 10px; color: #1E1E1E; margin-bottom: 16px; }
+.r-client { background: rgba(160,132,92,0.1); border-radius: 5px; padding: 10px 14px; margin-bottom: 16px; font-size: 11px; }
 .r-crow { display: flex; justify-content: space-between; padding: 3px 0; }
 .rc-label { color: #3A3228; }
 .rc-value { color: var(--brown); font-weight: 600; }
-.r-item { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid rgba(58,50,40,0.1); }
+.r-item { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(58,50,40,0.1); }
 .r-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.r-item-title { display: flex; align-items: baseline; margin-bottom: 6px; }
+.r-item-title { display: flex; align-items: baseline; margin-bottom: 5px; }
 .ri-num { font-family: 'Tenor Sans', serif; font-size: 10px; color: var(--cognac); letter-spacing: 0.15em; white-space: nowrap; }
-.ri-name { font-size: 13px; font-weight: 600; color: #1E1E1E; margin-left: 10px; }
-.r-svcrow { display: flex; justify-content: space-between; font-size: 13px; color: #1E1E1E; padding: 4px 0; font-weight: 500; }
+.ri-name { font-size: 12px; font-weight: 600; color: #1E1E1E; margin-left: 9px; }
+.r-svcrow { display: flex; justify-content: space-between; font-size: 12px; color: #1E1E1E; padding: 3px 0; font-weight: 500; }
 .rs-price { color: var(--brown); font-weight: 600; }
-.r-divider { border: none; border-top: 1px solid rgba(58,50,40,0.2); margin: 18px 0; }
+.r-divider { border: none; border-top: 1px solid rgba(58,50,40,0.2); margin: 16px 0; }
 .r-total { display: flex; justify-content: space-between; align-items: baseline; }
-.rt-label { font-size: 11px; color: #1E1E1E; text-transform: uppercase; letter-spacing: 0.1em; }
-.rt-amount { font-family: 'Tenor Sans', serif; font-size: 22px; color: #1E1E1E; }
-.r-note { font-size: 10px; color: rgba(58,50,40,0.75); text-align: center; margin-top: 18px; line-height: 1.6; font-style: italic; }
-.r-footer { text-align: center; margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(58,50,40,0.1); font-size: 9px; color: rgba(58,50,40,0.65); letter-spacing: 0.2em; text-transform: uppercase; }
+.rt-label { font-size: 10px; color: #1E1E1E; text-transform: uppercase; letter-spacing: 0.1em; }
+.rt-amount { font-family: 'Tenor Sans', serif; font-size: 20px; color: #1E1E1E; }
+.r-note { font-size: 9px; color: rgba(58,50,40,0.75); text-align: center; margin-top: 16px; line-height: 1.6; font-style: italic; }
+.r-footer { text-align: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(58,50,40,0.1); font-size: 9px; color: rgba(58,50,40,0.65); letter-spacing: 0.2em; text-transform: uppercase; }
 .r-empty { text-align: center; padding: 50px 0; color: rgba(58,50,40,0.3); font-size: 12px; }
 .r-empty .icon { font-size: 30px; margin-bottom: 10px; }
+
+/* ═══════════════ ДЕТАЛЬНА КАРТКА ЗАМОВЛЕННЯ ═══════════════ */
+.detail-scroll { flex: 1; overflow-y: auto; padding: 4px 28px 40px; }
+.detail-top { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.detail-back { background: transparent; border: none; color: var(--txt-2); cursor: pointer; font-size: 20px; line-height: 1; padding: 4px; border-radius: 6px; transition: background 0.15s; }
+.detail-back:hover { background: var(--hover); }
+.detail-title { font-family: 'Tenor Sans', serif; font-size: 19px; color: var(--txt); }
+.dblock { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 17px 19px; margin-bottom: 12px; }
+.dblock-label { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cognac); margin-bottom: 13px; }
+
+.d-client-head { display: flex; align-items: center; gap: 13px; margin-bottom: 14px; }
+.d-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--accent-soft); display: flex; align-items: center; justify-content: center; font-family: 'Tenor Sans', serif; font-size: 16px; color: var(--cognac); flex-shrink: 0; }
+.d-client-name { display: flex; align-items: center; gap: 8px; }
+.d-client-name span { font-size: 15px; color: var(--txt); }
+.d-client-sub { font-size: 12px; color: var(--txt-2); margin-top: 2px; }
+.d-comm { display: flex; gap: 8px; flex-wrap: wrap; }
+.d-comm-btn { display: flex; align-items: center; gap: 6px; background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 8px 13px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.15s; text-decoration: none; }
+.d-comm-btn svg { width: 17px; height: 17px; }
+.d-comm-btn:hover { border-color: var(--cognac-border); }
+.d-comm-btn.active { border-color: transparent; color: #fff; }
+.d-comm-btn.active svg { fill: #fff; }
+.d-comm-btn:not(.active) svg { fill: var(--txt-2); }
+
+#rw-toast {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--brown); color: var(--linen);
+  padding: 12px 22px; border-radius: 8px; font-size: 13px;
+  font-family: 'Commissioner', sans-serif; z-index: 999;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.3);
+}
+#rw-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+@media (max-width: 768px) { #rw-toast { bottom: 84px; } }
+
+.d-item { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.d-item:last-child { border-bottom: none; padding-bottom: 2px; }
+.d-item-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+.d-item-name { font-size: 14px; color: var(--txt); }
+.d-item-num { font-family: 'Tenor Sans', serif; font-size: 10px; color: var(--cognac); letter-spacing: 0.12em; }
+.d-item-price { font-size: 14px; color: var(--txt); }
+.d-item-detail { font-size: 12px; color: var(--txt-3); margin-bottom: 4px; }
+.d-item-svc { font-size: 12px; color: var(--txt-2); margin-bottom: 11px; }
+.d-status-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.d-status-btn { padding: 7px 13px; border-radius: 16px; font-size: 11px; cursor: pointer; font-family: 'Commissioner', sans-serif; border: 1px solid var(--line); background: transparent; color: var(--txt-2); transition: all 0.15s; }
+.d-status-btn:hover { border-color: var(--cognac-border); }
+.d-status-btn.done { color: var(--txt); }
+.d-status-btn.current { color: #fff; border-color: transparent; }
+
+.d-pay-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+.d-pay-row .pl { color: var(--txt-2); }
+.d-pay-row .pv { color: var(--txt); }
+.d-pay-total { display: flex; justify-content: space-between; padding: 9px 0 0; margin-top: 6px; border-top: 1px solid var(--line); }
+.d-pay-total .pl { color: var(--txt); font-size: 13px; }
+.d-pay-total .pv { font-family: 'Tenor Sans', serif; font-size: 17px; color: var(--txt); }
+
+.d-timeline-row { display: flex; gap: 11px; padding: 5px 0; font-size: 12px; }
+.d-timeline-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cognac); margin-top: 5px; flex-shrink: 0; }
+.d-timeline-txt { flex: 1; color: var(--txt-2); }
+.d-timeline-date { color: var(--txt-3); font-size: 11px; }
+
+.d-notify { display: flex; gap: 8px; flex-wrap: wrap; }
+.d-notify-btn { background: transparent; border: 1px solid var(--cognac-border); border-radius: 8px; padding: 9px 14px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
+.d-notify-btn:hover { background: var(--accent-soft); }
+.d-notify-btn svg { width: 14px; height: 14px; stroke-width: 1.8; }
 
 /* ═══════════════ ВКЛАДКА ЗАМОВЛЕННЯ ═══════════════ */
 .filters {
@@ -334,22 +414,28 @@ body {
 }
 .search-box input::placeholder { color: var(--txt-3); }
 
-.orders-scroll { flex: 1; overflow-y: auto; }
+.orders-scroll { flex: 1; overflow-y: auto; padding: 14px 28px 28px; }
 .order-row {
   display: grid;
-  grid-template-columns: 64px 1.5fr 1.6fr 1.4fr 92px 62px;
-  gap: 12px; align-items: center;
-  padding: 14px 28px;
-  border-bottom: 1px solid var(--line-soft);
+  grid-template-columns: 54px 1.7fr 1.6fr 1.4fr 100px 52px;
+  gap: 14px; align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--cognac);
+  border-radius: 10px;
+  padding: 15px 18px;
+  margin-bottom: 10px;
   cursor: pointer;
-  transition: background 0.12s;
+  transition: background 0.12s, border-color 0.12s;
 }
 .order-row:hover { background: var(--hover); }
-.order-num { font-size: 12px; color: var(--txt-2); }
-.oc-name { font-size: 13px; color: var(--txt); }
-.oc-sub { font-size: 10px; color: var(--txt-3); margin-top: 2px; }
-.oc-svc { font-size: 12px; color: var(--txt-2); }
-.oc-date { font-size: 11px; color: var(--txt-3); }
+.order-row.urgent-soon { box-shadow: 0 0 0 1px var(--st-postponed-fg); }
+.order-num { font-size: 13px; color: var(--txt-2); }
+.oc-name { font-size: 14px; color: var(--txt); }
+.oc-sub { font-size: 11px; color: var(--txt-3); margin-top: 3px; }
+.oc-svc { font-size: 13px; color: var(--txt-2); }
+.oc-date { font-size: 12px; color: var(--txt-3); text-align: right; }
+.oc-date.warn { color: var(--st-postponed-fg); font-weight: 500; }
 .badge {
   font-size: 10px; padding: 3px 9px; border-radius: 11px;
   font-weight: 500; white-space: nowrap; display: inline-block;
@@ -403,6 +489,12 @@ body {
   .create-left { width: 100%; padding: 4px 18px 20px; overflow-y: visible; }
   .create-right { width: 100%; padding: 4px 18px 30px; border-top: 1px solid var(--line); }
   .create-right-sticky { position: static; }
+
+  .orders-scroll { padding: 12px 16px 24px; }
+  .detail-scroll { padding: 4px 16px 30px; }
+  .d-comm { gap: 6px; }
+  .d-comm-btn { padding: 8px 11px; font-size: 11px; }
+  .d-status-btn { padding: 7px 11px; }
 }
 </style>
 </head>
@@ -541,7 +633,7 @@ async function loadData() {
       fetch(base + encodeURIComponent("Вироби")),
       fetch(base + encodeURIComponent("Партнери"))
     ]);
-    ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка"]);
+    ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер"]);
     ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі"]);
     PARTNERS = await parsePartners(r3);
     if (!PARTNERS.length) PARTNERS = ["Сергій"];
@@ -573,6 +665,29 @@ const STATUS_META = {
   new:["Новий","b-new"], work:["В роботі","b-work"], ready:["Готово","b-ready"],
   issued:["Виданий","b-issued"], postponed:["Відкладено","b-postponed"]
 };
+const STATUS_ACCENT = { new:"#378ADD", work:"#EF9F27", ready:"#639922", issued:"#B4B2A9", postponed:"#E24B4A" };
+
+/* Чи горить термін: термінові — завжди, звичайні — за 3 дні до дати */
+function deadlineWarn(o) {
+  const term = gv(o,"Термін");
+  if (getStatus(gv(o,"Номер замовлення")) === "issued") return false;
+  if (term.includes("Терміново")) return true;
+  const d = parseDeadline(term);
+  if (!d) return false;
+  const now = new Date(); now.setHours(0,0,0,0);
+  const diff = (d - now) / 86400000;
+  return diff >= 0 && diff <= 3;
+}
+function parseDeadline(str) {
+  if (!str) return null;
+  const m = str.match(/(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?/);
+  if (!m) return null;
+  const day = parseInt(m[1]), mon = parseInt(m[2]) - 1;
+  let year = m[3] ? parseInt(m[3]) : new Date().getFullYear();
+  if (year < 100) year += 2000;
+  return new Date(year, mon, day);
+}
+
 function statusBadge(num) {
   const m = STATUS_META[getStatus(num)];
   return "<span class='badge " + m[1] + "'>" + m[0] + "</span>";
@@ -643,8 +758,17 @@ function svcHint(name) {
 }
 
 /* ═══════════════ ВКЛАДКА СТВОРИТИ ═══════════════ */
-let NO = { manager: "", client: "", phone: "", items: [], payment: "", prepay: "", deadline: "" };
+let NO = { manager: "", client: "", phone: "", messenger: "", items: [], payment: "", prepay: "", deadline: "" };
 let itemCounter = 0;
+
+/* Оригінальні іконки месенджерів */
+const MSG_ICONS = {
+  telegram: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.94 2C6.44 2 2 6.48 2 12s4.44 10 9.94 10c5.52 0 10.06-4.48 10.06-10S17.46 2 11.94 2zm4.64 6.8l-1.55 7.32c-.12.52-.42.65-.85.4l-2.35-1.73-1.13 1.09c-.13.13-.24.24-.48.24l.17-2.43 4.42-4c.2-.17-.04-.27-.3-.1L9.4 13.4l-2.32-.73c-.5-.16-.51-.5.11-.74l9.06-3.49c.42-.15.79.1.65.72z"/></svg>',
+  whatsapp: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.49 0 1.47 1.07 2.89 1.22 3.09.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.77-.72 2.02-1.42.25-.7.25-1.29.17-1.42-.07-.13-.27-.2-.57-.35zM12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.38 5.07L2 22l5.05-1.32A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>',
+  viber: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C9.5 2 6.03 2.4 4.16 4.06 2.77 5.32 2.28 7.2 2.22 9.5c-.05 2.3-.11 6.6 4.04 7.77v1.78c0 .65.5 1.05 1.03.62.35-.28 1.5-1.44 2.04-1.98 2.76.23 4.88-.3 5.12-.38.56-.18 3.73-.58 4.24-4.8.53-4.35-.26-7.1-1.68-8.34C15.83 2.5 14 2 12.04 2zm.05 1.5c1.68 0 3.2.42 4.03 1.14 1.2 1.04 1.6 3.4 1.16 6.9-.43 3.53-3 3.75-3.47 3.9-.2.06-2.06.52-4.42.32 0 0-1.76 2.12-2.3 2.67-.09.09-.19.12-.26.1-.1-.02-.13-.14-.13-.3l.02-2.94c-3.5-.98-3.3-4.63-3.26-6.55.05-1.92.44-3.48 1.6-4.53 1.58-1.4 4.6-1.71 6.7-1.71h.03zm.4 2.4c-.13 0-.24.1-.24.24 0 .13.1.24.24.24 1.02 0 1.9.34 2.6 1.02.67.68.98 1.6.98 2.76 0 .13.1.24.24.24.13 0 .24-.11.24-.24 0-1.3-.36-2.36-1.13-3.1-.78-.76-1.8-1.16-2.93-1.16zm-3.9.6c-.14-.02-.3.02-.42.1 0 0-.28.18-.42.28-.13.1-.24.2-.33.3-.2.2-.33.44-.4.68-.1.4-.03.82.2 1.34l.01.02c.36.9.94 1.8 1.7 2.65.76.85 1.6 1.5 2.5 1.94l.02.01c.5.24.9.32 1.28.24l.05-.01c.24-.06.48-.2.68-.4.1-.1.2-.2.3-.33.1-.14.28-.42.28-.42.16-.24.1-.5-.1-.62 0 0-1.1-.68-1.34-.8-.24-.1-.4-.05-.5.1l-.28.36c-.14.18-.4.16-.4.16-1.4-.5-2.28-1.9-2.28-1.9s-.02-.26.16-.4l.36-.28c.15-.1.2-.26.1-.5-.12-.24-.8-1.34-.8-1.34-.08-.14-.2-.2-.34-.22zm3.65.65c-.13 0-.24.1-.24.24 0 .13.11.24.24.24.5 0 .86.14 1.13.42.26.28.4.66.4 1.18 0 .13.1.24.24.24.13 0 .24-.11.24-.24 0-.64-.2-1.16-.56-1.53-.36-.37-.86-.55-1.45-.55z"/></svg>'
+};
+const MSG_COLORS = { telegram: "#2AABEE", whatsapp: "#25D366", viber: "#7360F2" };
+const MSG_LABELS = { telegram: "Telegram", whatsapp: "WhatsApp", viber: "Viber" };
 
 function firstCategory() { const k = Object.keys(PRICE); return k.length ? k[0] : ""; }
 function firstDept(cat) { if (!PRICE[cat]) return ""; const k = Object.keys(PRICE[cat].departments); return k.length ? k[0] : ""; }
@@ -666,6 +790,7 @@ renderers.create = function() {
           "<div class='cr-suggest-dd' id='cr-suggest'></div>" +
         "</div>" +
         "<input class='cr-input' id='cr-phone' placeholder='+380...' value=\"" + (NO.phone||"") + "\" oninput='onPhoneInput(this.value)'>" +
+        "<div class='cr-msg-pick' id='cr-msg'></div>" +
         "<div class='cr-block-label'>Речі та послуги</div>" +
         "<div id='cr-items'></div>" +
         "<button class='add-item-btn' onclick='addItem()'>+ Додати річ</button>" +
@@ -680,7 +805,7 @@ renderers.create = function() {
           "<button class='cr-pill" + (NO.deadline==='Без терміну'?' active':'') + "' onclick=\"setDeadline('Без терміну',this)\">Без терміну</button>" +
           "<button class='cr-pill' onclick=\"setDeadline('date',this)\">Вказати дату</button>" +
         "</div>" +
-        "<input class='cr-input cr-deadline-date' id='cr-deadline-date' placeholder=\"10.06 або п'ятниця\">" +
+        "<input class='cr-input cr-deadline-date' id='cr-deadline-date' type='date' oninput='NO.deadline=formatDeadlineDate(this.value)'>" +
         "<button class='cr-create-btn' onclick='submitOrder()'>Створити замовлення</button>" +
       "</div>" +
       "<div class='create-right'><div class='create-right-sticky'>" +
@@ -691,6 +816,7 @@ renderers.create = function() {
     "</div>";
 
   renderManagers();
+  renderMsgPick();
   if (priceLoaded) {
     if (NO.items.length === 0) addItem();
     else { renderItems(); }
@@ -709,6 +835,29 @@ function setManager(p, btn) {
   NO.manager = p;
   document.querySelectorAll("#cr-mgr .cr-pill").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
+}
+
+function renderMsgPick() {
+  const box = document.getElementById("cr-msg");
+  if (!box) return;
+  box.innerHTML = ["telegram","whatsapp","viber"].map(m => {
+    const active = NO.messenger === m;
+    const style = active ? " style='background:" + MSG_COLORS[m] + "'" : "";
+    const icoColor = active ? " style='color:#fff'" : "";
+    return "<button class='cr-msg-btn" + (active?" active":"") + "'" + style + " onclick=\"setMessenger('" + m + "')\">" +
+      "<span class='msg-ico'" + icoColor + ">" + MSG_ICONS[m] + "</span>" + MSG_LABELS[m] + "</button>";
+  }).join("");
+}
+function setMessenger(m) {
+  NO.messenger = (NO.messenger === m) ? "" : m;
+  renderMsgPick();
+}
+
+/* Знайти месенджер клієнта з останнього замовлення */
+function clientMessenger(phone) {
+  const orders = ORDERS.filter(o => gv(o,"Телефон") === phone && gv(o,"Месенджер"));
+  if (!orders.length) return "";
+  return gv(orders[orders.length - 1], "Месенджер");
 }
 
 /* Автопідстановка клієнта за історією замовлень */
@@ -751,6 +900,8 @@ function pickClient(phone) {
   document.getElementById("cr-client").value = c.name;
   document.getElementById("cr-phone").value = c.phone;
   document.getElementById("cr-suggest").classList.remove("open");
+  const msg = clientMessenger(phone);
+  if (msg) { NO.messenger = msg; renderMsgPick(); }
   updateReceipt();
 }
 
@@ -764,8 +915,14 @@ function setDeadline(val, btn) {
   document.querySelectorAll("#cr-deadline .cr-pill").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
   const di = document.getElementById("cr-deadline-date");
-  if (val === "date") { di.style.display = "block"; NO.deadline = ""; }
+  if (val === "date") { di.style.display = "block"; NO.deadline = ""; di.focus && di.focus(); }
   else { di.style.display = "none"; NO.deadline = val; }
+}
+function formatDeadlineDate(iso) {
+  if (!iso) return "";
+  const p = iso.split("-");
+  if (p.length !== 3) return iso;
+  return p[2] + "." + p[1] + "." + p[0];
 }
 
 function addItem() {
@@ -781,6 +938,25 @@ function changeDept(id, val) { const it = NO.items.find(i=>i.id===id); it.depart
 function updateItemNote(id, val) { const it = NO.items.find(i=>i.id===id); it.note=val; updateReceipt(); }
 function addSvc(id, name, price) { const it = NO.items.find(i=>i.id===id); it.services.push({name:name, price:parseInt(price)}); renderItems(); updateReceipt(); }
 function removeSvc(itemId, idx) { const it = NO.items.find(i=>i.id===itemId); it.services.splice(idx,1); renderItems(); updateReceipt(); }
+
+function editSvcPrice(itemId, idx, el) {
+  const it = NO.items.find(i=>i.id===itemId);
+  if (!it || !it.services[idx]) return;
+  const cur = it.services[idx].price;
+  const input = document.createElement("input");
+  input.type = "number";
+  input.className = "ic-svcprice-input";
+  input.value = cur;
+  const commit = () => {
+    const v = parseInt(input.value);
+    it.services[idx].price = (!isNaN(v) && v >= 0) ? v : cur;
+    renderItems(); updateReceipt();
+  };
+  input.onblur = commit;
+  input.onkeydown = (e) => { if (e.key === "Enter") input.blur(); if (e.key === "Escape") { input.value = cur; input.blur(); } };
+  el.replaceWith(input);
+  input.focus(); input.select();
+}
 
 function openSvcDD(id) { renderSvcDD(id, ""); const dd = document.getElementById("ic-dd-"+id); if (dd) dd.classList.add("open"); }
 function filterSvc(id) { const inp = document.getElementById("ic-search-"+id); renderSvcDD(id, inp?inp.value:""); const dd = document.getElementById("ic-dd-"+id); if (dd) dd.classList.add("open"); }
@@ -816,7 +992,7 @@ function renderItems() {
     const catData = PRICE[item.category]; if (!catData) return;
     const catOpts = Object.keys(PRICE).map(k => "<option value='"+k+"'"+(k===item.category?" selected":"")+">"+PRICE[k].label+"</option>").join("");
     const deptOpts = Object.keys(catData.departments).map(d => "<option value=\""+d.replace(/"/g,"&quot;")+"\""+(d===item.department?" selected":"")+">"+d+"</option>").join("");
-    const svcRows = item.services.map((s,si) => "<div class='ic-svcrow'><span class='ic-svcname'>"+s.name+"</span><span class='ic-svcprice'>"+s.price+" ₴</span><button class='ic-svcdel' onclick='removeSvc("+item.id+","+si+")'>×</button></div>").join("");
+    const svcRows = item.services.map((s,si) => "<div class='ic-svcrow'><span class='ic-svcname'>"+s.name+"</span><span class='ic-svcprice' onclick='editSvcPrice("+item.id+","+si+",this)'>"+s.price+" ₴</span><button class='ic-svcdel' onclick='removeSvc("+item.id+","+si+")'>×</button></div>").join("");
     const note = item.note.replace(/"/g,"&quot;");
     const div = document.createElement("div");
     div.className = "itemcard";
@@ -898,7 +1074,7 @@ async function submitOrder() {
   if (!NO.deadline) {
     const dv = document.getElementById("cr-deadline-date").value.trim();
     if (!dv) { alert("Вкажіть термін"); return; }
-    NO.deadline = dv;
+    NO.deadline = formatDeadlineDate(dv);
   }
   let paymentStr = NO.payment;
   if (NO.payment === "Передоплата" && NO.prepay) paymentStr = "Передоплата: " + parseInt(NO.prepay).toLocaleString("uk-UA") + " ₴";
@@ -909,7 +1085,7 @@ async function submitOrder() {
 
   const payload = {
     date: dateStr, manager: NO.manager, client: NO.client, phone: NO.phone,
-    payment: paymentStr, deadline: NO.deadline,
+    payment: paymentStr, deadline: NO.deadline, messenger: NO.messenger || "",
     prepay: NO.payment === "Передоплата" && NO.prepay ? parseInt(NO.prepay) : 0,
     items: validItems.map(item => {
       const total = item.services.reduce((s,x)=>s+x.price,0);
@@ -930,7 +1106,7 @@ async function submitOrder() {
     const result = await res.json();
     if (result.status === "ok") {
       btn.textContent = "✓ " + (result.order_num || "Збережено");
-      NO = { manager: NO.manager, client:"", phone:"", items:[], payment:"", prepay:"", deadline:"" };
+      NO = { manager: NO.manager, client:"", phone:"", messenger:"", items:[], payment:"", prepay:"", deadline:"" };
       itemCounter = 0;
       setTimeout(() => { loadData(); showPage("orders"); }, 1200);
     } else {
@@ -1009,21 +1185,238 @@ function renderOrdersList() {
   box.innerHTML = filtered.map(o => {
     const num = gv(o,"Номер замовлення");
     const shortNum = num.replace("RW-","#");
-    const urgent = gv(o,"Термін").includes("Терміново");
-    return "<div class='order-row' onclick=\"openOrder('" + num + "')\">" +
+    const st = getStatus(num);
+    const accent = STATUS_ACCENT[st] || "var(--cognac)";
+    const warn = deadlineWarn(o);
+    const term = gv(o,"Термін") || "—";
+    return "<div class='order-row" + (warn ? " urgent-soon" : "") + "' style='border-left-color:" + accent + "' onclick=\"openOrder('" + num + "')\">" +
       "<span class='order-num'>" + shortNum + "</span>" +
       "<div><div class='oc-name'>" + (gv(o,"Ім'я клієнта") || "—") + "</div><div class='oc-sub'>" + gv(o,"Телефон") + "</div></div>" +
       "<div><div class='oc-name'>" + orderItemName(num) + "</div><div class='oc-sub'>" + gv(o,"Приймальник") + "</div></div>" +
       "<div class='oc-svc oc-svc-cell'>" + orderServices(num) + "</div>" +
       "<span>" + statusBadge(num) + "</span>" +
-      "<span class='oc-date oc-date-cell'" + (urgent ? " style='color:var(--st-postponed-fg)'" : "") + ">" + (gv(o,"Термін") || "—") + "</span>" +
+      "<span class='oc-date oc-date-cell" + (warn ? " warn" : "") + "'>" + term + "</span>" +
     "</div>";
   }).join("");
 }
 
+/* ═══════════════ ДЕТАЛЬНА КАРТКА ЗАМОВЛЕННЯ ═══════════════ */
+const ITEM_STATUSES = [
+  ["", "Прийнято", "#378ADD"],
+  ["⚙️ В роботі", "В роботі", "#EF9F27"],
+  ["✅ Готово", "Готово", "#639922"],
+  ["📦 Виданий", "Видано", "#639922"]
+];
+function itemStatusIndex(status) {
+  if (status === "📦 Виданий") return 3;
+  if (status === "✅ Готово") return 2;
+  if (status === "⚙️ В роботі") return 1;
+  return 0;
+}
+
+/* Звальний відмінок (кличний) — мʼяке відмінювання */
+function vocative(name) {
+  if (!name) return "";
+  const parts = name.trim().split(/\s+/);
+  const first = parts[0];
+  const lc = first.toLowerCase();
+  // жіночі на -а/-я
+  if (/[бвгґджзклмнпрстфхцчшщ]а$/i.test(first)) return first.slice(0,-1) + "о";
+  if (/ія$/i.test(first)) return first.slice(0,-1) + "є";
+  if (/[зждлр]я$/i.test(first)) return first.slice(0,-1) + "е";
+  // чоловічі на приголосний
+  if (/[бвгґджзклмнпрстфхцчшщ]$/i.test(first)) {
+    if (/[гґкх]$/i.test(first)) return first + "у";
+    return first + "е";
+  }
+  if (/й$/i.test(first)) return first.slice(0,-1) + "ю";
+  if (/о$/i.test(first)) return first;
+  return first;
+}
+
+let detailOrderNum = null;
+
 function openOrder(num) {
-  /* Детальний перегляд — окремий шар */
-  console.log("open order", num);
+  detailOrderNum = num;
+  const page = document.getElementById("page-orders");
+  const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
+  if (!o) return;
+  const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+  const st = getStatus(num);
+  const stMeta = STATUS_META[st];
+
+  const name = gv(o,"Ім'я клієнта") || "—";
+  const phone = gv(o,"Телефон");
+  const phoneClean = phone.replace(/[^\d]/g,"");
+  const activeMsg = gv(o,"Месенджер");
+
+  // Рейтинг клієнта
+  const clientOrders = ORDERS.filter(x => gv(x,"Телефон") === phone);
+  const rating = clientRating(phone);
+
+  // Клієнт-блок
+  const commLinks = {
+    telegram: "https://t.me/+" + phoneClean,
+    whatsapp: "https://wa.me/" + phoneClean,
+    viber: "viber://chat?number=%2B" + phoneClean
+  };
+  const commHTML = ["telegram","whatsapp","viber"].map(m => {
+    const active = activeMsg === m;
+    const style = active ? " style='background:" + MSG_COLORS[m] + "'" : "";
+    return "<a class='d-comm-btn" + (active?" active":"") + "'" + style + " href='" + commLinks[m] + "' target='_blank' rel='noopener'>" +
+      MSG_ICONS[m] + MSG_LABELS[m] + "</a>";
+  }).join("");
+
+  const clientBlock =
+    "<div class='dblock'><div class='dblock-label'>Клієнт</div>" +
+    "<div class='d-client-head'>" +
+      "<div class='d-avatar'>" + name.charAt(0).toUpperCase() + "</div>" +
+      "<div><div class='d-client-name'><span>" + name + "</span> " + rating.dot + "</div>" +
+      "<div class='d-client-sub'>" + phone + " · " + clientOrders.length + " замовл.</div></div>" +
+    "</div>" +
+    "<div class='d-comm'>" + commHTML + "</div></div>";
+
+  // Вироби зі статусами
+  let total = 0;
+  const itemsHTML = its.map((it, idx) => {
+    const itemTotal = extractAmt(gv(it,"Сума"));
+    total += itemTotal;
+    const curIdx = itemStatusIndex(gv(it,"Статус"));
+    const statusBtns = ITEM_STATUSES.map((s, si) => {
+      const done = si <= curIdx, current = si === curIdx;
+      let cls = "d-status-btn";
+      if (current) cls += " current"; else if (done) cls += " done";
+      const style = current ? " style='background:" + s[2] + "'" : "";
+      return "<button class='" + cls + "'" + style + " onclick=\"setItemStatus('" + num + "'," + idx + "," + si + ")\">" + s[1] + "</button>";
+    }).join("");
+    const iname = gv(it,"Бренд") || gv(it,"Тип") || "Виріб";
+    const detail = [gv(it,"Тип"), gv(it,"Бренд") ? "" : ""].filter(Boolean).join(" · ");
+    return "<div class='d-item'>" +
+      "<div class='d-item-head'><div><span class='d-item-num'>№" + (idx+1) + "</span> <span class='d-item-name'>" + iname + "</span></div>" +
+      "<span class='d-item-price'>" + (itemTotal ? itemTotal.toLocaleString("uk-UA") + " ₴" : "—") + "</span></div>" +
+      (gv(it,"Тип") ? "<div class='d-item-detail'>" + gv(it,"Тип") + "</div>" : "") +
+      "<div class='d-item-svc'>" + gv(it,"Послуги") + "</div>" +
+      "<div class='d-status-row'>" + statusBtns + "</div></div>";
+  }).join("");
+  const itemsBlock = "<div class='dblock'><div class='dblock-label'>Вироби та статус</div>" + itemsHTML + "</div>";
+
+  // Оплата
+  const payStr = gv(o,"Оплата");
+  const prepayAmt = extractAmt(payStr);
+  const isPrepay = payStr.includes("Передоплата");
+  const toPay = isPrepay ? Math.max(0, total - prepayAmt) : total;
+  const payBlock = "<div class='dblock'><div class='dblock-label'>Оплата</div>" +
+    "<div class='d-pay-row'><span class='pl'>Тип</span><span class='pv'>" + (isPrepay ? "Передоплата" : (payStr || "—")) + "</span></div>" +
+    (isPrepay && prepayAmt ? "<div class='d-pay-row'><span class='pl'>Внесено</span><span class='pv'>" + prepayAmt.toLocaleString("uk-UA") + " ₴</span></div>" : "") +
+    "<div class='d-pay-total'><span class='pl'>" + (isPrepay ? "До доплати" : "Разом") + "</span><span class='pv'>" + toPay.toLocaleString("uk-UA") + " ₴</span></div></div>";
+
+  // Історія (таймлайн з дат виробів)
+  const events = [];
+  events.push(["Створено", gv(o,"Дата створення"), gv(o,"Приймальник")]);
+  its.forEach((it, idx) => {
+    ["Дата в роботі","Дата готово","Дата видачі"].forEach((f, fi) => {
+      const d = gv(it, f);
+      if (d) events.push([["В роботі","Готово","Видано"][fi] + " №" + (idx+1), d, ""]);
+    });
+  });
+  const timelineBlock = events.length > 1 ? "<div class='dblock'><div class='dblock-label'>Історія</div>" +
+    events.map(e => "<div class='d-timeline-row'><span class='d-timeline-dot'></span><span class='d-timeline-txt'>" + e[0] + (e[2] ? " — " + e[2] : "") + "</span><span class='d-timeline-date'>" + e[1] + "</span></div>").join("") +
+    "</div>" : "";
+
+  // Сповіщення клієнта
+  const notifyBlock = "<div class='dblock'><div class='dblock-label'>Сповістити клієнта</div>" +
+    "<div class='d-notify'>" +
+      "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','ready')\">" + copyIcon() + "Готово до видачі</button>" +
+      "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','remind')\">" + copyIcon() + "Нагадування</button>" +
+      "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','accepted')\">" + copyIcon() + "Прийнято в роботу</button>" +
+    "</div></div>";
+
+  page.innerHTML =
+    "<div class='detail-scroll'>" +
+      "<div class='detail-top'>" +
+        "<button class='detail-back' onclick=\"backToOrders()\">←</button>" +
+        "<span class='detail-title'>Замовлення " + num.replace("RW-","#") + "</span>" +
+        "<span class='badge " + stMeta[1] + "'>" + stMeta[0] + "</span>" +
+      "</div>" +
+      clientBlock + itemsBlock + payBlock + timelineBlock + notifyBlock +
+    "</div>";
+}
+
+function backToOrders() { detailOrderNum = null; renderers.orders(); }
+
+function copyIcon() {
+  return "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'><rect x='9' y='9' width='13' height='13' rx='2'/><path d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/></svg>";
+}
+
+/* Рейтинг клієнта за середньою затримкою видачі */
+function clientRating(phone) {
+  const orders = ORDERS.filter(o => gv(o,"Телефон") === phone);
+  let delays = [], hasIssue = false;
+  orders.forEach(o => {
+    const its = ITEMS.filter(i => gv(i,"Номер замовлення") === gv(o,"Номер замовлення"));
+    its.forEach(it => {
+      const ready = parseDeadline(gv(it,"Дата готово"));
+      const issued = parseDeadline(gv(it,"Дата видачі"));
+      if (ready && issued) { const d = (issued - ready)/86400000; delays.push(d); if (d > 7) hasIssue = true; }
+    });
+  });
+  if (!delays.length) return { dot: "🟡", label: "Звичайний" };
+  const avg = delays.reduce((a,b)=>a+b,0)/delays.length;
+  if (avg <= 2) return { dot: "🟢", label: "Надійний" };
+  if (avg > 7 || hasIssue) return { dot: "🔴", label: "Уважно" };
+  return { dot: "🟡", label: "Звичайний" };
+}
+
+/* Зміна статусу виробу (запис через API) */
+async function setItemStatus(num, itemIdx, statusIdx) {
+  const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+  const it = its[itemIdx];
+  if (!it) return;
+  const newStatus = ITEM_STATUSES[statusIdx][0];
+  it["Статус"] = newStatus; // оптимістично оновлюємо локально
+  openOrder(num); // перемалювати одразу
+  try {
+    await fetch(API_URL.replace("/order","/item-status"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ order: num, itemNum: gv(it,"Номер виробу") || (itemIdx+1), status: newStatus })
+    });
+  } catch(e) { console.error("status update failed", e); }
+}
+
+/* Копіювання тексту сповіщення */
+const NOTIFY_TEMPLATES = {
+  ready:    (v, num, item) => "Доброго дня, " + v + "! Ваше замовлення " + num + " (" + item + ") готове до видачі. Чекаємо вас у Rewise Studio. Дякуємо, що обрали нас.",
+  remind:   (v, num, item) => "Доброго дня, " + v + "! Нагадуємо, що ваше замовлення " + num + " (" + item + ") готове та очікує на видачу в Rewise Studio.",
+  accepted: (v, num, item) => "Доброго дня, " + v + "! Ваше замовлення " + num + " (" + item + ") прийнято в роботу. Повідомимо, щойно буде готове. Rewise Studio."
+};
+function copyNotify(num, type) {
+  const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
+  if (!o) return;
+  const v = vocative(gv(o,"Ім'я клієнта"));
+  const shortNum = num.replace("RW-","№");
+  const item = orderItemName(num);
+  const text = NOTIFY_TEMPLATES[type](v, shortNum, item);
+  copyToClipboard(text);
+}
+function copyToClipboard(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => toast("Текст скопійовано")).catch(() => fallbackCopy(text));
+  } else fallbackCopy(text);
+}
+function fallbackCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); toast("Текст скопійовано"); } catch(e) { alert(text); }
+  document.body.removeChild(ta);
+}
+let toastTimer = null;
+function toast(msg) {
+  let t = document.getElementById("rw-toast");
+  if (!t) { t = document.createElement("div"); t.id = "rw-toast"; document.body.appendChild(t); }
+  t.textContent = msg; t.className = "show";
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = "", 2000);
 }
 
 showPage("create");
