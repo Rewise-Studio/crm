@@ -1257,7 +1257,7 @@ function renderOrdersList() {
 
 /* ═══════════════ ДЕТАЛЬНА КАРТКА ЗАМОВЛЕННЯ ═══════════════ */
 const ITEM_STATUSES = [
-  ["", "Прийнято", "#378ADD"],
+  ["🆕 Новий", "Прийнято", "#378ADD"],
   ["⚙️ В роботі", "В роботі", "#EF9F27"],
   ["✅ Готово", "Готово", "#639922"],
   ["📦 Виданий", "Видано", "#639922"]
@@ -1449,10 +1449,11 @@ async function setItemStatus(num, itemIdx, statusIdx) {
   const newStatus = ITEM_STATUSES[statusIdx][0];
   it["Статус"] = newStatus; // оптимістично оновлюємо локально
   openOrder(num); // перемалювати одразу
+  const itemNum = gv(it,"Номер виробу") || (num + "-" + (itemIdx+1));
   try {
-    await fetch(API_URL.replace("/order","/item-status"), {
+    await fetch(API_URL.replace("/order","/status"), {
       method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ order: num, itemNum: gv(it,"Номер виробу") || (itemIdx+1), status: newStatus })
+      body: JSON.stringify({ item_num: itemNum, status: newStatus })
     });
   } catch(e) { console.error("status update failed", e); }
 }
