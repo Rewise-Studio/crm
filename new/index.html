@@ -596,11 +596,11 @@ body {
 <!-- ═══════════════ НАВІГАЦІЯ ═══════════════ -->
 <nav class="nav">
   <div class="nav-logo">RW</div>
-  <button class="nav-item active" data-page="create" onclick="showPage('create')">
+  <button class="nav-item" data-page="create" onclick="showPage('create')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     Створити
   </button>
-  <button class="nav-item" data-page="orders" onclick="showPage('orders')">
+  <button class="nav-item active" data-page="orders" onclick="showPage('orders')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg>
     Замовлення
   </button>
@@ -629,8 +629,8 @@ body {
 <!-- ═══════════════ КОНТЕНТ ═══════════════ -->
 <div class="main">
 
-  <div class="page active" id="page-create"></div>
-  <div class="page" id="page-orders"></div>
+  <div class="page" id="page-create"></div>
+  <div class="page active" id="page-orders"></div>
   <div class="page" id="page-clients"></div>
   <div class="page" id="page-finance"></div>
   <div class="page" id="page-stats"></div>
@@ -675,7 +675,7 @@ function toggleTheme() {
 })();
 
 /* ═══════════════ РОУТИНГ ═══════════════ */
-let currentPage = "create";
+let currentPage = "orders";
 function showPage(name) {
   currentPage = name;
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
@@ -1838,7 +1838,7 @@ function toast(msg) {
   toastTimer = setTimeout(() => t.className = "", 2000);
 }
 
-showPage("create");
+showPage("orders");
 loadData();
 loadPrice();
 </script>
