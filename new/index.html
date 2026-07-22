@@ -353,7 +353,9 @@ body {
 }
 
 /* ═══════════════ ДЕТАЛЬНА КАРТКА ЗАМОВЛЕННЯ (у модалці) ═══════════════ */
-.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; margin-bottom: 12px; }
+.detail-col { display: flex; flex-direction: column; gap: 12px; }
+.detail-stack { display: flex; flex-direction: column; gap: 12px; }
 .dblock { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 17px 19px; margin-bottom: 0; }
 .dblock-full { grid-column: 1 / -1; }
 .detail-top { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; padding-right: 26px; }
@@ -521,6 +523,10 @@ body {
 
 .stat-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 18px 20px; margin-bottom: 14px; }
 .stat-panel-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cognac); margin-bottom: 16px; }
+.stat-panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.mini-toggle { display: flex; gap: 6px; }
+.mt-btn { padding: 6px 12px; border-radius: 14px; border: 1px solid var(--field-border); background: transparent; color: var(--txt-2); font-family: 'Commissioner', sans-serif; font-size: 11px; cursor: pointer; transition: all 0.15s; }
+.mt-btn.active { background: var(--cognac); color: #fff; border-color: var(--cognac); }
 .stat-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .bar-item { margin-bottom: 15px; }
 .bar-item:last-child { margin-bottom: 0; }
@@ -529,6 +535,8 @@ body {
 .bar-meta { font-size: 12px; color: var(--cognac); white-space: nowrap; }
 .bar-track { height: 8px; background: var(--accent-soft); border-radius: 5px; overflow: hidden; }
 .bar-fill { height: 100%; background: var(--cognac); border-radius: 5px; }
+.bars-toggle { width: 100%; margin-top: 6px; background: transparent; border: 1px dashed var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 11px; padding: 8px; cursor: pointer; transition: all 0.15s; }
+.bars-toggle:hover { background: var(--accent-soft); }
 
 .clients-list { display: flex; flex-direction: column; gap: 8px; }
 .client-row { display: grid; grid-template-columns: 28px 1.4fr 1.3fr 90px 70px; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 13px 16px; cursor: pointer; transition: background 0.12s; }
@@ -1409,10 +1417,14 @@ function periodTabsHTML(tabKey) {
   ).join("") + "</div>";
 }
 function setPeriod(tabKey, val) { periodSel[tabKey] = val; renderers[tabKey](); }
-function barsHTML(data, unit) {
+const barsExpanded = {};
+function barsHTML(data, unit, panelId) {
   const max = Math.max(1, ...data.map(d => d[1]));
   const total = data.reduce((s,d) => s + d[1], 0) || 1;
-  return data.map(d => {
+  const expanded = panelId ? !!barsExpanded[panelId] : true;
+  const limit = expanded ? 15 : 5;
+  const shown = data.slice(0, limit);
+  const rows = shown.map(d => {
     const pct = Math.round(d[1] / total * 100);
     const w = Math.round(d[1] / max * 100);
     const valStr = unit === "₴" ? d[1].toLocaleString("uk-UA") + " ₴" : d[1];
@@ -1422,6 +1434,16 @@ function barsHTML(data, unit) {
       "<div class='bar-track'><div class='bar-fill' style='width:" + w + "%'></div></div>" +
     "</div>";
   }).join("");
+  const canToggle = panelId && data.length > 5;
+  const toggleBtn = canToggle ?
+    "<button class='bars-toggle' onclick=\"toggleBarsExpand('" + panelId + "')\">" +
+      (expanded ? "Згорнути" : "Показати ще (" + Math.min(data.length, 15) + ")") +
+    "</button>" : "";
+  return rows + toggleBtn;
+}
+function toggleBarsExpand(panelId) {
+  barsExpanded[panelId] = !barsExpanded[panelId];
+  if (renderers[currentPage]) renderers[currentPage]();
 }
 
 /* ═══════════════ ВКЛАДКА КЛІЄНТИ ═══════════════ */
@@ -1529,12 +1551,27 @@ renderers.stats = function() {
       if (k) svcCount[k] = (svcCount[k]||0)+1;
     });
   });
-  const topSvc = Object.entries(svcCount).sort((a,b)=>b[1]-a[1]).slice(0,6).map(e=>[e[0],e[1]]);
+  const topSvc = Object.entries(svcCount).sort((a,b)=>b[1]-a[1]).map(e=>[e[0],e[1]]);
 
   // По приймальниках (оборот)
   const byMgr = {};
   orders.forEach(o => { const m = gv(o,"Приймальник")||"—"; byMgr[m] = (byMgr[m]||0) + orderTotal(gv(o,"Номер замовлення")); });
   const mgrData = Object.entries(byMgr).sort((a,b)=>b[1]-a[1]).map(e=>[e[0],e[1]]);
+
+  // Топ клієнтів (за сумою або кількістю — перемикач)
+  const clientAgg = {};
+  orders.forEach(o => {
+    const phone = gv(o,"Телефон"); if (!phone) return;
+    const name = gv(o,"Ім'я клієнта") || phone;
+    if (!clientAgg[phone]) clientAgg[phone] = { name, sum: 0, count: 0 };
+    clientAgg[phone].sum += orderTotal(gv(o,"Номер замовлення"));
+    clientAgg[phone].count += 1;
+  });
+  const clientList = Object.values(clientAgg);
+  const topClientsBySum = [...clientList].sort((a,b)=>b.sum-a.sum).map(c=>[c.name, c.sum]);
+  const topClientsByCount = [...clientList].sort((a,b)=>b.count-a.count).map(c=>[c.name, c.count]);
+  window._topClientsBySum = topClientsBySum;
+  window._topClientsByCount = topClientsByCount;
 
   page.innerHTML =
     "<div class='page-header'><div class='page-title'>Статистика</div></div>" +
@@ -1547,11 +1584,29 @@ renderers.stats = function() {
         statCard("Виробів", ITEMS.filter(i=>orderNums.has(gv(i,"Номер замовлення"))).length) +
       "</div>" +
       "<div class='stat-cols'>" +
-        "<div class='stat-panel'><div class='stat-panel-label'>Топ послуг</div>" + (topSvc.length ? barsHTML(topSvc, "") : "<div style='color:var(--txt-3);font-size:12px'>Немає даних</div>") + "</div>" +
-        "<div class='stat-panel'><div class='stat-panel-label'>По приймальниках</div>" + (mgrData.length ? barsHTML(mgrData, "₴") : "<div style='color:var(--txt-3);font-size:12px'>Немає даних</div>") + "</div>" +
+        "<div class='stat-panel'><div class='stat-panel-label'>Топ послуг</div>" + (topSvc.length ? barsHTML(topSvc, "", "svc") : "<div style='color:var(--txt-3);font-size:12px'>Немає даних</div>") + "</div>" +
+        "<div class='stat-panel'><div class='stat-panel-label'>По приймальниках</div>" + (mgrData.length ? barsHTML(mgrData, "₴", "mgr") : "<div style='color:var(--txt-3);font-size:12px'>Немає даних</div>") + "</div>" +
+      "</div>" +
+      "<div class='stat-panel'>" +
+        "<div class='stat-panel-head'><div class='stat-panel-label' style='margin:0'>Топ клієнтів</div>" +
+          "<div class='mini-toggle'>" +
+            "<button class='mt-btn" + (topClientsMode==="sum"?" active":"") + "' id='tc-sum-btn' onclick='setTopClientsMode(\"sum\")'>За сумою</button>" +
+            "<button class='mt-btn" + (topClientsMode==="count"?" active":"") + "' id='tc-count-btn' onclick='setTopClientsMode(\"count\")'>За кількістю</button>" +
+          "</div></div>" +
+        "<div id='top-clients-bars'>" + ((topClientsMode==="sum"?topClientsBySum:topClientsByCount).length ? barsHTML(topClientsMode==="sum"?topClientsBySum:topClientsByCount, topClientsMode==="sum"?"₴":"", "clients") : "<div style='color:var(--txt-3);font-size:12px'>Немає даних</div>") + "</div>" +
       "</div>" +
     "</div>";
 };
+
+let topClientsMode = "sum";
+function setTopClientsMode(mode) {
+  topClientsMode = mode;
+  const box = document.getElementById("top-clients-bars");
+  const data = mode === "sum" ? window._topClientsBySum : window._topClientsByCount;
+  box.innerHTML = data.length ? barsHTML(data, mode === "sum" ? "₴" : "", "clients") : "<div style='color:var(--txt-3);font-size:12px'>Немає даних</div>";
+  document.getElementById("tc-sum-btn").classList.toggle("active", mode === "sum");
+  document.getElementById("tc-count-btn").classList.toggle("active", mode === "count");
+}
 
 /* ═══════════════ ВКЛАДКА ЗАДАЧІ ═══════════════ */
 renderers.tasks = function() {
@@ -1928,8 +1983,10 @@ function openOrder(num) {
       "<button class='detail-edit' onclick=\"openEditOrder('" + num + "')\">Редагувати</button>" +
     "</div>" +
     "<div class='detail-grid'>" +
-      clientBlock + payBlock + itemsBlock + bonusBlock + timelineBlock + notifyBlock +
-    "</div>";
+      "<div class='detail-col'>" + clientBlock + timelineBlock + "</div>" +
+      "<div class='detail-col'>" + payBlock + bonusBlock + "</div>" +
+    "</div>" +
+    "<div class='detail-stack'>" + itemsBlock + notifyBlock + "</div>";
 
   document.getElementById("odm-bg").classList.add("open");
 }
