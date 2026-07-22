@@ -357,6 +357,11 @@ body {
 .dblock { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 17px 19px; margin-bottom: 0; }
 .dblock-full { grid-column: 1 / -1; }
 .detail-top { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; padding-right: 26px; }
+.detail-edit { margin-left: auto; background: transparent; border: 1px solid var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 12px; padding: 7px 14px; cursor: pointer; transition: all 0.15s; }
+.detail-edit:hover { background: var(--accent-soft); }
+.edit-form { max-width: 620px; }
+.edit-item { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+.edit-item-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .detail-title { font-family: 'Tenor Sans', serif; font-size: 19px; color: var(--txt); }
 .dblock-label { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cognac); margin-bottom: 13px; }
 .d-client-history { font-size: 12px; color: var(--txt-2); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; }
@@ -414,6 +419,7 @@ body {
 .d-pay-total .pv { font-family: 'Tenor Sans', serif; font-size: 17px; color: var(--txt); }
 .d-settle-btn { width: 100%; margin-top: 14px; background: var(--cognac); border: none; border-radius: 8px; color: #fff; font-family: 'Commissioner', sans-serif; font-size: 12px; padding: 11px; cursor: pointer; transition: background 0.15s; }
 .d-settle-btn:hover { background: var(--leather); }
+.d-bonus-hint { font-size: 11px; color: var(--txt-3); margin-top: 10px; font-style: italic; }
 .settle-methods { display: flex; gap: 8px; margin: 12px 0; }
 .settle-methods .cr-pill { flex: 1; text-align: center; }
 .settle-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 5; border-radius: 14px; }
@@ -516,12 +522,13 @@ body {
 .stat-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 18px 20px; margin-bottom: 14px; }
 .stat-panel-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cognac); margin-bottom: 16px; }
 .stat-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 11px; font-size: 12px; }
-.bar-row:last-child { margin-bottom: 0; }
-.bar-label { width: 110px; color: var(--txt-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bar-track { flex: 1; height: 7px; background: var(--accent-soft); border-radius: 4px; overflow: hidden; }
-.bar-fill { height: 100%; background: var(--cognac); border-radius: 4px; }
-.bar-val { width: 74px; text-align: right; color: var(--txt-3); font-size: 11px; }
+.bar-item { margin-bottom: 15px; }
+.bar-item:last-child { margin-bottom: 0; }
+.bar-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; gap: 10px; }
+.bar-name { font-size: 13px; color: var(--txt); }
+.bar-meta { font-size: 12px; color: var(--cognac); white-space: nowrap; }
+.bar-track { height: 8px; background: var(--accent-soft); border-radius: 5px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--cognac); border-radius: 5px; }
 
 .clients-list { display: flex; flex-direction: column; gap: 8px; }
 .client-row { display: grid; grid-template-columns: 28px 1.4fr 1.3fr 90px 70px; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 13px 16px; cursor: pointer; transition: background 0.12s; }
@@ -535,6 +542,21 @@ body {
 .pay-split-item { flex: 1; background: var(--surface); border: 1px solid var(--line); border-radius: 9px; padding: 12px 14px; }
 .pay-split-item .ps-label { font-size: 10px; color: var(--txt-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
 .pay-split-item .ps-value { font-family: 'Tenor Sans', serif; font-size: 16px; color: var(--txt); }
+
+.task-add { display: flex; gap: 8px; margin-bottom: 18px; }
+.task-add .cr-input { flex: 1; }
+.task-add-btn { background: var(--cognac); border: none; border-radius: 8px; color: #fff; font-size: 20px; width: 44px; cursor: pointer; flex-shrink: 0; transition: background 0.15s; }
+.task-add-btn:hover { background: var(--leather); }
+.task-row { display: flex; align-items: center; gap: 12px; padding: 13px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; }
+.task-row.done { opacity: 0.55; }
+.task-check { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--cognac-border); display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; cursor: pointer; flex-shrink: 0; transition: all 0.15s; }
+.task-check.on { background: #2FA98C; border-color: #2FA98C; }
+.task-text { flex: 1; font-size: 13px; color: var(--txt); }
+.task-row.done .task-text { text-decoration: line-through; }
+.task-order { display: inline-block; margin-left: 8px; font-size: 11px; color: var(--cognac); }
+.task-del { background: none; border: none; color: var(--txt-3); cursor: pointer; font-size: 18px; padding: 0 4px; transition: color 0.15s; }
+.task-del:hover { color: var(--st-postponed-fg); }
+.task-done-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--txt-3); margin: 20px 0 12px; }
 
 /* ═══════════════ МОБІЛЬНА ВЕРСІЯ ═══════════════ */
 @media (max-width: 768px) {
@@ -689,7 +711,7 @@ function showPage(name) {
 const renderers = {};
 
 /* ═══════════════ ШАР ДАНИХ ═══════════════ */
-let ORDERS = [], ITEMS = [], PARTNERS = [];
+let ORDERS = [], ITEMS = [], PARTNERS = [], TASKS = [];
 let ordersFilter = "all", ordersSearch = "";
 let dataLoaded = false;
 
@@ -740,21 +762,42 @@ async function parsePartners(res) {
 async function loadData() {
   try {
     const base = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&sheet=";
-    const [r1, r2, r3] = await Promise.all([
+    const [r1, r2, r3, r4] = await Promise.all([
       fetch(base + encodeURIComponent("Замовлення")),
       fetch(base + encodeURIComponent("Вироби")),
-      fetch(base + encodeURIComponent("Партнери"))
+      fetch(base + encodeURIComponent("Партнери")),
+      fetch(base + encodeURIComponent("Задачі")).catch(() => null)
     ]);
-    ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер","Спосіб передоплати","Сума доплати","Спосіб доплати","Сповіщено"]);
+    ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер","Спосіб передоплати","Сума доплати","Спосіб доплати","Сповіщено","Нараховано бонусів","Списано бонусів"]);
     ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено"]);
     PARTNERS = await parsePartners(r3);
     if (!PARTNERS.length) PARTNERS = ["Сергій"];
+    if (r4) { try { TASKS = await parseTasks(r4); } catch(e) { TASKS = []; } }
     dataLoaded = true;
   } catch(e) {
     console.error("loadData error:", e);
     dataLoaded = true;
   }
-  if (currentPage === "orders") renderers.orders();
+  if (renderers[currentPage]) renderers[currentPage]();
+}
+
+async function parseTasks(res) {
+  try {
+    const text = await res.text();
+    const start = text.indexOf("{"), end = text.lastIndexOf("}");
+    if (start === -1) return [];
+    const json = JSON.parse(text.substring(start, end + 1));
+    if (!json.table || !json.table.rows) return [];
+    const cols = ["Текст","Замовлення","Статус","Створено","Виконано"];
+    return json.table.rows.map(row => {
+      const obj = {}; const cells = row.c || [];
+      cols.forEach((col, i) => {
+        const cell = cells[i];
+        obj[col] = cell && cell.v != null ? String(cell.v) : "";
+      });
+      return obj;
+    }).filter(t => t["Текст"]);
+  } catch(e) { return []; }
 }
 
 function extractAmt(str) {
@@ -1368,11 +1411,17 @@ function periodTabsHTML(tabKey) {
 function setPeriod(tabKey, val) { periodSel[tabKey] = val; renderers[tabKey](); }
 function barsHTML(data, unit) {
   const max = Math.max(1, ...data.map(d => d[1]));
-  return data.map(d =>
-    "<div class='bar-row'><div class='bar-label'>" + d[0] + "</div>" +
-    "<div class='bar-track'><div class='bar-fill' style='width:" + Math.round(d[1]/max*100) + "%'></div></div>" +
-    "<div class='bar-val'>" + (unit === "₴" ? d[1].toLocaleString("uk-UA") + " ₴" : d[1]) + "</div></div>"
-  ).join("");
+  const total = data.reduce((s,d) => s + d[1], 0) || 1;
+  return data.map(d => {
+    const pct = Math.round(d[1] / total * 100);
+    const w = Math.round(d[1] / max * 100);
+    const valStr = unit === "₴" ? d[1].toLocaleString("uk-UA") + " ₴" : d[1];
+    return "<div class='bar-item'>" +
+      "<div class='bar-head'><span class='bar-name'>" + d[0] + "</span>" +
+      "<span class='bar-meta'>" + pct + "% · " + valStr + "</span></div>" +
+      "<div class='bar-track'><div class='bar-fill' style='width:" + w + "%'></div></div>" +
+    "</div>";
+  }).join("");
 }
 
 /* ═══════════════ ВКЛАДКА КЛІЄНТИ ═══════════════ */
@@ -1503,6 +1552,189 @@ renderers.stats = function() {
       "</div>" +
     "</div>";
 };
+
+/* ═══════════════ ВКЛАДКА ЗАДАЧІ ═══════════════ */
+renderers.tasks = function() {
+  const page = document.getElementById("page-tasks");
+  const active = TASKS.filter(t => t["Статус"] !== "так");
+  const done = TASKS.filter(t => t["Статус"] === "так");
+
+  function taskRow(t) {
+    const isDone = t["Статус"] === "так";
+    const order = t["Замовлення"] ? "<span class='task-order'>" + t["Замовлення"].replace("RW-","#") + "</span>" : "";
+    const created = (t["Створено"]||"").replace(/"/g,"&quot;");
+    const txt = (t["Текст"]||"").replace(/"/g,"&quot;");
+    return "<div class='task-row" + (isDone?" done":"") + "'>" +
+      "<span class='task-check" + (isDone?" on":"") + "' onclick=\"toggleTask('" + txt.replace(/'/g,"\\'") + "','" + created.replace(/'/g,"\\'") + "'," + (!isDone) + ")\">" + (isDone?"✓":"") + "</span>" +
+      "<span class='task-text'>" + t["Текст"] + order + "</span>" +
+      "<button class='task-del' onclick=\"deleteTask('" + txt.replace(/'/g,"\\'") + "','" + created.replace(/'/g,"\\'") + "')\">×</button>" +
+    "</div>";
+  }
+
+  page.innerHTML =
+    "<div class='page-header'><div class='page-title'>Задачі</div></div>" +
+    "<div class='tab-scroll'>" +
+      "<div class='task-add'><input class='cr-input' id='task-input' placeholder='Нова задача...' style='margin-bottom:0' onkeydown='if(event.key===\"Enter\")addTask()'>" +
+        "<button class='task-add-btn' onclick='addTask()'>+</button></div>" +
+      (active.length ? active.map(taskRow).join("") : "<div style='color:var(--txt-3);font-size:13px;padding:20px 0;text-align:center'>Немає активних задач</div>") +
+      (done.length ? "<div class='task-done-label'>Виконані</div>" + done.map(taskRow).join("") : "") +
+    "</div>";
+};
+
+async function addTask() {
+  const input = document.getElementById("task-input");
+  const text = input.value.trim();
+  if (!text) return;
+  const created = new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit",year:"numeric"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
+  TASKS.push({ "Текст": text, "Замовлення": "", "Статус": "ні", "Створено": created, "Виконано": "" });
+  input.value = "";
+  renderers.tasks();
+  try {
+    await fetch(API_URL.replace("/order","/task"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ text: text, order: "" })
+    });
+  } catch(e) { console.error("task add failed", e); }
+}
+
+async function toggleTask(text, created, done) {
+  const t = TASKS.find(x => x["Текст"] === text && x["Створено"] === created);
+  if (t) { t["Статус"] = done ? "так" : "ні"; }
+  renderers.tasks();
+  try {
+    await fetch(API_URL.replace("/order","/task/toggle"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ text: text, created: created, done: done })
+    });
+  } catch(e) { console.error("task toggle failed", e); }
+}
+
+async function deleteTask(text, created) {
+  TASKS = TASKS.filter(x => !(x["Текст"] === text && x["Створено"] === created));
+  renderers.tasks();
+  try {
+    await fetch(API_URL.replace("/order","/task/delete"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ text: text, created: created })
+    });
+  } catch(e) { console.error("task delete failed", e); }
+}
+
+/* ═══════════════ РЕДАГУВАННЯ ЗАМОВЛЕННЯ ═══════════════ */
+let editState = null;
+
+function openEditOrder(num) {
+  const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
+  if (!o) return;
+  const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+  // Розбираємо послуги виробів у редаговану структуру
+  editState = {
+    num: num,
+    client: gv(o,"Ім'я клієнта"),
+    phone: gv(o,"Телефон"),
+    messenger: gv(o,"Месенджер"),
+    payment: gv(o,"Оплата").includes("Передоплата") ? "Передоплата" : (gv(o,"Оплata") || gv(o,"Оплата") || ""),
+    deadline: gv(o,"Термін"),
+    items: its.map((it, idx) => ({
+      type: gv(it,"Тип"),
+      brand: gv(it,"Бренд"),
+      servicesRaw: gv(it,"Послуги"),
+      total: extractAmt(gv(it,"Сума"))
+    }))
+  };
+  renderEditForm();
+}
+
+function renderEditForm() {
+  const body = document.getElementById("odm-body");
+  const e = editState;
+  const itemsHTML = e.items.map((it, idx) =>
+    "<div class='edit-item'>" +
+      "<div class='edit-item-head'><span class='itemcard-num'>№" + (idx+1) + "</span>" +
+        "<button class='itemcard-rm' onclick='editRemoveItem(" + idx + ")'>×</button></div>" +
+      "<div class='ic-row'><div class='ic-field'><label>ТИП</label><input class='ic-mini' value=\"" + it.type.replace(/"/g,"&quot;") + "\" oninput='editState.items[" + idx + "].type=this.value'></div>" +
+      "<div class='ic-field'><label>УТОЧНЕННЯ</label><input class='ic-mini' value=\"" + it.brand.replace(/"/g,"&quot;") + "\" oninput='editState.items[" + idx + "].brand=this.value'></div></div>" +
+      "<div class='ic-row'><div class='ic-field'><label>ПОСЛУГИ</label><input class='ic-mini' value=\"" + it.servicesRaw.replace(/"/g,"&quot;") + "\" oninput='editState.items[" + idx + "].servicesRaw=this.value'></div>" +
+      "<div class='ic-field' style='max-width:110px'><label>СУМА ₴</label><input class='ic-mini' type='number' value='" + it.total + "' oninput='editState.items[" + idx + "].total=parseInt(this.value)||0'></div></div>" +
+    "</div>"
+  ).join("");
+
+  const msgPick = ["telegram","whatsapp","viber"].map(m => {
+    const active = e.messenger === m;
+    const style = active ? " style='background:" + MSG_COLORS[m] + "'" : "";
+    return "<button class='cr-msg-btn" + (active?" active":"") + "'" + style + " onclick=\"editSetMsg('" + m + "')\"><span class='msg-ico'" + (active?" style='color:#fff'":"") + ">" + MSG_ICONS[m] + "</span>" + MSG_LABELS[m] + "</button>";
+  }).join("");
+
+  body.innerHTML =
+    "<div class='detail-top'><span class='detail-title'>Редагування " + e.num.replace("RW-","#") + "</span></div>" +
+    "<div class='edit-form'>" +
+      "<div class='cr-block-label first'>Клієнт</div>" +
+      "<input class='cr-input' id='edit-client' value=\"" + e.client.replace(/"/g,"&quot;") + "\" oninput='editState.client=this.value'>" +
+      "<input class='cr-input' id='edit-phone' value=\"" + e.phone + "\" oninput='editState.phone=this.value'>" +
+      "<div class='cr-msg-pick' id='edit-msg'>" + msgPick + "</div>" +
+      "<div class='cr-block-label'>Термін</div>" +
+      "<input class='cr-input' id='edit-deadline' value=\"" + e.deadline.replace(/"/g,"&quot;") + "\" oninput='editState.deadline=this.value'>" +
+      "<div class='cr-block-label'>Вироби та послуги</div>" +
+      itemsHTML +
+      "<button class='add-item-btn' onclick='editAddItem()'>+ Додати виріб</button>" +
+      "<div style='display:flex;gap:10px;margin-top:24px'>" +
+        "<button class='cr-btn' onclick=\"openOrder('" + e.num + "')\" style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:13px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:13px'>Скасувати</button>" +
+        "<button class='cr-create-btn' style='flex:2;margin-top:0' onclick='saveEditOrder()'>Зберегти зміни</button>" +
+      "</div>" +
+    "</div>";
+}
+
+function editSetMsg(m) { editState.messenger = (editState.messenger === m) ? "" : m; renderEditForm(); }
+function editRemoveItem(idx) { editState.items.splice(idx,1); renderEditForm(); }
+function editAddItem() { editState.items.push({ type:"", brand:"", servicesRaw:"", total:0 }); renderEditForm(); }
+
+async function saveEditOrder() {
+  const e = editState;
+  if (!e.client.trim()) { alert("Введіть ім'я клієнта"); return; }
+  if (!e.phone.trim()) { alert("Введіть телефон"); return; }
+  // Оновлюємо локально
+  const o = ORDERS.find(x => gv(x,"Номер замовлення") === e.num);
+  if (o) {
+    o["Ім'я клієнта"] = e.client; o["Телефон"] = e.phone;
+    o["Месенджер"] = e.messenger; o["Термін"] = e.deadline;
+  }
+  // Оновлюємо вироби локально
+  ITEMS = ITEMS.filter(i => gv(i,"Номер замовлення") !== e.num);
+  e.items.forEach((it, idx) => {
+    ITEMS.push({
+      "Номер замовлення": e.num, "Номер виробу": e.num + "-" + (idx+1),
+      "Тип": it.type, "Бренд": it.brand, "Послуги": it.servicesRaw,
+      "Сума": it.total.toLocaleString("uk-UA") + " ₴", "Статус": "🆕 Новий",
+      "Дата прийому":"","Дата в роботі":"","Дата готово":"","Дата видачі":"","Сповіщено":""
+    });
+  });
+  openOrder(e.num);
+  // Зберігаємо на сервер
+  try {
+    await fetch(API_URL.replace("/order","/order/update"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ order_num: e.num, client: e.client, phone: e.phone, messenger: e.messenger, deadline: e.deadline })
+    });
+    await fetch(API_URL.replace("/order","/items/update"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ order_num: e.num, items: e.items.map(it => ({ type: it.type, brand: it.brand, services: it.servicesRaw, total: it.total.toLocaleString("uk-UA") + " ₴" })) })
+    });
+    toast("Зміни збережено");
+  } catch(err) { console.error("edit save failed", err); }
+}
+
+/* ═══════════════ БОНУСИ ═══════════════ */
+const BONUS_PCT = 3; // відсоток нарахування від суми чека
+
+/* Баланс балів клієнта = сума нарахованих - сума списаних по всіх замовленнях телефону */
+function clientBonusBalance(phone) {
+  let accrued = 0, spent = 0;
+  ORDERS.filter(o => gv(o,"Телефон") === phone).forEach(o => {
+    accrued += extractAmt(gv(o,"Нараховано бонусів"));
+    spent += extractAmt(gv(o,"Списано бонусів"));
+  });
+  return accrued - spent;
+}
 
 /* ═══════════════ ДЕТАЛЬНА КАРТКА ЗАМОВЛЕННЯ ═══════════════ */
 const ITEM_STATUSES = [
@@ -1646,6 +1878,28 @@ function openOrder(num) {
     (toPay > 0 ? "<button class='d-settle-btn' onclick=\"openSettle('" + num + "'," + toPay + ")\">Прийняти доплату " + toPay.toLocaleString("uk-UA") + " ₴</button>" : "") +
     "</div>";
 
+  // Бонуси
+  const accrued = extractAmt(gv(o,"Нараховано бонусів"));
+  const spent = extractAmt(gv(o,"Списано бонусів"));
+  const balance = clientBonusBalance(phone);
+  const wouldAccrue = Math.round(total * BONUS_PCT / 100);
+  const allIssued = its.length > 0 && its.every(it => gv(it,"Статус") === "📦 Виданий");
+  let bonusInner =
+    "<div class='d-pay-row'><span class='pl'>Баланс клієнта</span><span class='pv' style='color:var(--cognac)'>" + balance.toLocaleString("uk-UA") + " балів</span></div>";
+  if (accrued) bonusInner += "<div class='d-pay-row'><span class='pl'>Нараховано за це замовлення</span><span class='pv'>+" + accrued.toLocaleString("uk-UA") + "</span></div>";
+  if (spent) bonusInner += "<div class='d-pay-row'><span class='pl'>Списано за це замовлення</span><span class='pv'>−" + spent.toLocaleString("uk-UA") + "</span></div>";
+  // Кнопка нарахування — коли все видано і ще не нараховано
+  if (allIssued && !accrued) {
+    bonusInner += "<button class='d-settle-btn' style='background:#2FA98C' onclick=\"accrueBonus('" + num + "'," + wouldAccrue + ")\">Нарахувати " + wouldAccrue + " балів (" + BONUS_PCT + "%)</button>";
+  } else if (!accrued) {
+    bonusInner += "<div class='d-bonus-hint'>Нарахування " + wouldAccrue + " балів (" + BONUS_PCT + "%) після видачі</div>";
+  }
+  // Списання — якщо є баланс і ще не списували в цьому замовленні
+  if (balance > 0 && !spent) {
+    bonusInner += "<button class='d-settle-btn' style='background:none;border:1px solid var(--cognac-border);color:var(--cognac);margin-top:8px' onclick=\"openSpendBonus('" + num + "'," + balance + "," + total + ")\">Списати бали при оплаті</button>";
+  }
+  const bonusBlock = "<div class='dblock'><div class='dblock-label'>Бонуси</div>" + bonusInner + "</div>";
+
   // Історія (таймлайн з дат виробів)
   const events = [];
   events.push(["Створено", gv(o,"Дата створення"), gv(o,"Приймальник")]);
@@ -1671,9 +1925,10 @@ function openOrder(num) {
     "<div class='detail-top'>" +
       "<span class='detail-title'>Замовлення " + num.replace("RW-","#") + "</span>" +
       "<span class='badge " + stMeta[1] + "'>" + stMeta[0] + "</span>" +
+      "<button class='detail-edit' onclick=\"openEditOrder('" + num + "')\">Редагувати</button>" +
     "</div>" +
     "<div class='detail-grid'>" +
-      clientBlock + payBlock + itemsBlock + timelineBlock + notifyBlock +
+      clientBlock + payBlock + itemsBlock + bonusBlock + timelineBlock + notifyBlock +
     "</div>";
 
   document.getElementById("odm-bg").classList.add("open");
@@ -1802,7 +2057,53 @@ async function confirmSettle() {
   } catch(e) { console.error("settle failed", e); }
 }
 
-/* Копіювання тексту сповіщення */
+/* ─── БОНУСИ ─── */
+async function accrueBonus(num, amount) {
+  const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
+  if (o) o["Нараховано бонусів"] = String(amount);
+  openOrder(num);
+  try {
+    await fetch(API_URL.replace("/order","/bonus"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ order_num: num, accrued: amount })
+    });
+  } catch(e) { console.error("accrue failed", e); }
+}
+
+function openSpendBonus(num, balance, total) {
+  // Ліміт списання 30% від суми чека
+  const maxByOrder = Math.floor(total * 0.3);
+  const maxSpend = Math.min(balance, maxByOrder);
+  const body = document.getElementById("odm-body");
+  const wrap = document.createElement("div");
+  wrap.className = "settle-overlay";
+  wrap.innerHTML =
+    "<div class='settle-card'>" +
+      "<div class='dblock-label'>Списати бали</div>" +
+      "<div style='font-size:12px;color:var(--txt-2);margin-bottom:10px'>Доступно: " + balance + " · макс. для цього чека (30%): " + maxByOrder + "</div>" +
+      "<input class='cr-input' id='spend-amt' type='number' value='" + maxSpend + "' max='" + maxSpend + "'>" +
+      "<div style='display:flex;gap:8px;margin-top:10px'>" +
+        "<button onclick='closeSettle()' style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:11px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px'>Скасувати</button>" +
+        "<button class='d-settle-btn' style='flex:2;margin-top:0' onclick=\"confirmSpendBonus('" + num + "'," + maxSpend + ")\">Списати</button>" +
+      "</div>" +
+    "</div>";
+  body.appendChild(wrap);
+}
+async function confirmSpendBonus(num, maxSpend) {
+  let amt = parseInt(document.getElementById("spend-amt").value || "0");
+  if (!amt) { alert("Вкажіть суму"); return; }
+  if (amt > maxSpend) amt = maxSpend;
+  const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
+  if (o) o["Списано бонусів"] = String(amt);
+  closeSettle();
+  openOrder(num);
+  try {
+    await fetch(API_URL.replace("/order","/bonus"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ order_num: num, spent: amt })
+    });
+  } catch(e) { console.error("spend failed", e); }
+}
 const NOTIFY_TEMPLATES = {
   ready:    (v, num, item) => "Доброго дня, " + v + "! Ваше замовлення " + num + " (" + item + ") готове до видачі. Чекаємо вас у Rewise Studio. Дякуємо, що обрали нас.",
   remind:   (v, num, item) => "Доброго дня, " + v + "! Нагадуємо, що ваше замовлення " + num + " (" + item + ") готове та очікує на видачу в Rewise Studio.",
