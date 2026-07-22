@@ -399,6 +399,12 @@ body {
 .d-status-btn:hover { border-color: var(--cognac-border); }
 .d-status-btn.done { color: var(--txt); }
 .d-status-btn.current { color: #fff; border-color: transparent; }
+.d-notify-check { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 12px; color: var(--txt-2); cursor: pointer; user-select: none; }
+.d-check { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--cognac-border); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; transition: all 0.15s; }
+.d-check.on { background: #2FA98C; border-color: #2FA98C; }
+.d-notify-check:hover .d-check { border-color: var(--cognac); }
+.d-markall { background: transparent; border: 1px solid var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 11px; padding: 6px 12px; cursor: pointer; letter-spacing: 0; text-transform: none; transition: all 0.15s; }
+.d-markall:hover { background: var(--accent-soft); }
 
 .d-pay-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
 .d-pay-row .pl { color: var(--txt-2); }
@@ -406,6 +412,12 @@ body {
 .d-pay-total { display: flex; justify-content: space-between; padding: 9px 0 0; margin-top: 6px; border-top: 1px solid var(--line); }
 .d-pay-total .pl { color: var(--txt); font-size: 13px; }
 .d-pay-total .pv { font-family: 'Tenor Sans', serif; font-size: 17px; color: var(--txt); }
+.d-settle-btn { width: 100%; margin-top: 14px; background: var(--cognac); border: none; border-radius: 8px; color: #fff; font-family: 'Commissioner', sans-serif; font-size: 12px; padding: 11px; cursor: pointer; transition: background 0.15s; }
+.d-settle-btn:hover { background: var(--leather); }
+.settle-methods { display: flex; gap: 8px; margin: 12px 0; }
+.settle-methods .cr-pill { flex: 1; text-align: center; }
+.settle-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 5; border-radius: 14px; }
+.settle-card { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 22px; width: 340px; max-width: 90%; box-shadow: 0 16px 48px rgba(0,0,0,0.3); }
 
 .d-timeline-row { display: flex; gap: 11px; padding: 5px 0; font-size: 12px; }
 .d-timeline-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cognac); margin-top: 5px; flex-shrink: 0; }
@@ -482,6 +494,7 @@ body {
 .b-work { background: var(--st-work-bg); color: var(--st-work-fg); }
 .b-ready { background: var(--st-ready-bg); color: var(--st-ready-fg); }
 .b-issued { background: var(--st-issued-bg); color: var(--st-issued-fg); }
+.b-partial { background: rgba(47,169,140,0.15); color: #2FA98C; }
 .b-postponed { background: var(--st-postponed-bg); color: var(--st-postponed-fg); }
 .orders-empty, .orders-loading {
   padding: 60px 20px; text-align: center;
@@ -680,8 +693,8 @@ async function loadData() {
       fetch(base + encodeURIComponent("Вироби")),
       fetch(base + encodeURIComponent("Партнери"))
     ]);
-    ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер"]);
-    ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі"]);
+    ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер","Спосіб передоплати","Сума доплати","Спосіб доплати","Сповіщено"]);
+    ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено"]);
     PARTNERS = await parsePartners(r3);
     if (!PARTNERS.length) PARTNERS = ["Сергій"];
     dataLoaded = true;
@@ -702,7 +715,9 @@ function extractAmt(str) {
 function getStatus(num) {
   const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
   if (!its.length) return "new";
-  if (its.every(i => gv(i,"Статус") === "📦 Виданий")) return "issued";
+  const issued = its.filter(i => gv(i,"Статус") === "📦 Виданий").length;
+  if (issued === its.length) return "issued";
+  if (issued > 0) return "partial";
   if (its.some(i => gv(i,"Статус") === "✅ Готово")) return "ready";
   if (its.some(i => gv(i,"Статус") === "⚙️ В роботі")) return "work";
   if (its.some(i => gv(i,"Статус") === "⏳ Відкладено")) return "postponed";
@@ -710,9 +725,9 @@ function getStatus(num) {
 }
 const STATUS_META = {
   new:["Новий","b-new"], work:["В роботі","b-work"], ready:["Готово","b-ready"],
-  issued:["Виданий","b-issued"], postponed:["Відкладено","b-postponed"]
+  issued:["Виданий","b-issued"], partial:["Частково видано","b-partial"], postponed:["Відкладено","b-postponed"]
 };
-const STATUS_ACCENT = { new:"#378ADD", work:"#EF9F27", ready:"#639922", issued:"#B4B2A9", postponed:"#E24B4A" };
+const STATUS_ACCENT = { new:"#378ADD", work:"#EF9F27", ready:"#639922", issued:"#B4B2A9", partial:"#2FA98C", postponed:"#E24B4A" };
 
 /* Чи горить термін: термінові — завжди, звичайні — за 3 дні до дати */
 function deadlineWarn(o) {
@@ -805,7 +820,7 @@ function svcHint(name) {
 }
 
 /* ═══════════════ ВКЛАДКА СТВОРИТИ ═══════════════ */
-let NO = { manager: "", client: "", phone: "", messenger: "", items: [], payment: "", prepay: "", deadline: "" };
+let NO = { manager: "", client: "", phone: "", messenger: "", items: [], payment: "", prepay: "", prepayMethod: "", deadline: "" };
 let itemCounter = 0;
 
 /* Оригінальні іконки месенджерів */
@@ -848,6 +863,11 @@ renderers.create = function() {
               "<button class='cr-pill cr-pill-wide" + (NO.payment==='Післяоплата'?' active':'') + "' onclick=\"setPay('Післяоплата',this)\">Післяоплата</button>" +
             "</div>" +
             "<input class='cr-input' id='cr-prepay' type='number' placeholder='Сума передоплати, ₴' style='display:" + (NO.payment==='Передоплата'?'block':'none') + "' value=\"" + (NO.prepay||"") + "\" oninput='NO.prepay=this.value'>" +
+            "<div class='cr-pills' id='cr-prepay-method' style='display:" + (NO.payment==='Передоплата'?'flex':'none') + "'>" +
+              "<button class='cr-pill" + (NO.prepayMethod==='Готівка'?' active':'') + "' onclick=\"setPrepayMethod('Готівка',this)\">Готівка</button>" +
+              "<button class='cr-pill" + (NO.prepayMethod==='Картка'?' active':'') + "' onclick=\"setPrepayMethod('Картка',this)\">Картка</button>" +
+              "<button class='cr-pill" + (NO.prepayMethod==='ФОП'?' active':'') + "' onclick=\"setPrepayMethod('ФОП',this)\">ФОП</button>" +
+            "</div>" +
             "<div class='cr-pills' id='cr-deadline' style='margin-top:10px'>" +
               "<button class='cr-pill" + (NO.deadline==='⚡ Терміново'?' active':'') + "' onclick=\"setDeadline('⚡ Терміново',this)\">Терміново</button>" +
               "<button class='cr-pill" + (NO.deadline==='Без терміну'?' active':'') + "' onclick=\"setDeadline('Без терміну',this)\">Без терміну</button>" +
@@ -965,6 +985,13 @@ function setPay(type, btn) {
   document.querySelectorAll("#cr-pay .cr-pill").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
   document.getElementById("cr-prepay").style.display = type === "Передоплата" ? "block" : "none";
+  const pm = document.getElementById("cr-prepay-method");
+  if (pm) pm.style.display = type === "Передоплата" ? "flex" : "none";
+}
+function setPrepayMethod(m, btn) {
+  NO.prepayMethod = (NO.prepayMethod === m) ? "" : m;
+  document.querySelectorAll("#cr-prepay-method .cr-pill").forEach(b => b.classList.remove("active"));
+  if (NO.prepayMethod) btn.classList.add("active");
 }
 function setDeadline(val, btn) {
   document.querySelectorAll("#cr-deadline .cr-pill").forEach(b => b.classList.remove("active"));
@@ -1141,6 +1168,7 @@ async function submitOrder() {
   const payload = {
     date: dateStr, manager: NO.manager, client: NO.client, phone: NO.phone,
     payment: paymentStr, deadline: NO.deadline, messenger: NO.messenger || "",
+    prepayMethod: NO.payment === "Передоплата" ? (NO.prepayMethod || "") : "",
     prepay: NO.payment === "Передоплата" && NO.prepay ? parseInt(NO.prepay) : 0,
     items: validItems.map(item => {
       const total = item.services.reduce((s,x)=>s+x.price,0);
@@ -1161,7 +1189,7 @@ async function submitOrder() {
     const result = await res.json();
     if (result.status === "ok") {
       btn.textContent = "✓ " + (result.order_num || "Збережено");
-      NO = { manager: NO.manager, client:"", phone:"", messenger:"", items:[], payment:"", prepay:"", deadline:"" };
+      NO = { manager: NO.manager, client:"", phone:"", messenger:"", items:[], payment:"", prepay:"", prepayMethod:"", deadline:"" };
       itemCounter = 0;
       setTimeout(() => { loadData(); showPage("orders"); }, 1200);
     } else {
@@ -1359,25 +1387,43 @@ function openOrder(num) {
       return "<button class='" + cls + "'" + style + " onclick=\"setItemStatus('" + num + "'," + idx + "," + si + ")\">" + s[1] + "</button>";
     }).join("");
     const iname = gv(it,"Бренд") || gv(it,"Тип") || "Виріб";
+    const itemNum = gv(it,"Номер виробу") || (num + "-" + (idx+1));
+    const notified = gv(it,"Сповіщено");
+    const notifyCheck = "<label class='d-notify-check' onclick=\"toggleNotified('" + itemNum + "'," + idx + ",event)\">" +
+      "<span class='d-check" + (notified ? " on" : "") + "'>" + (notified ? "✓" : "") + "</span>" +
+      (notified ? "Сповіщено " + notified : "Позначити, що сповіщено") + "</label>";
     return "<div class='d-item'>" +
       "<div class='d-item-head'><div><span class='d-item-num'>№" + (idx+1) + "</span> <span class='d-item-name'>" + iname + "</span></div>" +
       "<span class='d-item-price'>" + (itemTotal ? itemTotal.toLocaleString("uk-UA") + " ₴" : "—") + "</span></div>" +
       (gv(it,"Тип") ? "<div class='d-item-detail'>" + gv(it,"Тип") + "</div>" : "") +
       "<div class='d-item-svc'>" + gv(it,"Послуги") + "</div>" +
-      "<div class='d-status-row'>" + statusBtns + "</div></div>";
+      "<div class='d-status-row'>" + statusBtns + "</div>" +
+      notifyCheck +
+      "</div>";
   }).join("");
-  const itemsBlock = "<div class='dblock dblock-full'><div class='dblock-label'>Вироби та статус</div>" + itemsHTML + "</div>";
+  const allNotified = its.length > 0 && its.every(it => gv(it,"Сповіщено"));
+  const markAllBtn = its.length > 1 ?
+    "<button class='d-markall' onclick=\"markAllNotified('" + num + "'," + (allNotified ? "false" : "true") + ")\">" +
+      (allNotified ? "Зняти позначки сповіщення" : "✓ Позначити всі як сповіщені") + "</button>" : "";
+  const itemsBlock = "<div class='dblock dblock-full'><div class='dblock-label' style='display:flex;justify-content:space-between;align-items:center'>Вироби та статус" + markAllBtn + "</div>" + itemsHTML + "</div>";
 
   // Оплата
   const payStr = gv(o,"Оплата");
   const prepayAmt = extractAmt(payStr);
   const isPrepay = payStr.includes("Передоплата");
-  const toPay = isPrepay ? Math.max(0, total - prepayAmt) : total;
+  const prepayMethod = gv(o,"Спосіб передоплати");
+  const settleAmt = extractAmt(gv(o,"Сума доплати"));
+  const settleMethod = gv(o,"Спосіб доплати");
+  const paidTotal = (isPrepay ? prepayAmt : 0) + settleAmt;
+  const toPay = Math.max(0, total - paidTotal);
   const payBlock = "<div class='dblock'><div class='dblock-label'>Оплата</div>" +
     "<div class='d-pay-row'><span class='pl'>Тип</span><span class='pv'>" + (isPrepay ? "Передоплата" : (payStr || "—")) + "</span></div>" +
-    (isPrepay && prepayAmt ? "<div class='d-pay-row'><span class='pl'>Внесено</span><span class='pv'>" + prepayAmt.toLocaleString("uk-UA") + " ₴</span></div>" : "") +
+    (isPrepay && prepayAmt ? "<div class='d-pay-row'><span class='pl'>Передоплата</span><span class='pv'>" + prepayAmt.toLocaleString("uk-UA") + " ₴" + (prepayMethod ? " · " + prepayMethod : "") + "</span></div>" : "") +
+    (settleAmt ? "<div class='d-pay-row'><span class='pl'>Доплата</span><span class='pv'>" + settleAmt.toLocaleString("uk-UA") + " ₴" + (settleMethod ? " · " + settleMethod : "") + "</span></div>" : "") +
     "<div class='d-pay-row'><span class='pl'>Термін</span><span class='pv'>" + (gv(o,"Термін") || "—") + "</span></div>" +
-    "<div class='d-pay-total'><span class='pl'>" + (isPrepay ? "До доплати" : "Разом") + "</span><span class='pv'>" + toPay.toLocaleString("uk-UA") + " ₴</span></div></div>";
+    "<div class='d-pay-total'><span class='pl'>" + (toPay > 0 ? "До сплати" : "Сплачено") + "</span><span class='pv'>" + (toPay > 0 ? toPay.toLocaleString("uk-UA") + " ₴" : total.toLocaleString("uk-UA") + " ₴") + "</span></div>" +
+    (toPay > 0 ? "<button class='d-settle-btn' onclick=\"openSettle('" + num + "'," + toPay + ")\">Прийняти доплату " + toPay.toLocaleString("uk-UA") + " ₴</button>" : "") +
+    "</div>";
 
   // Історія (таймлайн з дат виробів)
   const events = [];
@@ -1456,6 +1502,83 @@ async function setItemStatus(num, itemIdx, statusIdx) {
       body: JSON.stringify({ item_num: itemNum, status: newStatus })
     });
   } catch(e) { console.error("status update failed", e); }
+}
+
+async function toggleNotified(itemNum, itemIdx, ev) {
+  if (ev) ev.stopPropagation();
+  const it = ITEMS.find(i => gv(i,"Номер виробу") === itemNum);
+  if (!it) return;
+  const currently = !!gv(it,"Сповіщено");
+  const nowVal = currently ? "" : new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
+  it["Сповіщено"] = nowVal;
+  if (detailOrderNum) openOrder(detailOrderNum);
+  try {
+    await fetch(API_URL.replace("/order","/notify"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ item_num: itemNum, notified: !currently })
+    });
+  } catch(e) { console.error("notify mark failed", e); }
+}
+
+async function markAllNotified(num, notified) {
+  const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+  const nowVal = notified ? new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"}) : "";
+  its.forEach(it => it["Сповіщено"] = nowVal);
+  if (detailOrderNum) openOrder(detailOrderNum);
+  for (const it of its) {
+    const itemNum = gv(it,"Номер виробу");
+    try {
+      await fetch(API_URL.replace("/order","/notify"), {
+        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ item_num: itemNum, notified: notified })
+      });
+    } catch(e) { console.error("notify-all failed for", itemNum, e); }
+  }
+}
+function openSettle(num, toPay) {
+  settleState = { num: num, amount: toPay, method: "" };
+  const body = document.getElementById("odm-body");
+  const wrap = document.createElement("div");
+  wrap.className = "settle-overlay";
+  wrap.innerHTML =
+    "<div class='settle-card'>" +
+      "<div class='dblock-label'>Прийняти доплату</div>" +
+      "<input class='cr-input' id='settle-amt' type='number' value='" + toPay + "'>" +
+      "<div class='settle-methods'>" +
+        "<button class='cr-pill' onclick=\"setSettleMethod('Готівка',this)\">Готівка</button>" +
+        "<button class='cr-pill' onclick=\"setSettleMethod('Картка',this)\">Картка</button>" +
+        "<button class='cr-pill' onclick=\"setSettleMethod('ФОП',this)\">ФОП</button>" +
+      "</div>" +
+      "<div style='display:flex;gap:8px;margin-top:6px'>" +
+        "<button class='cr-btn' onclick='closeSettle()' style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:11px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px'>Скасувати</button>" +
+        "<button class='d-settle-btn' style='flex:2;margin-top:0' onclick='confirmSettle()'>Підтвердити</button>" +
+      "</div>" +
+    "</div>";
+  body.appendChild(wrap);
+}
+function setSettleMethod(m, btn) {
+  settleState.method = m;
+  btn.parentElement.querySelectorAll(".cr-pill").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+}
+function closeSettle() {
+  const ov = document.querySelector(".settle-overlay");
+  if (ov) ov.remove();
+}
+async function confirmSettle() {
+  const amt = parseInt(document.getElementById("settle-amt").value || "0");
+  if (!amt) { alert("Вкажіть суму"); return; }
+  if (!settleState.method) { alert("Оберіть спосіб оплати"); return; }
+  const o = ORDERS.find(x => gv(x,"Номер замовлення") === settleState.num);
+  if (o) { o["Сума доплати"] = String(amt); o["Спосіб доплати"] = settleState.method; }
+  closeSettle();
+  openOrder(settleState.num);
+  try {
+    await fetch(API_URL.replace("/order","/settle"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ order_num: settleState.num, amount: amt, method: settleState.method })
+    });
+  } catch(e) { console.error("settle failed", e); }
 }
 
 /* Копіювання тексту сповіщення */
