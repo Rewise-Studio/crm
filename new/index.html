@@ -323,6 +323,7 @@ body {
 
 /* ═══════════════ ДЕТАЛЬНА КАРТКА ЗАМОВЛЕННЯ ═══════════════ */
 .detail-scroll { flex: 1; overflow-y: auto; padding: 4px 28px 40px; }
+.detail-inner { max-width: 760px; margin: 0 auto; }
 .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
 .dblock { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 17px 19px; margin-bottom: 0; }
 .dblock-full { grid-column: 1 / -1; }
@@ -1350,7 +1351,7 @@ function openOrder(num) {
     "</div></div>";
 
   page.innerHTML =
-    "<div class='detail-scroll'>" +
+    "<div class='detail-scroll'><div class='detail-inner'>" +
       "<div class='detail-top'>" +
         "<button class='detail-back' onclick=\"backToOrders()\">←</button>" +
         "<span class='detail-title'>Замовлення " + num.replace("RW-","#") + "</span>" +
@@ -1359,7 +1360,7 @@ function openOrder(num) {
       "<div class='detail-grid'>" +
         clientBlock + payBlock + itemsBlock + timelineBlock + notifyBlock +
       "</div>" +
-    "</div>";
+    "</div></div>";
 }
 
 function backToOrders() { detailOrderNum = null; renderers.orders(); }
