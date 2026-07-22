@@ -701,17 +701,28 @@ function gv(obj, ...keys) {
 async function parseSheet(res, cols) {
   try {
     const text = await res.text();
-    const json = JSON.parse(text.replace(/^.*?({.*}).*$/s, "$1"));
+    // gviz повертає google.visualization.Query.setResponse({...}); — виріжемо JSON надійно
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+    if (start === -1 || end === -1) return [];
+    const json = JSON.parse(text.substring(start, end + 1));
     if (!json.table || !json.table.rows) return [];
     return json.table.rows.map(row => {
       const obj = {};
+      const cells = row.c || [];
       cols.forEach((col, i) => {
-        const cell = row.c[i];
-        obj[col] = cell ? (cell.f || (cell.v !== null ? String(cell.v) : "")) : "";
+        const cell = cells[i];
+        if (!cell) { obj[col] = ""; return; }
+        // Пріоритет: значення .v (сире), потім .f (форматоване)
+        let val = (cell.v !== null && cell.v !== undefined) ? cell.v : (cell.f !== undefined ? cell.f : "");
+        obj[col] = String(val);
       });
       return obj;
-    }).filter(r => r[cols[0]] && r[cols[0]].startsWith("RW-"));
-  } catch(e) { return []; }
+    }).filter(r => {
+      const key = r[cols[0]];
+      return key && typeof key === "string" && key.indexOf("RW-") === 0;
+    });
+  } catch(e) { console.error("parseSheet error:", e); return []; }
 }
 
 async function parsePartners(res) {
@@ -728,7 +739,7 @@ async function parsePartners(res) {
 
 async function loadData() {
   try {
-    const base = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&sheet=";
+    const base = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&sheet=";
     const [r1, r2, r3] = await Promise.all([
       fetch(base + encodeURIComponent("Замовлення")),
       fetch(base + encodeURIComponent("Вироби")),
