@@ -551,17 +551,25 @@ body {
 .pay-split-item .ps-label { font-size: 10px; color: var(--txt-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
 .pay-split-item .ps-value { font-family: 'Tenor Sans', serif; font-size: 16px; color: var(--txt); }
 
-.task-add { display: flex; gap: 8px; margin-bottom: 18px; }
-.task-add .cr-input { flex: 1; }
-.task-add-btn { background: var(--cognac); border: none; border-radius: 8px; color: #fff; font-size: 20px; width: 44px; cursor: pointer; flex-shrink: 0; transition: background 0.15s; }
+.task-add-form { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-bottom: 18px; }
+.task-add-form .cr-input { margin-bottom: 10px; }
+.task-add-row { display: flex; gap: 8px; align-items: flex-start; }
+.task-order-search { flex: 1; position: relative; }
+.task-order-search .ic-mini { width: 100%; }
+.task-order-chip { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; background: var(--accent-soft); color: var(--cognac); border-radius: 14px; padding: 5px 10px; font-size: 11px; }
+.task-order-chip button { background: none; border: none; color: var(--cognac); cursor: pointer; font-size: 13px; padding: 0; }
+.task-add-btn { background: var(--cognac); border: none; border-radius: 8px; color: #fff; font-size: 20px; width: 44px; height: 38px; cursor: pointer; flex-shrink: 0; transition: background 0.15s; }
 .task-add-btn:hover { background: var(--leather); }
-.task-row { display: flex; align-items: center; gap: 12px; padding: 13px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; }
+.task-row { display: flex; align-items: center; gap: 12px; padding: 13px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; transition: border-color 0.15s; }
 .task-row.done { opacity: 0.55; }
+.task-row.overdue-row { border-color: var(--st-postponed-fg); background: var(--st-postponed-bg); }
 .task-check { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--cognac-border); display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; cursor: pointer; flex-shrink: 0; transition: all 0.15s; }
 .task-check.on { background: #2FA98C; border-color: #2FA98C; }
-.task-text { flex: 1; font-size: 13px; color: var(--txt); }
+.task-text { flex: 1; font-size: 13px; color: var(--txt); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .task-row.done .task-text { text-decoration: line-through; }
-.task-order { display: inline-block; margin-left: 8px; font-size: 11px; color: var(--cognac); }
+.task-order { display: inline-block; font-size: 11px; color: var(--cognac); cursor: pointer; padding: 2px 8px; background: var(--accent-soft); border-radius: 10px; }
+.task-deadline { font-size: 11px; color: var(--txt-3); }
+.task-deadline.overdue { color: var(--st-postponed-fg); font-weight: 500; }
 .task-del { background: none; border: none; color: var(--txt-3); cursor: pointer; font-size: 18px; padding: 0 4px; transition: color 0.15s; }
 .task-del:hover { color: var(--st-postponed-fg); }
 .task-done-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--txt-3); margin: 20px 0 12px; }
@@ -827,7 +835,7 @@ async function parseTasks(res) {
     if (start === -1) return [];
     const json = JSON.parse(text.substring(start, end + 1));
     if (!json.table || !json.table.rows) return [];
-    const cols = ["Текст","Замовлення","Статус","Створено","Виконано"];
+    const cols = ["Текст","Замовлення","Статус","Створено","Виконано","Дедлайн"];
     return json.table.rows.map(row => {
       const obj = {}; const cells = row.c || [];
       cols.forEach((col, i) => {
@@ -1336,7 +1344,7 @@ async function submitOrder() {
 
 /* Закриття dropdown'ів */
 document.addEventListener("click", function(e) {
-  if (!e.target.closest(".ic-search-wrap")) document.querySelectorAll(".ic-dd.open").forEach(dd => dd.classList.remove("open"));
+  if (!e.target.closest(".ic-search-wrap") && !e.target.closest(".task-order-search")) document.querySelectorAll(".ic-dd.open").forEach(dd => dd.classList.remove("open"));
   if (!e.target.closest(".cr-client-suggest")) { const s = document.getElementById("cr-suggest"); if (s) s.classList.remove("open"); }
 });
 
@@ -1761,45 +1769,104 @@ function setTopClientsMode(mode) {
 }
 
 /* ═══════════════ ВКЛАДКА ЗАДАЧІ ═══════════════ */
+let taskAddOrder = "";
+
 renderers.tasks = function() {
   const page = document.getElementById("page-tasks");
-  const active = TASKS.filter(t => t["Статус"] !== "так");
+  let active = TASKS.filter(t => t["Статус"] !== "так");
   const done = TASKS.filter(t => t["Статус"] === "так");
+
+  // Сортування активних задач: спочатку прострочені, потім за найближчим дедлайном, без дедлайну — в кінці
+  function sortKey(t) {
+    const d = parseDeadline(t["Дедлайн"]);
+    return d ? d.getTime() : Infinity;
+  }
+  active = active.sort((a,b) => sortKey(a) - sortKey(b));
+
+  function isOverdue(t) {
+    if (t["Статус"] === "так") return false;
+    const d = parseDeadline(t["Дедлайн"]);
+    if (!d) return false;
+    const now = new Date(); now.setHours(0,0,0,0);
+    return d.getTime() < now.getTime();
+  }
 
   function taskRow(t) {
     const isDone = t["Статус"] === "так";
-    const order = t["Замовлення"] ? "<span class='task-order'>" + t["Замовлення"].replace("RW-","#") + "</span>" : "";
+    const overdue = isOverdue(t);
+    const num = t["Замовлення"];
+    const order = num ? "<span class='task-order' onclick=\"openOrder('" + num + "')\">" + num.replace("RW-","#") + "</span>" : "";
+    const deadline = t["Дедлайн"] ? "<span class='task-deadline" + (overdue?" overdue":"") + "'>" + (overdue?"⚠ ":"") + t["Дедлайн"] + "</span>" : "";
     const created = (t["Створено"]||"").replace(/"/g,"&quot;");
     const txt = (t["Текст"]||"").replace(/"/g,"&quot;");
-    return "<div class='task-row" + (isDone?" done":"") + "'>" +
+    return "<div class='task-row" + (isDone?" done":"") + (overdue?" overdue-row":"") + "'>" +
       "<span class='task-check" + (isDone?" on":"") + "' onclick=\"toggleTask('" + txt.replace(/'/g,"\\'") + "','" + created.replace(/'/g,"\\'") + "'," + (!isDone) + ")\">" + (isDone?"✓":"") + "</span>" +
-      "<span class='task-text'>" + t["Текст"] + order + "</span>" +
+      "<span class='task-text'>" + t["Текст"] + order + deadline + "</span>" +
       "<button class='task-del' onclick=\"deleteTask('" + txt.replace(/'/g,"\\'") + "','" + created.replace(/'/g,"\\'") + "')\">×</button>" +
     "</div>";
   }
 
+  const orderChip = taskAddOrder ?
+    "<span class='task-order-chip'>" + taskAddOrder.replace("RW-","#") + "<button onclick='clearTaskOrder()'>×</button></span>" : "";
+
   page.innerHTML =
     "<div class='page-header'><div class='page-title'>Задачі</div></div>" +
     "<div class='tab-scroll'>" +
-      "<div class='task-add'><input class='cr-input' id='task-input' placeholder='Нова задача...' style='margin-bottom:0' onkeydown='if(event.key===\"Enter\")addTask()'>" +
-        "<button class='task-add-btn' onclick='addTask()'>+</button></div>" +
+      "<div class='task-add-form'>" +
+        "<input class='cr-input' id='task-input' placeholder='Нова задача...' style='margin-bottom:0' onkeydown='if(event.key===\"Enter\")addTask()'>" +
+        "<div class='task-add-row'>" +
+          "<div class='task-order-search'>" +
+            "<input class='ic-mini' id='task-order-input' placeholder='Прив\\'язати замовлення...' autocomplete='off' oninput='filterTaskOrders(this.value)' onfocus='filterTaskOrders(this.value)'>" +
+            "<div class='ic-dd' id='task-order-dd'></div>" +
+            orderChip +
+          "</div>" +
+          "<input class='ic-mini' id='task-deadline-input' type='date' style='max-width:150px'>" +
+          "<button class='task-add-btn' onclick='addTask()'>+</button>" +
+        "</div>" +
+      "</div>" +
       (active.length ? active.map(taskRow).join("") : "<div style='color:var(--txt-3);font-size:13px;padding:20px 0;text-align:center'>Немає активних задач</div>") +
       (done.length ? "<div class='task-done-label'>Виконані</div>" + done.map(taskRow).join("") : "") +
     "</div>";
 };
 
+function filterTaskOrders(q) {
+  q = (q||"").trim().toLowerCase();
+  const dd = document.getElementById("task-order-dd");
+  if (!dd) return;
+  if (!q) { dd.classList.remove("open"); return; }
+  const matches = ORDERS.filter(o =>
+    gv(o,"Номер замовлення").toLowerCase().includes(q) || gv(o,"Ім'я клієнта").toLowerCase().includes(q)
+  ).slice(0, 6);
+  if (!matches.length) { dd.innerHTML = "<div class='ic-opt'><span class='o-empty'>Нічого не знайдено</span></div>"; dd.classList.add("open"); return; }
+  dd.innerHTML = matches.map(o => {
+    const num = gv(o,"Номер замовлення");
+    return "<div class='ic-opt' onclick=\"pickTaskOrder('" + num + "')\"><span class='o-name'>" + num.replace("RW-","#") + " · " + gv(o,"Ім'я клієнта") + "</span></div>";
+  }).join("");
+  dd.classList.add("open");
+}
+function pickTaskOrder(num) {
+  taskAddOrder = num;
+  document.getElementById("task-order-dd").classList.remove("open");
+  renderers.tasks();
+}
+function clearTaskOrder() { taskAddOrder = ""; renderers.tasks(); }
+
 async function addTask() {
   const input = document.getElementById("task-input");
   const text = input.value.trim();
   if (!text) return;
+  const deadlineRaw = document.getElementById("task-deadline-input").value;
+  const deadline = deadlineRaw ? formatDeadlineDate(deadlineRaw) : "";
+  const order = taskAddOrder;
   const created = new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit",year:"numeric"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
-  TASKS.push({ "Текст": text, "Замовлення": "", "Статус": "ні", "Створено": created, "Виконано": "" });
+  TASKS.push({ "Текст": text, "Замовлення": order, "Статус": "ні", "Створено": created, "Виконано": "", "Дедлайн": deadline });
   input.value = "";
+  taskAddOrder = "";
   renderers.tasks();
   try {
     await fetch(API_URL.replace("/order","/task"), {
       method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ text: text, order: "" })
+      body: JSON.stringify({ text: text, order: order, deadline: deadline })
     });
   } catch(e) { console.error("task add failed", e); }
 }
@@ -2351,6 +2418,27 @@ function toast(msg) {
 showPage("orders");
 loadData();
 loadPrice();
+
+/* ═══════════════ ПРЕДЗАПОВНЕННЯ З URL (для Siri/Команд) ═══════════════
+   Приклад посилання:
+   https://rewise-studio.github.io/crm/new/?client=Анна&phone=0981234567&deadline=25.07.2026
+*/
+(function prefillFromURL(){
+  const params = new URLSearchParams(window.location.search);
+  const uClient = params.get("client");
+  const uPhone = params.get("phone");
+  const uDeadline = params.get("deadline");
+  if (uClient || uPhone || uDeadline) {
+    NO.client = uClient || "";
+    NO.phone = uPhone || "";
+    NO.deadline = uDeadline || "";
+    showPage("create");
+    // Прибираємо параметри з адресного рядка, щоб не підставлялись повторно при оновленні
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }
+})();
 </script>
 </body>
 </html>
