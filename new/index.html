@@ -1745,7 +1745,6 @@ renderers.stats = function() {
       "</div>" +
       "<div class='stat-cols'>" +
         "<div class='stat-panel'><div class='stat-panel-label'>Топ послуг</div>" + (topSvc.length ? barsHTML(topSvc, "", "svc") : "<div style='color:var(--txt-3);font-size:12px'>Немає даних</div>") + "</div>" +
-        "<div class='stat-panel'><div class='stat-panel-label'>По приймальниках</div>" + (mgrData.length ? barsHTML(mgrData, "₴", "mgr") : "<div style='color:var(--txt-3);font-size:12px'>Немає даних</div>") + "</div>" +
         "<div class='stat-panel'>" +
           "<div class='stat-panel-head'><div class='stat-panel-label' style='margin:0'>Топ клієнтів</div>" +
             "<div class='mini-toggle'>" +
@@ -1754,6 +1753,7 @@ renderers.stats = function() {
             "</div></div>" +
           "<div id='top-clients-bars'>" + ((topClientsMode==="sum"?topClientsBySum:topClientsByCount).length ? barsHTML(topClientsMode==="sum"?topClientsBySum:topClientsByCount, topClientsMode==="sum"?"₴":"", "clients") : "<div style='color:var(--txt-3);font-size:12px'>Немає даних</div>") + "</div>" +
         "</div>" +
+        "<div class='stat-panel'><div class='stat-panel-label'>По приймальниках</div>" + (mgrData.length ? barsHTML(mgrData, "₴", "mgr") : "<div style='color:var(--txt-3);font-size:12px'>Немає даних</div>") + "</div>" +
       "</div>" +
     "</div>";
 };
