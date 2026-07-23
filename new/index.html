@@ -137,6 +137,25 @@ body {
 .nav-item:hover { color: rgba(240,235,227,0.8); }
 .nav-item.active { background: var(--cognac); color: var(--nav-txt-active); }
 .nav-spacer { flex: 1; }
+.nav-div { width: 40px; height: 1px; background: var(--nav-border); margin: 7px 0; flex-shrink: 0; }
+.nav-clock { text-align: center; margin-bottom: 10px; flex-shrink: 0; }
+.nav-clock-time { font-family: 'Tenor Sans', serif; font-size: 15px; color: var(--linen); letter-spacing: 0.06em; }
+.nav-clock-date { font-size: 9px; color: var(--nav-txt); margin-top: 2px; letter-spacing: 0.04em; }
+
+/* Великий годинник у шапці календаря */
+.cal-clock {
+  display: flex; align-items: baseline; gap: 14px;
+  padding: 18px 22px; margin-bottom: 16px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+}
+.cal-clock-time {
+  font-family: 'Tenor Sans', serif; font-size: 38px; line-height: 1;
+  color: var(--txt); letter-spacing: 0.03em;
+}
+.cal-clock-sec { font-family: 'Tenor Sans', serif; font-size: 18px; color: var(--cognac); }
+.cal-clock-info { margin-left: auto; text-align: right; }
+.cal-clock-dow { font-size: 13px; color: var(--txt); }
+.cal-clock-date { font-size: 12px; color: var(--txt-3); margin-top: 3px; }
 .nav-theme {
   width: 44px; height: 44px;
   border-radius: 10px;
@@ -707,6 +726,9 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
   .nav-logo { margin-bottom: 10px; font-size: 14px; }
   .nav-item { padding: 7px 0; gap: 3px; font-size: 8px; }
   .nav-item svg { width: 17px; height: 17px; }
+  .nav-div { margin: 4px 0; }
+  .nav-clock-time { font-size: 13px; }
+  .nav-clock { margin-bottom: 6px; }
   .nav-theme { width: 38px; height: 34px; }
   .nav-theme svg { width: 16px; height: 16px; }
   .role-badge { font-size: 8px; }
@@ -743,6 +765,8 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
   .nav-item { width: auto; flex: 1; padding: 6px 2px; font-size: 8px; gap: 4px; }
   .nav-item svg { width: 18px; height: 18px; }
   .nav-spacer { display: none; }
+  .nav-div { display: none; }
+  .nav-clock { display: none; }
   .role-badge { display: none; }
   .nav-logout { display: none; }
   .nav-theme {
@@ -831,6 +855,11 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg>
     Замовлення
   </button>
+  <button class="nav-item" data-page="tailor" onclick="showPage('tailor')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+    Виготовлення
+  </button>
+  <div class="nav-div"></div>
   <button class="nav-item" data-page="clients" onclick="showPage('clients')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     Клієнти
@@ -843,6 +872,7 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="13"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="9"/></svg>
     Статистика
   </button>
+  <div class="nav-div"></div>
   <button class="nav-item" data-page="tasks" onclick="showPage('tasks')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 20 6"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>
     Задачі
@@ -851,11 +881,11 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="3" y1="11" x2="21" y2="11"/></svg>
     Календар
   </button>
-  <button class="nav-item" data-page="tailor" onclick="showPage('tailor')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
-    Виготовлення
-  </button>
   <div class="nav-spacer"></div>
+  <div class="nav-clock">
+    <div class="nav-clock-time" id="nav-clock-time">--:--</div>
+    <div class="nav-clock-date" id="nav-clock-date"></div>
+  </div>
   <div class="role-badge" id="role-badge"></div>
   <button class="nav-logout" onclick="logout()" title="Вийти">Вихід</button>
   <button class="nav-theme" onclick="toggleTheme()" id="theme-btn" aria-label="Змінити тему">
@@ -995,6 +1025,7 @@ function showPage(name) {
   document.getElementById("page-" + name).classList.add("active");
   document.querySelector('.nav-item[data-page="' + name + '"]').classList.add("active");
   if (renderers[name]) renderers[name]();
+  if (typeof tickClock === "function") tickClock();
 }
 
 /* Рендерери сторінок — заповнюються нижче по шарах */
@@ -2743,7 +2774,28 @@ let calFilter = "all"; // all | orders | tasks
 let calSelectedDay = null;
 
 const MONTH_NAMES = ["Січень","Лютий","Березень","Квітень","Травень","Червень","Липень","Серпень","Вересень","Жовтень","Листопад","Грудень"];
+const MONTH_GEN = ["січня","лютого","березня","квітня","травня","червня","липня","серпня","вересня","жовтня","листопада","грудня"];
+const DOW_FULL = ["Неділя","Понеділок","Вівторок","Середа","Четвер","П'ятниця","Субота"];
 const DOW_NAMES = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
+
+/* ─── ЖИВИЙ ГОДИННИК ─── */
+function tickClock() {
+  const n = new Date();
+  const p = v => String(v).padStart(2,"0");
+  const hm = p(n.getHours()) + ":" + p(n.getMinutes());
+  const dateShort = p(n.getDate()) + "." + p(n.getMonth()+1);
+  const dateFull = n.getDate() + " " + MONTH_GEN[n.getMonth()] + " " + n.getFullYear();
+
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set("nav-clock-time", hm);
+  set("nav-clock-date", dateShort);
+  set("cal-clock-time", hm);
+  set("cal-clock-sec", p(n.getSeconds()));
+  set("cal-clock-dow", DOW_FULL[n.getDay()]);
+  set("cal-clock-date", dateFull);
+}
+setInterval(tickClock, 1000);
+tickClock();
 
 function sameDay(a, b) {
   return a && b && a.getDate() === b.getDate() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
@@ -2838,6 +2890,14 @@ renderers.calendar = function() {
   page.innerHTML =
     "<div class='page-header'><div class='page-title'>Календар</div></div>" +
     "<div class='tab-scroll'>" +
+      "<div class='cal-clock'>" +
+        "<span class='cal-clock-time' id='cal-clock-time'>--:--</span>" +
+        "<span class='cal-clock-sec' id='cal-clock-sec'></span>" +
+        "<div class='cal-clock-info'>" +
+          "<div class='cal-clock-dow' id='cal-clock-dow'></div>" +
+          "<div class='cal-clock-date' id='cal-clock-date'></div>" +
+        "</div>" +
+      "</div>" +
       "<div class='cal-head'>" +
         "<button class='cal-nav-btn' onclick='calShift(-1)'>‹</button>" +
         "<span class='cal-month'>" + MONTH_NAMES[calMonth] + " " + calYear + "</span>" +
