@@ -968,7 +968,7 @@ function orderItemName(num) {
   if (!its.length) return "—";
   const first = its[0];
   const t = gv(first,"Тип"), b = gv(first,"Бренд");
-  let name = b || t || "Виріб";
+  let name = [t, b].filter(Boolean).join(" · ") || "Виріб";
   if (its.length > 1) name += " +" + (its.length - 1);
   return name;
 }
@@ -1207,13 +1207,14 @@ function addItem() {
   if (!priceLoaded) return;
   itemCounter++;
   const cat = firstCategory();
-  NO.items.push({ id: itemCounter, category: cat, department: firstDept(cat), note: "", services: [] });
+  NO.items.push({ id: itemCounter, category: cat, department: firstDept(cat), itemType: "", brand: "", services: [] });
   renderItems(); updateReceipt();
 }
 function removeItem(id) { NO.items = NO.items.filter(i => i.id !== id); renderItems(); updateReceipt(); }
 function changeCategory(id, val) { const it = NO.items.find(i=>i.id===id); it.category=val; it.department=firstDept(val); renderItems(); updateReceipt(); }
 function changeDept(id, val) { const it = NO.items.find(i=>i.id===id); it.department=val; renderItems(); updateReceipt(); }
-function updateItemNote(id, val) { const it = NO.items.find(i=>i.id===id); it.note=val; updateReceipt(); }
+function updateItemType(id, val) { const it = NO.items.find(i=>i.id===id); it.itemType=val; updateReceipt(); }
+function updateItemBrand(id, val) { const it = NO.items.find(i=>i.id===id); it.brand=val; updateReceipt(); }
 function addSvc(id, name, price) { const it = NO.items.find(i=>i.id===id); it.services.push({name:name, price:parseInt(price)}); renderItems(); updateReceipt(); }
 function removeSvc(itemId, idx) { const it = NO.items.find(i=>i.id===itemId); it.services.splice(idx,1); renderItems(); updateReceipt(); }
 
@@ -1271,14 +1272,18 @@ function renderItems() {
     const catOpts = Object.keys(PRICE).map(k => "<option value='"+k+"'"+(k===item.category?" selected":"")+">"+PRICE[k].label+"</option>").join("");
     const deptOpts = Object.keys(catData.departments).map(d => "<option value=\""+d.replace(/"/g,"&quot;")+"\""+(d===item.department?" selected":"")+">"+d+"</option>").join("");
     const svcRows = item.services.map((s,si) => "<div class='ic-svcrow'><span class='ic-svcname'>"+s.name+"</span><span class='ic-svcprice' onclick='editSvcPrice("+item.id+","+si+",this)'>"+s.price+" ₴</span><button class='ic-svcdel' onclick='removeSvc("+item.id+","+si+")'>×</button></div>").join("");
-    const note = item.note.replace(/"/g,"&quot;");
+    const itemTypeVal = (item.itemType||"").replace(/"/g,"&quot;");
+    const brandVal = (item.brand||"").replace(/"/g,"&quot;");
     const div = document.createElement("div");
     div.className = "itemcard";
     div.innerHTML =
       "<div class='itemcard-head'><span class='itemcard-num'>№"+(idx+1)+"</span><button class='itemcard-rm' onclick='removeItem("+item.id+")'>×</button></div>" +
-      "<div class='ic-row'><div class='ic-field'><label>ВИРІБ</label><select class='ic-select' onchange='changeCategory("+item.id+",this.value)'>"+catOpts+"</select></div>" +
+      "<div class='ic-row'><div class='ic-field'><label>КАТЕГОРІЯ</label><select class='ic-select' onchange='changeCategory("+item.id+",this.value)'>"+catOpts+"</select></div>" +
       "<div class='ic-field'><label>ВІДДІЛ</label><select class='ic-select' onchange='changeDept("+item.id+",this.value)'>"+deptOpts+"</select></div></div>" +
-      "<div class='ic-row'><div class='ic-field'><label>УТОЧНЕННЯ</label><input class='ic-mini' placeholder=\"Необов'язково\" value=\""+note+"\" oninput='updateItemNote("+item.id+",this.value)'></div></div>" +
+      "<div class='ic-row'>" +
+        "<div class='ic-field'><label>ТИП ВИРОБУ</label><input class='ic-mini' placeholder='Туфлі, чоботи, сумка...' value=\""+itemTypeVal+"\" oninput='updateItemType("+item.id+",this.value)'></div>" +
+        "<div class='ic-field'><label>БРЕНД</label><input class='ic-mini' placeholder=\"Необов'язково\" value=\""+brandVal+"\" oninput='updateItemBrand("+item.id+",this.value)'></div>" +
+      "</div>" +
       "<div class='ic-svclist'>"+svcRows+"</div>" +
       "<div class='ic-search-wrap'><input type='text' class='ic-search' id='ic-search-"+item.id+"' placeholder='Пошук або вибір послуги...' autocomplete='off' oninput='filterSvc("+item.id+")' onfocus='openSvcDD("+item.id+")'><div class='ic-dd' id='ic-dd-"+item.id+"'></div></div>" +
       "<div class='ic-manual'><input class='ic-mini' id='ic-man-name-"+item.id+"' placeholder='Своя послуга...'><input class='ic-mini' style='width:88px;flex:none' type='number' id='ic-man-price-"+item.id+"' placeholder='₴'><button class='ic-manual-add' onclick='addManualSvc("+item.id+")'>+</button></div>";
@@ -1302,7 +1307,8 @@ function updateReceipt() {
     if (!item.services.length) return;
     item.services.forEach(s => total += s.price);
     const svcs = item.services.map(s => "<div class='r-svcrow'><span>"+s.name+"</span><span class='rs-price'>"+s.price+" ₴</span></div>").join("");
-    itemsHTML += "<div class='r-item'><div class='r-item-title'><span class='ri-num'>№"+(idx+1)+"</span>"+(item.note?"<span class='ri-name'>"+item.note+"</span>":"")+"</div>"+svcs+"</div>";
+    const label = [item.itemType, item.brand].filter(Boolean).join(" · ");
+    itemsHTML += "<div class='r-item'><div class='r-item-title'><span class='ri-num'>№"+(idx+1)+"</span>"+(label?"<span class='ri-name'>"+label+"</span>":"")+"</div>"+svcs+"</div>";
   });
   let clientHTML = "";
   if (NO.client || NO.phone) {
@@ -1368,9 +1374,10 @@ async function submitOrder() {
     prepay: NO.payment === "Передоплата" && NO.prepay ? parseInt(NO.prepay) : 0,
     items: validItems.map(item => {
       const total = item.services.reduce((s,x)=>s+x.price,0);
+      const catLabel = PRICE[item.category] ? PRICE[item.category].label : item.category;
       return {
-        type: PRICE[item.category] ? PRICE[item.category].label : item.category,
-        brand: item.note || "",
+        type: item.itemType || catLabel,
+        brand: item.brand || "",
         services: item.services.map(s=>s.name).join(", "),
         total: total.toLocaleString("uk-UA") + " ₴"
       };
@@ -1985,7 +1992,7 @@ function renderEditForm() {
       "<div class='edit-item-head'><span class='itemcard-num'>№" + (idx+1) + "</span>" +
         "<button class='itemcard-rm' onclick='editRemoveItem(" + idx + ")'>×</button></div>" +
       "<div class='ic-row'><div class='ic-field'><label>ТИП</label><input class='ic-mini' value=\"" + it.type.replace(/"/g,"&quot;") + "\" oninput='editState.items[" + idx + "].type=this.value'></div>" +
-      "<div class='ic-field'><label>УТОЧНЕННЯ</label><input class='ic-mini' value=\"" + it.brand.replace(/"/g,"&quot;") + "\" oninput='editState.items[" + idx + "].brand=this.value'></div></div>" +
+      "<div class='ic-field'><label>БРЕНД</label><input class='ic-mini' value=\"" + it.brand.replace(/"/g,"&quot;") + "\" oninput='editState.items[" + idx + "].brand=this.value'></div></div>" +
       "<div class='ic-row'><div class='ic-field'><label>ПОСЛУГИ</label><input class='ic-mini' value=\"" + it.servicesRaw.replace(/"/g,"&quot;") + "\" oninput='editState.items[" + idx + "].servicesRaw=this.value'></div>" +
       "<div class='ic-field' style='max-width:110px'><label>СУМА ₴</label><input class='ic-mini' type='number' value='" + it.total + "' oninput='editState.items[" + idx + "].total=parseInt(this.value)||0'></div></div>" +
     "</div>"
@@ -2351,7 +2358,7 @@ function openOrder(num) {
       const style = current ? " style='background:" + s[2] + "'" : "";
       return "<button class='" + cls + "'" + style + " onclick=\"setItemStatus('" + num + "'," + idx + "," + si + ")\">" + s[1] + "</button>";
     }).join("");
-    const iname = gv(it,"Бренд") || gv(it,"Тип") || "Виріб";
+    const iname = [gv(it,"Тип"), gv(it,"Бренд")].filter(Boolean).join(" · ") || "Виріб";
     const itemNum = gv(it,"Номер виробу") || (num + "-" + (idx+1));
     const notified = gv(it,"Сповіщено");
     const notifyCheck = "<label class='d-notify-check' onclick=\"toggleNotified('" + itemNum + "'," + idx + ",event)\">" +
@@ -2360,7 +2367,6 @@ function openOrder(num) {
     return "<div class='d-item'>" +
       "<div class='d-item-head'><div><span class='d-item-num'>№" + (idx+1) + "</span> <span class='d-item-name'>" + iname + "</span></div>" +
       "<span class='d-item-price'>" + (itemTotal ? itemTotal.toLocaleString("uk-UA") + " ₴" : "—") + "</span></div>" +
-      (gv(it,"Тип") ? "<div class='d-item-detail'>" + gv(it,"Тип") + "</div>" : "") +
       "<div class='d-item-svc'>" + gv(it,"Послуги") + "</div>" +
       "<div class='d-status-row'>" + statusBtns + "</div>" +
       notifyCheck +
