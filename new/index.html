@@ -647,6 +647,11 @@ body[data-role="operator"] .admin-only { display: none !important; }
 body[data-role="operator"] .rating-pick { pointer-events: none; border-bottom: none; }
 body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 /* ═══════════════ ФОТО ВИРОБУ ═══════════════ */
+.tailor-area {
+  min-height: 78px; resize: vertical; line-height: 1.55;
+  font-family: 'Commissioner', sans-serif;
+}
+.photo-area { min-height: 92px; font-size: 12px; }
 .tailor-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
 .tailor-photo { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: var(--accent-soft); border: 1px solid var(--line); }
 .tailor-photo img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; display: block; }
@@ -2796,7 +2801,7 @@ function renderTailorForm() {
       "<input class='cr-input' type='date' oninput='TL.deadline=formatDeadlineDate(this.value)'>" +
 
       "<div class='cr-block-label'>Додатково</div>" +
-      "<input class='cr-input' placeholder='Посилання на фото — кілька через кому' value=\"" + esc(TL.photo) + "\" oninput='TL.photo=this.value'>" +
+      "<textarea class='cr-input tailor-area photo-area' placeholder='Посилання на фото — кожне з нового рядка' oninput='TL.photo=this.value'>" + esc(TL.photo) + "</textarea>" +
       "<textarea class='cr-input tailor-area' placeholder='Примітка' oninput='TL.note=this.value'>" + esc(TL.note) + "</textarea>" +
 
       "<div style='display:flex;gap:10px;margin-top:20px'>" +
@@ -3009,7 +3014,7 @@ function renderTailorEditForm() {
       "<div class='cr-pills'>" + payPills + "</div>" +
       "<input class='cr-input' placeholder='Термін (дд.мм.рррр)' value=\"" + esc(TL.deadline) + "\" oninput='TL.deadline=this.value'>" +
       "<div class='cr-block-label'>Додатково</div>" +
-      "<input class='cr-input' placeholder='Посилання на фото — кілька через кому' value=\"" + esc(TL.photo) + "\" oninput='TL.photo=this.value'>" +
+      "<textarea class='cr-input tailor-area photo-area' placeholder='Посилання на фото — кожне з нового рядка' oninput='TL.photo=this.value'>" + esc(TL.photo) + "</textarea>" +
       "<textarea class='cr-input tailor-area' placeholder='Примітка' oninput='TL.note=this.value'>" + esc(TL.note) + "</textarea>" +
       "<div style='display:flex;gap:10px;margin-top:20px'>" +
         "<button onclick=\"openTailor('" + TL.num + "')\" style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:13px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:13px'>Скасувати</button>" +
