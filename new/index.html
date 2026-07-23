@@ -527,7 +527,7 @@ body {
 .mini-toggle { display: flex; gap: 6px; }
 .mt-btn { padding: 6px 12px; border-radius: 14px; border: 1px solid var(--field-border); background: transparent; color: var(--txt-2); font-family: 'Commissioner', sans-serif; font-size: 11px; cursor: pointer; transition: all 0.15s; }
 .mt-btn.active { background: var(--cognac); color: #fff; border-color: var(--cognac); }
-.stat-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.stat-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
 .bar-item { margin-bottom: 15px; }
 .bar-item:last-child { margin-bottom: 0; }
 .bar-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; gap: 10px; }
@@ -565,6 +565,37 @@ body {
 .task-del { background: none; border: none; color: var(--txt-3); cursor: pointer; font-size: 18px; padding: 0 4px; transition: color 0.15s; }
 .task-del:hover { color: var(--st-postponed-fg); }
 .task-done-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--txt-3); margin: 20px 0 12px; }
+
+/* ═══════════════ ЗВЕДЕНИЙ ЧЕК ═══════════════ */
+.summary-search-wrap { margin-bottom: 4px; }
+#summary-matches { margin-top: 4px; }
+.summary-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; max-height: 55vh; overflow-y: auto; }
+.summary-row { display: grid; grid-template-columns: 22px 60px 1.4fr 1.6fr 90px; gap: 10px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 9px; padding: 11px 14px; cursor: pointer; font-size: 12px; }
+.summary-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--cognac); cursor: pointer; }
+.sr-num { color: var(--txt-3); }
+.sr-name { color: var(--txt); }
+.sr-svc { color: var(--txt-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sr-sum { color: var(--cognac); text-align: right; }
+
+#summary-print { background: #FBF8F3; color: #1E1E1E; border-radius: 8px; padding: 32px 28px; font-family: 'Commissioner', sans-serif; max-width: 560px; margin: 0 auto; }
+[data-theme="dark"] #summary-print { background: var(--linen); }
+.sum-print-header { text-align: center; padding-bottom: 16px; border-bottom: 1px solid rgba(58,50,40,0.15); margin-bottom: 16px; }
+.sum-print-logo { font-family: 'Tenor Sans', serif; font-size: 13px; letter-spacing: 0.25em; color: var(--brown); }
+.sum-print-tag { font-size: 10px; color: #3A3228; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 4px; }
+.sum-print-meta { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: #1E1E1E; margin-bottom: 18px; }
+.sum-order-block { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid rgba(58,50,40,0.1); }
+.sum-order-head { font-family: 'Tenor Sans', serif; font-size: 11px; color: var(--cognac); letter-spacing: 0.1em; margin-bottom: 8px; }
+.sum-svc-row { display: flex; justify-content: space-between; font-size: 13px; color: #1E1E1E; padding: 3px 0; }
+.sum-print-total { display: flex; justify-content: space-between; align-items: baseline; padding-top: 14px; border-top: 1px solid rgba(58,50,40,0.2); margin-top: 6px; font-family: 'Tenor Sans', serif; font-size: 19px; }
+.sum-print-footer { text-align: center; margin-top: 18px; padding-top: 12px; border-top: 1px solid rgba(58,50,40,0.1); font-size: 9px; color: rgba(58,50,40,0.65); letter-spacing: 0.2em; text-transform: uppercase; }
+.sum-actions { display: flex; gap: 10px; margin-top: 20px; max-width: 560px; margin-left: auto; margin-right: auto; }
+
+@media print {
+  body * { visibility: hidden; }
+  #summary-print, #summary-print * { visibility: visible; }
+  #summary-print { position: absolute; top: 0; left: 0; width: 100%; box-shadow: none; }
+  .no-print, .odm-close, .nav { display: none !important; }
+}
 
 /* ═══════════════ МОБІЛЬНА ВЕРСІЯ ═══════════════ */
 @media (max-width: 768px) {
@@ -1471,7 +1502,9 @@ renderers.clients = function() {
   }).join("");
 
   page.innerHTML =
-    "<div class='page-header'><div class='page-title'>Клієнти</div></div>" +
+    "<div class='page-header'><div class='page-title'>Клієнти</div>" +
+      "<button class='btn-primary' onclick='openSummaryReceipt()'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'><path d='M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z'/><path d='M9 12h6M9 16h6M9 8h3'/></svg>Зведений чек</button>" +
+    "</div>" +
     "<div class='tab-scroll'>" +
       (clients.length ? "<div class='clients-list'>" + rows + "</div>" : "<div class='orders-empty'>Ще немає клієнтів</div>") +
     "</div>";
@@ -1483,6 +1516,125 @@ function openClientCard(phone) {
   if (!cOrders.length) return;
   const last = cOrders[cOrders.length - 1];
   openOrder(gv(last,"Номер замовлення"));
+}
+
+/* ═══════════════ ЗВЕДЕНИЙ ЧЕК (для партнера чи клієнта) ═══════════════ */
+let summarySelected = new Set();
+
+function openSummaryReceipt() {
+  summarySelected = new Set();
+  const body = document.getElementById("odm-body");
+  body.innerHTML =
+    "<div class='detail-top'><span class='detail-title'>Зведений чек</span></div>" +
+    "<div class='summary-search-wrap'>" +
+      "<input class='cr-input' id='summary-search' placeholder=\"Ім'я клієнта або назва партнера...\" autocomplete='off' oninput='renderSummaryMatches(this.value)'>" +
+    "</div>" +
+    "<div id='summary-matches'></div>";
+  document.getElementById("odm-bg").classList.add("open");
+  setTimeout(() => document.getElementById("summary-search").focus(), 50);
+}
+
+/* Унікальні імена — і клієнти, і приймальники (партнери), пошук в обох */
+function renderSummaryMatches(q) {
+  q = q.trim().toLowerCase();
+  const box = document.getElementById("summary-matches");
+  if (!q) { box.innerHTML = ""; return; }
+
+  const clientNames = new Set(ORDERS.map(o => gv(o,"Ім'я клієнта")).filter(Boolean));
+  const partnerNames = new Set(ORDERS.map(o => gv(o,"Приймальник")).filter(Boolean));
+  const all = [...new Set([...clientNames, ...partnerNames])];
+  const matches = all.filter(n => n.toLowerCase().includes(q)).slice(0, 8);
+
+  box.innerHTML = matches.length ? matches.map(n =>
+    "<div class='cr-suggest-opt' style='cursor:pointer' onclick=\"pickSummaryEntity('" + n.replace(/'/g,"\\'") + "')\">" + n + "</div>"
+  ).join("") : "<div style='color:var(--txt-3);font-size:12px;padding:10px 0'>Нічого не знайдено</div>";
+}
+
+function pickSummaryEntity(name) {
+  const matching = ORDERS.filter(o => gv(o,"Ім'я клієнта") === name || gv(o,"Приймальник") === name);
+  summarySelected = new Set(matching.map(o => gv(o,"Номер замовлення"))); // за замовчуванням всі відмічені
+
+  const rows = matching.map(o => {
+    const num = gv(o,"Номер замовлення");
+    const total = orderTotal(num);
+    return "<label class='summary-row'>" +
+      "<input type='checkbox' checked onchange=\"toggleSummarySel('" + num + "',this.checked)\">" +
+      "<span class='sr-num'>" + num.replace("RW-","#") + "</span>" +
+      "<span class='sr-name'>" + orderItemName(num) + "</span>" +
+      "<span class='sr-svc'>" + orderServices(num) + "</span>" +
+      "<span class='sr-sum'>" + total.toLocaleString("uk-UA") + " ₴</span>" +
+    "</label>";
+  }).join("");
+
+  const body = document.getElementById("odm-body");
+  body.innerHTML =
+    "<div class='detail-top'><span class='detail-title'>Зведений чек — " + name + "</span></div>" +
+    (matching.length ?
+      "<div class='summary-list'>" + rows + "</div>" +
+      "<button class='cr-create-btn' onclick=\"generateSummary('" + name.replace(/'/g,"\\'") + "')\">Сформувати чек (" + matching.length + ")</button>"
+    : "<div class='orders-empty'>Замовлень не знайдено</div>");
+}
+
+function toggleSummarySel(num, checked) {
+  if (checked) summarySelected.add(num); else summarySelected.delete(num);
+}
+
+function generateSummary(name) {
+  const nums = [...summarySelected];
+  if (!nums.length) { alert("Оберіть хоча б одне замовлення"); return; }
+  const orders = nums.map(n => ORDERS.find(o => gv(o,"Номер замовлення") === n)).filter(Boolean);
+
+  let grandTotal = 0;
+  const itemsHTML = orders.map(o => {
+    const num = gv(o,"Номер замовлення");
+    const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+    let orderSum = 0;
+    const svcRows = its.map(it => {
+      const amt = extractAmt(gv(it,"Сума"));
+      orderSum += amt;
+      const name2 = gv(it,"Бренд") || gv(it,"Тип") || "Виріб";
+      return "<div class='sum-svc-row'><span>" + name2 + " — " + gv(it,"Послуги") + "</span><span>" + amt.toLocaleString("uk-UA") + " ₴</span></div>";
+    }).join("");
+    grandTotal += orderSum;
+    return "<div class='sum-order-block'><div class='sum-order-head'>" + num.replace("RW-","#") + " · " + (gv(o,"Дата створення")||"").split(" ")[0] + "</div>" + svcRows + "</div>";
+  }).join("");
+
+  const now = new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit",year:"numeric"});
+  const body = document.getElementById("odm-body");
+  body.innerHTML =
+    "<div id='summary-print'>" +
+      "<div class='sum-print-header'><div class='sum-print-logo'>REWISE · STUDIO</div><div class='sum-print-tag'>Зведений чек</div></div>" +
+      "<div class='sum-print-meta'><span>" + name + "</span><span>" + now + "</span></div>" +
+      "<div class='sum-print-body'>" + itemsHTML + "</div>" +
+      "<div class='sum-print-total'><span>Разом</span><span>" + grandTotal.toLocaleString("uk-UA") + " ₴</span></div>" +
+      "<div class='sum-print-footer'>rewise-studio · ukraine</div>" +
+    "</div>" +
+    "<div class='sum-actions no-print'>" +
+      "<button class='cr-btn' onclick=\"pickSummaryEntity('" + name.replace(/'/g,"\\'") + "')\" style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:13px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:13px'>Назад</button>" +
+      "<button class='cr-btn' id='summary-share-btn' onclick='shareSummaryImage()' style='flex:2;background:none;border:1px solid var(--cognac-border);border-radius:8px;color:var(--cognac);padding:13px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:13px'>Зберегти зображення</button>" +
+      "<button class='cr-create-btn' style='flex:2;margin-top:0' onclick='window.print()'>Друкувати</button>" +
+    "</div>";
+}
+
+function shareSummaryImage() {
+  const el = document.getElementById("summary-print");
+  if (!el) return;
+  const btn = document.getElementById("summary-share-btn");
+  const orig = btn.textContent;
+  btn.textContent = "Готую...";
+  html2canvas(el, { backgroundColor: "#FBF8F3", scale: 2, useCORS: true }).then(canvas => {
+    canvas.toBlob(blob => {
+      const file = new File([blob], "rewise-zvedeny-chek.png", { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: "Rewise — Зведений чек" }).then(()=>btn.textContent=orig).catch(()=>btn.textContent=orig);
+      } else {
+        const link = document.createElement("a");
+        link.download = "rewise-zvedeny-chek-" + Date.now() + ".png";
+        link.href = canvas.toDataURL("image/png"); link.click();
+        btn.textContent = orig;
+      }
+    }, "image/png");
+  }).catch(()=>btn.textContent=orig);
 }
 
 /* ═══════════════ ВКЛАДКА ФІНАНСИ ═══════════════ */
@@ -1586,14 +1738,14 @@ renderers.stats = function() {
       "<div class='stat-cols'>" +
         "<div class='stat-panel'><div class='stat-panel-label'>Топ послуг</div>" + (topSvc.length ? barsHTML(topSvc, "", "svc") : "<div style='color:var(--txt-3);font-size:12px'>Немає даних</div>") + "</div>" +
         "<div class='stat-panel'><div class='stat-panel-label'>По приймальниках</div>" + (mgrData.length ? barsHTML(mgrData, "₴", "mgr") : "<div style='color:var(--txt-3);font-size:12px'>Немає даних</div>") + "</div>" +
-      "</div>" +
-      "<div class='stat-panel'>" +
-        "<div class='stat-panel-head'><div class='stat-panel-label' style='margin:0'>Топ клієнтів</div>" +
-          "<div class='mini-toggle'>" +
-            "<button class='mt-btn" + (topClientsMode==="sum"?" active":"") + "' id='tc-sum-btn' onclick='setTopClientsMode(\"sum\")'>За сумою</button>" +
-            "<button class='mt-btn" + (topClientsMode==="count"?" active":"") + "' id='tc-count-btn' onclick='setTopClientsMode(\"count\")'>За кількістю</button>" +
-          "</div></div>" +
-        "<div id='top-clients-bars'>" + ((topClientsMode==="sum"?topClientsBySum:topClientsByCount).length ? barsHTML(topClientsMode==="sum"?topClientsBySum:topClientsByCount, topClientsMode==="sum"?"₴":"", "clients") : "<div style='color:var(--txt-3);font-size:12px'>Немає даних</div>") + "</div>" +
+        "<div class='stat-panel'>" +
+          "<div class='stat-panel-head'><div class='stat-panel-label' style='margin:0'>Топ клієнтів</div>" +
+            "<div class='mini-toggle'>" +
+              "<button class='mt-btn" + (topClientsMode==="sum"?" active":"") + "' id='tc-sum-btn' onclick='setTopClientsMode(\"sum\")'>За сумою</button>" +
+              "<button class='mt-btn" + (topClientsMode==="count"?" active":"") + "' id='tc-count-btn' onclick='setTopClientsMode(\"count\")'>За кількістю</button>" +
+            "</div></div>" +
+          "<div id='top-clients-bars'>" + ((topClientsMode==="sum"?topClientsBySum:topClientsByCount).length ? barsHTML(topClientsMode==="sum"?topClientsBySum:topClientsByCount, topClientsMode==="sum"?"₴":"", "clients") : "<div style='color:var(--txt-3);font-size:12px'>Немає даних</div>") + "</div>" +
+        "</div>" +
       "</div>" +
     "</div>";
 };
