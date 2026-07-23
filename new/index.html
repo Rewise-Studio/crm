@@ -391,7 +391,9 @@ body {
   box-shadow: 0 8px 28px rgba(0,0,0,0.3);
 }
 #rw-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-@media (max-width: 768px) { #rw-toast { bottom: 84px; } }
+@media (max-width: 768px),
+       (orientation: portrait) and (max-width: 1180px),
+       (orientation: landscape) and (max-height: 520px) { #rw-toast { bottom: 88px; } }
 
 .d-item { padding: 14px 0; border-bottom: 1px solid var(--line); }
 .d-item:last-child { border-bottom: none; padding-bottom: 2px; }
@@ -475,7 +477,7 @@ body {
 .orders-scroll { flex: 1; overflow-y: auto; padding: 14px 28px 28px; }
 .order-row {
   display: grid;
-  grid-template-columns: 54px 1.7fr 1.6fr 1.4fr 100px 52px;
+  grid-template-columns: 54px 1.7fr 1.6fr 1.3fr 100px 86px;
   gap: 14px; align-items: center;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -493,7 +495,17 @@ body {
 .oc-sub { font-size: 11px; color: var(--txt-3); margin-top: 3px; }
 .oc-svc { font-size: 13px; color: var(--txt-2); }
 .oc-date { font-size: 12px; color: var(--txt-3); text-align: right; }
-.oc-date.warn { color: var(--st-postponed-fg); font-weight: 500; }
+.oc-date.warn {
+  color: var(--st-postponed-fg);
+  background: var(--st-postponed-bg);
+  border: 1px solid var(--st-postponed-fg);
+  border-radius: 11px;
+  padding: 4px 9px;
+  font-weight: 500;
+  display: inline-block;
+  text-align: center;
+}
+.order-row.urgent-soon { box-shadow: none; }
 .badge {
   font-size: 10px; padding: 3px 9px; border-radius: 11px;
   font-weight: 500; white-space: nowrap; display: inline-block;
@@ -563,6 +575,7 @@ body {
 
 .task-add-form { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-bottom: 18px; }
 .task-add-form .cr-input { margin-bottom: 10px; }
+.task-field-label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--txt-3); margin-bottom: 5px; }
 .task-add-row { display: flex; gap: 8px; align-items: flex-start; }
 .task-order-search { flex: 1; position: relative; }
 .task-order-search .ic-mini { width: 100%; }
@@ -584,6 +597,40 @@ body {
 .task-del:hover { color: var(--st-postponed-fg); }
 .task-done-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--txt-3); margin: 20px 0 12px; }
 
+/* ═══════════════ ВХІД ═══════════════ */
+.login-bg {
+  position: fixed; inset: 0; z-index: 500;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.login-bg.hidden { display: none; }
+.login-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 14px; padding: 34px 30px; width: 340px; max-width: 100%;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.15);
+}
+.login-logo { font-family: 'Tenor Sans', serif; font-size: 17px; letter-spacing: 0.22em; color: var(--brown); text-align: center; }
+[data-theme="dark"] .login-logo { color: var(--linen); }
+.login-sub { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cognac); text-align: center; margin: 6px 0 24px; }
+.login-err { font-size: 12px; color: var(--st-postponed-fg); min-height: 18px; margin-top: 2px; }
+.role-badge {
+  font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--nav-txt); text-align: center; margin-top: 6px;
+}
+.nav-logout {
+  width: 44px; height: 32px; border-radius: 8px; margin-top: 6px;
+  border: 1px solid var(--nav-border); background: transparent;
+  color: var(--nav-txt); cursor: pointer; font-size: 11px;
+  font-family: 'Commissioner', sans-serif;
+}
+.nav-logout:hover { color: var(--linen); border-color: var(--cognac-border); }
+
+/* Приймальник: приховуємо редагування карток, бонуси та рейтинг */
+body[data-role="operator"] .detail-edit,
+body[data-role="operator"] .admin-only { display: none !important; }
+body[data-role="operator"] .rating-pick { pointer-events: none; border-bottom: none; }
+body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 /* ═══════════════ КАЛЕНДАР ═══════════════ */
 .cal-head { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
 .cal-nav-btn { background: transparent; border: 1px solid var(--field-border); border-radius: 7px; color: var(--txt-2); width: 34px; height: 34px; cursor: pointer; font-size: 16px; transition: all 0.15s; }
@@ -648,7 +695,32 @@ body {
 }
 
 /* ═══════════════ МОБІЛЬНА ВЕРСІЯ ═══════════════ */
-@media (max-width: 768px) {
+/* ═══════════════ БОКОВА ПАНЕЛЬ — компактна на невисоких екранах ═══════════════
+   Стосується десктопа і планшета в горизонтальній орієнтації. */
+.nav { overflow-y: auto; scrollbar-width: none; }
+.nav::-webkit-scrollbar { display: none; }
+
+@media (orientation: landscape) and (max-height: 900px) {
+  .nav { padding: 14px 0 10px; gap: 1px; }
+  .nav-logo { margin-bottom: 10px; font-size: 14px; }
+  .nav-item { padding: 7px 0; gap: 3px; font-size: 8px; }
+  .nav-item svg { width: 17px; height: 17px; }
+  .nav-theme { width: 38px; height: 34px; }
+  .nav-theme svg { width: 16px; height: 16px; }
+  .role-badge { font-size: 8px; }
+}
+@media (orientation: landscape) and (max-height: 760px) {
+  .nav { width: 74px; min-width: 74px; padding: 10px 0 8px; }
+  .nav-logo { margin-bottom: 6px; font-size: 13px; }
+  .nav-item { width: 62px; padding: 5px 0; gap: 2px; }
+  .nav-item svg { width: 16px; height: 16px; }
+}
+
+/* ═══════════════ ПАНЕЛЬ ЗНИЗУ ═══════════════
+   Телефон у будь-якій орієнтації + планшет вертикально. */
+@media (max-width: 768px),
+       (orientation: portrait) and (max-width: 1180px),
+       (orientation: landscape) and (max-height: 520px) {
   body { flex-direction: column; }
   .nav {
     width: 100%;
@@ -659,21 +731,45 @@ body {
     position: fixed;
     bottom: 0;
     top: auto;
-    padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+    padding: 7px 4px calc(7px + env(safe-area-inset-bottom));
     border-right: none;
     border-top: 1px solid var(--nav-border);
     gap: 0;
+    overflow: visible;
   }
   .nav-logo { display: none; }
-  .nav-item { width: auto; flex: 1; padding: 6px 2px; font-size: 8px; }
+  .nav-item { width: auto; flex: 1; padding: 6px 2px; font-size: 8px; gap: 4px; }
   .nav-item svg { width: 18px; height: 18px; }
   .nav-spacer { display: none; }
+  .role-badge { display: none; }
+  .nav-logout { display: none; }
   .nav-theme {
     width: auto; flex: 1; height: auto; padding: 6px 2px;
     border: none; border-radius: 9px;
-    flex-direction: column; gap: 5px; font-size: 8px;
+    flex-direction: column; gap: 4px; font-size: 8px;
   }
-  .main { padding-bottom: 72px; }
+  .main { padding-bottom: 74px; }
+}
+
+/* Дуже вузькі екрани — лишаємо тільки іконки, щоб усе вмістилось */
+@media (max-width: 620px) {
+  .nav-item { font-size: 0; }
+  .nav-item svg { width: 20px; height: 20px; }
+}
+
+/* Планшет: даємо контенту більше простору, щоб колонки не тиснули */
+@media (max-width: 1100px) {
+  .stat-cols { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 950px) {
+  .create-wrap { flex-direction: column; }
+  .create-left { width: 100%; overflow-y: visible; }
+  .create-right { width: 100%; padding-left: 28px; border-top: 1px solid var(--line); }
+  .create-right-sticky { position: static; }
+  #receipt { max-width: 520px; }
+}
+
+@media (max-width: 768px) {
   .page-header { padding: 18px 18px; }
   .filters { padding: 0 18px 12px; }
   .order-row {
@@ -712,6 +808,17 @@ body {
 <body data-theme="light">
 
 <!-- ═══════════════ НАВІГАЦІЯ ═══════════════ -->
+<!-- ═══════════════ ВХІД ═══════════════ -->
+<div class="login-bg" id="login-bg">
+  <div class="login-card">
+    <div class="login-logo">REWISE · STUDIO</div>
+    <div class="login-sub">Система обліку</div>
+    <input class="cr-input" id="login-pw" type="password" placeholder="Пароль" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-err" id="login-err"></div>
+    <button class="cr-create-btn" style="margin-top:6px" onclick="doLogin()">Увійти</button>
+  </div>
+</div>
+
 <nav class="nav">
   <div class="nav-logo">RW</div>
   <button class="nav-item" data-page="create" onclick="showPage('create')">
@@ -742,7 +849,13 @@ body {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="3" y1="11" x2="21" y2="11"/></svg>
     Календар
   </button>
+  <button class="nav-item" data-page="tailor" onclick="showPage('tailor')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+    Пошив
+  </button>
   <div class="nav-spacer"></div>
+  <div class="role-badge" id="role-badge"></div>
+  <button class="nav-logout" onclick="logout()" title="Вийти">Вихід</button>
   <button class="nav-theme" onclick="toggleTheme()" id="theme-btn" aria-label="Змінити тему">
     <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
   </button>
@@ -758,6 +871,7 @@ body {
   <div class="page" id="page-stats"></div>
   <div class="page" id="page-tasks"></div>
   <div class="page" id="page-calendar"></div>
+  <div class="page" id="page-tailor"></div>
 
 </div>
 
@@ -774,6 +888,79 @@ body {
 const SHEET_ID = "1kDJ893PFa_DTNKt-r8wQES_JFXbJSDNU8niRLz70Aao";
 const PRICE_GID = "934403054";
 const API_URL = "https://price-production-97b5.up.railway.app/order";
+
+/* ═══════════════ ДОСТУП: АДМІН / ПРИЙМАЛЬНИК ═══════════════
+   Паролі зберігаються у вигляді SHA-256 хешів.
+   Щоб змінити пароль — згенеруй новий хеш і встав сюди.
+   Увага: це м'який захист від випадкових правок, а не справжня безпека —
+   код сторінки публічний, тож не використовуй тут важливі паролі.
+*/
+/* Поки що вхід вимкнено — увімкнеш, коли все запрацює: постав true */
+const AUTH_ENABLED = false;
+
+const ROLE_HASHES = {
+  admin:    "f4a0cf470541412d693f5f5143ece2fdc4f0990835718deb52886237c065ccb5", // rewise-admin
+  operator: "d5c31568d65b9870fa470aa465d7a891a7b70e93be235116e4dc17f5ac1b9710"  // rewise-master
+};
+const ROLE_LABELS = { admin: "Адміністратор", operator: "Приймальник" };
+let userRole = "";
+
+function isAdmin() { return userRole === "admin"; }
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
+
+async function doLogin() {
+  const pw = document.getElementById("login-pw").value;
+  const err = document.getElementById("login-err");
+  if (!pw) { err.textContent = "Введіть пароль"; return; }
+  let hash;
+  try { hash = await sha256(pw); }
+  catch(e) { err.textContent = "Помилка перевірки"; return; }
+  let role = "";
+  for (const r in ROLE_HASHES) { if (ROLE_HASHES[r] === hash) role = r; }
+  if (!role) { err.textContent = "Невірний пароль"; return; }
+  userRole = role;
+  try { sessionStorage.setItem("rw_role", role); } catch(e) {}
+  err.textContent = "";
+  document.getElementById("login-bg").classList.add("hidden");
+  applyRoleUI();
+  if (renderers[currentPage]) renderers[currentPage]();
+}
+
+function logout() {
+  userRole = "";
+  try { sessionStorage.removeItem("rw_role"); } catch(e) {}
+  document.getElementById("login-pw").value = "";
+  document.getElementById("login-bg").classList.remove("hidden");
+}
+
+function applyRoleUI() {
+  const badge = document.getElementById("role-badge");
+  if (badge) badge.textContent = ROLE_LABELS[userRole] || "";
+  document.body.setAttribute("data-role", userRole);
+}
+
+(function initRole(){
+  if (!AUTH_ENABLED) {
+    userRole = "admin";
+    const lb = document.getElementById("login-bg");
+    if (lb) lb.classList.add("hidden");
+    document.body.setAttribute("data-role", "admin");
+    document.body.classList.add("no-auth");
+    return;
+  }
+  let saved = "";
+  try { saved = sessionStorage.getItem("rw_role") || ""; } catch(e) {}
+  if (saved && ROLE_LABELS[saved]) {
+    userRole = saved;
+    const lb = document.getElementById("login-bg");
+    if (lb) lb.classList.add("hidden");
+    applyRoleUI();
+  }
+})();
 
 /* ═══════════════ ТЕМА ═══════════════ */
 const SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
@@ -812,7 +999,7 @@ function showPage(name) {
 const renderers = {};
 
 /* ═══════════════ ШАР ДАНИХ ═══════════════ */
-let ORDERS = [], ITEMS = [], PARTNERS = [], TASKS = [];
+let ORDERS = [], ITEMS = [], PARTNERS = [], TASKS = [], TAILOR = [];
 let ordersFilter = "all", ordersSearch = "";
 let dataLoaded = false;
 
@@ -863,23 +1050,46 @@ async function parsePartners(res) {
 async function loadData() {
   try {
     const base = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&sheet=";
-    const [r1, r2, r3, r4] = await Promise.all([
+    const [r1, r2, r3, r4, r5] = await Promise.all([
       fetch(base + encodeURIComponent("Замовлення")),
       fetch(base + encodeURIComponent("Вироби")),
       fetch(base + encodeURIComponent("Партнери")),
-      fetch(base + encodeURIComponent("Задачі")).catch(() => null)
+      fetch(base + encodeURIComponent("Задачі")).catch(() => null),
+      fetch(base + encodeURIComponent("Пошив")).catch(() => null)
     ]);
     ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер","Спосіб передоплати","Сума доплати","Спосіб доплати","Сповіщено","Нараховано бонусів","Списано бонусів","Рейтинг вручну"]);
     ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено"]);
     PARTNERS = await parsePartners(r3);
     if (!PARTNERS.length) PARTNERS = ["Сергій"];
     if (r4) { try { TASKS = await parseTasks(r4); } catch(e) { TASKS = []; } }
+    if (r5) { try { TAILOR = await parseTailor(r5); } catch(e) { TAILOR = []; } }
     dataLoaded = true;
   } catch(e) {
     console.error("loadData error:", e);
     dataLoaded = true;
   }
   if (renderers[currentPage]) renderers[currentPage]();
+}
+
+async function parseTailor(res) {
+  try {
+    const text = await res.text();
+    const start = text.indexOf("{"), end = text.lastIndexOf("}");
+    if (start === -1) return [];
+    const json = JSON.parse(text.substring(start, end + 1));
+    if (!json.table || !json.table.rows) return [];
+    const cols = ["Номер","Дата створення","Приймальник","Ім'я клієнта","Телефон","Месенджер",
+                  "Виріб","Матеріал","Мірки","Умови","Вартість","Оплата","Спосіб передоплати",
+                  "Сума доплати","Спосіб доплати","Термін","Статус","Примітка","Фото"];
+    return json.table.rows.map(row => {
+      const obj = {}; const cells = row.c || [];
+      cols.forEach((col, i) => {
+        const cell = cells[i];
+        obj[col] = cell && cell.v != null ? String(cell.v) : "";
+      });
+      return obj;
+    }).filter(t => t["Номер"]);
+  } catch(e) { return []; }
 }
 
 async function parseTasks(res) {
@@ -1470,7 +1680,7 @@ function renderOrdersList() {
 
   box.innerHTML = filtered.map(o => {
     const num = gv(o,"Номер замовлення");
-    const shortNum = num.replace("RW-","#");
+    const shortNum = num;
     const st = getStatus(num);
     const accent = STATUS_ACCENT[st] || "var(--cognac)";
     const warn = deadlineWarn(o);
@@ -1631,7 +1841,7 @@ function pickSummaryEntity(name) {
     const total = orderTotal(num);
     return "<label class='summary-row'>" +
       "<input type='checkbox' checked onchange=\"toggleSummarySel('" + num + "',this.checked)\">" +
-      "<span class='sr-num'>" + num.replace("RW-","#") + "</span>" +
+      "<span class='sr-num'>" + num + "</span>" +
       "<span class='sr-name'>" + orderItemName(num) + "</span>" +
       "<span class='sr-svc'>" + orderServices(num) + "</span>" +
       "<span class='sr-sum'>" + total.toLocaleString("uk-UA") + " ₴</span>" +
@@ -1668,7 +1878,7 @@ function generateSummary(name) {
       return "<div class='sum-svc-row'><span>" + name2 + " — " + gv(it,"Послуги") + "</span><span>" + amt.toLocaleString("uk-UA") + " ₴</span></div>";
     }).join("");
     grandTotal += orderSum;
-    return "<div class='sum-order-block'><div class='sum-order-head'>" + num.replace("RW-","#") + " · " + (gv(o,"Дата створення")||"").split(" ")[0] + "</div>" + svcRows + "</div>";
+    return "<div class='sum-order-block'><div class='sum-order-head'>" + num + " · " + (gv(o,"Дата створення")||"").split(" ")[0] + "</div>" + svcRows + "</div>";
   }).join("");
 
   const now = new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit",year:"numeric"});
@@ -1860,7 +2070,7 @@ renderers.tasks = function() {
     const isDone = t["Статус"] === "так";
     const overdue = isOverdue(t);
     const num = t["Замовлення"];
-    const order = num ? "<span class='task-order' onclick=\"openOrder('" + num + "')\">" + num.replace("RW-","#") + "</span>" : "";
+    const order = num ? "<span class='task-order' onclick=\"openOrder('" + num + "')\">" + num + "</span>" : "";
     const deadline = t["Дедлайн"] ? "<span class='task-deadline" + (overdue?" overdue":"") + "'>" + (overdue?"⚠ ":"") + t["Дедлайн"] + "</span>" : "";
     const created = (t["Створено"]||"").replace(/"/g,"&quot;");
     const txt = (t["Текст"]||"").replace(/"/g,"&quot;");
@@ -1872,21 +2082,26 @@ renderers.tasks = function() {
   }
 
   const orderChip = taskAddOrder ?
-    "<span class='task-order-chip'>" + taskAddOrder.replace("RW-","#") + "<button onclick='clearTaskOrder()'>×</button></span>" : "";
+    "<span class='task-order-chip'>" + taskAddOrder + "<button onclick='clearTaskOrder()'>×</button></span>" : "";
 
   page.innerHTML =
     "<div class='page-header'><div class='page-title'>Задачі</div></div>" +
     "<div class='tab-scroll'>" +
       "<div class='task-add-form'>" +
-        "<input class='cr-input' id='task-input' placeholder='Нова задача...' style='margin-bottom:0' onkeydown='if(event.key===\"Enter\")addTask()'>" +
+        "<div class='task-field-label'>Що потрібно зробити</div>" +
+        "<input class='cr-input' id='task-input' placeholder='Наприклад: передзвонити клієнту, замовити фурнітуру' style='margin-bottom:0' onkeydown='if(event.key===\"Enter\")addTask()'>" +
         "<div class='task-add-row'>" +
           "<div class='task-order-search'>" +
-            "<input class='ic-mini' id='task-order-input' placeholder='Прив\\'язати замовлення...' autocomplete='off' oninput='filterTaskOrders(this.value)' onfocus='filterTaskOrders(this.value)'>" +
+            "<div class='task-field-label'>Замовлення (необов'язково)</div>" +
+            "<input class='ic-mini' id='task-order-input' placeholder='Введи номер або ім\\'я клієнта' autocomplete='off' oninput='filterTaskOrders(this.value)' onfocus='filterTaskOrders(this.value)'>" +
             "<div class='ic-dd' id='task-order-dd'></div>" +
             orderChip +
           "</div>" +
-          "<input class='ic-mini' id='task-deadline-input' type='date' style='max-width:150px'>" +
-          "<button class='task-add-btn' onclick='addTask()'>+</button>" +
+          "<div style='max-width:170px'>" +
+            "<div class='task-field-label'>До якої дати</div>" +
+            "<input class='ic-mini' id='task-deadline-input' type='date'>" +
+          "</div>" +
+          "<div><div class='task-field-label'>&nbsp;</div><button class='task-add-btn' onclick='addTask()'>+</button></div>" +
         "</div>" +
       "</div>" +
       (active.length ? active.map(taskRow).join("") : "<div style='color:var(--txt-3);font-size:13px;padding:20px 0;text-align:center'>Немає активних задач</div>") +
@@ -1905,7 +2120,7 @@ function filterTaskOrders(q) {
   if (!matches.length) { dd.innerHTML = "<div class='ic-opt'><span class='o-empty'>Нічого не знайдено</span></div>"; dd.classList.add("open"); return; }
   dd.innerHTML = matches.map(o => {
     const num = gv(o,"Номер замовлення");
-    return "<div class='ic-opt' onclick=\"pickTaskOrder('" + num + "')\"><span class='o-name'>" + num.replace("RW-","#") + " · " + gv(o,"Ім'я клієнта") + "</span></div>";
+    return "<div class='ic-opt' onclick=\"pickTaskOrder('" + num + "')\"><span class='o-name'>" + num + " · " + gv(o,"Ім'я клієнта") + "</span></div>";
   }).join("");
   dd.classList.add("open");
 }
@@ -1963,6 +2178,7 @@ async function deleteTask(text, created) {
 let editState = null;
 
 function openEditOrder(num) {
+  if (!isAdmin()) { toast("Редагування доступне лише адміністратору"); return; }
   const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
   if (!o) return;
   const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
@@ -2005,7 +2221,7 @@ function renderEditForm() {
   }).join("");
 
   body.innerHTML =
-    "<div class='detail-top'><span class='detail-title'>Редагування " + e.num.replace("RW-","#") + "</span></div>" +
+    "<div class='detail-top'><span class='detail-title'>Редагування " + e.num + "</span></div>" +
     "<div class='edit-form'>" +
       "<div class='cr-block-label first'>Клієнт</div>" +
       "<input class='cr-input' id='edit-client' value=\"" + e.client.replace(/"/g,"&quot;") + "\" oninput='editState.client=this.value'>" +
@@ -2060,6 +2276,316 @@ async function saveEditOrder() {
     });
     toast("Зміни збережено");
   } catch(err) { console.error("edit save failed", err); }
+}
+
+/* ═══════════════ ВКЛАДКА ІНДПОШИВ ═══════════════ */
+const TAILOR_STATUSES = [
+  ["🆕 Новий", "Прийнято", "#378ADD"],
+  ["⚙️ В роботі", "В роботі", "#EF9F27"],
+  ["✅ Готово", "Готово", "#639922"],
+  ["📦 Виданий", "Видано", "#B4B2A9"]
+];
+let tailorFilter = "all";
+
+function tailorStatusIdx(s) {
+  if (s === "📦 Виданий") return 3;
+  if (s === "✅ Готово") return 2;
+  if (s === "⚙️ В роботі") return 1;
+  return 0;
+}
+function tailorBadge(s) {
+  const i = tailorStatusIdx(s);
+  const cls = ["b-new","b-work","b-ready","b-issued"][i];
+  return "<span class='badge " + cls + "'>" + TAILOR_STATUSES[i][1] + "</span>";
+}
+
+renderers.tailor = function() {
+  const page = document.getElementById("page-tailor");
+  let list = TAILOR.slice().reverse();
+  if (tailorFilter !== "all") {
+    list = list.filter(t => tailorStatusIdx(gv(t,"Статус")) === parseInt(tailorFilter));
+  }
+
+  const counts = { all: TAILOR.length, 0:0, 1:0, 2:0, 3:0 };
+  TAILOR.forEach(t => { counts[tailorStatusIdx(gv(t,"Статус"))]++; });
+  const tabs = [["all","Всі"],["0","Нові"],["1","В роботі"],["2","Готові"],["3","Видані"]].map(function(pair){
+    const k = pair[0], label = pair[1];
+    const cnt = (k === "all") ? counts.all : (counts[parseInt(k)] || 0);
+    return "<button class='ftab" + (tailorFilter===k?" active":"") + "' onclick=\"setTailorFilter('" + k + "')\">" + label + "<b>" + cnt + "</b></button>";
+  }).join("");
+
+  const rows = list.map(t => {
+    const num = gv(t,"Номер");
+    const accent = TAILOR_STATUSES[tailorStatusIdx(gv(t,"Статус"))][2];
+    const price = extractAmt(gv(t,"Вартість"));
+    return "<div class='order-row' style='border-left-color:" + accent + ";grid-template-columns:74px 1.5fr 1.6fr 1.2fr 100px 74px' onclick=\"openTailor('" + num + "')\">" +
+      "<span class='order-num'>" + num.replace("RW-P-","П-") + "</span>" +
+      "<div><div class='oc-name'>" + (gv(t,"Ім'я клієнта")||"—") + "</div><div class='oc-sub'>" + gv(t,"Телефон") + "</div></div>" +
+      "<div><div class='oc-name'>" + (gv(t,"Виріб")||"—") + "</div><div class='oc-sub'>" + gv(t,"Матеріал") + "</div></div>" +
+      "<div class='oc-svc oc-svc-cell'>" + (gv(t,"Термін")||"—") + "</div>" +
+      "<span>" + tailorBadge(gv(t,"Статус")) + "</span>" +
+      "<span class='oc-date' style='color:var(--cognac)'>" + (price ? price.toLocaleString("uk-UA") + " ₴" : "—") + "</span>" +
+    "</div>";
+  }).join("");
+
+  page.innerHTML =
+    "<div class='page-header'><div class='page-title'>Індпошив</div>" +
+      "<button class='btn-primary' onclick='openTailorCreate()'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='5' x2='12' y2='19'/><line x1='5' y1='12' x2='19' y2='12'/></svg>Нове замовлення</button>" +
+    "</div>" +
+    "<div class='filters'>" + tabs + "</div>" +
+    "<div class='orders-scroll'>" + (list.length ? rows : "<div class='orders-empty'>Немає замовлень на пошив</div>") + "</div>";
+};
+
+function setTailorFilter(k) { tailorFilter = k; renderers.tailor(); }
+
+/* ─── Створення замовлення на пошив ─── */
+let TL = {};
+function openTailorCreate() {
+  TL = { manager: PARTNERS[0] || "", client:"", phone:"", messenger:"", product:"", material:"",
+         measurements:"", terms:"", price:"", payment:"", prepayMethod:"", deadline:"", note:"", photo:"" };
+  renderTailorForm();
+  document.getElementById("odm-bg").classList.add("open");
+}
+
+function renderTailorForm() {
+  const body = document.getElementById("odm-body");
+  const mgrPills = PARTNERS.map(p =>
+    "<button class='cr-pill" + (TL.manager===p?" active":"") + "' onclick=\"TL.manager='" + p.replace(/'/g,"\\'") + "';renderTailorForm()\">" + p + "</button>"
+  ).join("");
+  const msgPick = ["telegram","whatsapp","viber"].map(m => {
+    const active = TL.messenger === m;
+    return "<button class='cr-msg-btn" + (active?" active":"") + "'" + (active?" style='background:"+MSG_COLORS[m]+"'":"") +
+      " onclick=\"TL.messenger = TL.messenger==='" + m + "' ? '' : '" + m + "'; renderTailorForm()\">" +
+      "<span class='msg-ico'" + (active?" style='color:#fff'":"") + ">" + MSG_ICONS[m] + "</span>" + MSG_LABELS[m] + "</button>";
+  }).join("");
+  const payPills = ["Передоплата","Післяоплата"].map(p =>
+    "<button class='cr-pill cr-pill-wide" + (TL.payment===p?" active":"") + "' onclick=\"TL.payment='" + p + "';renderTailorForm()\">" + p + "</button>"
+  ).join("");
+  const prepayMethods = TL.payment === "Передоплата" ? "<div class='cr-pills'>" +
+    ["Готівка","Картка","ФОП"].map(m =>
+      "<button class='cr-pill" + (TL.prepayMethod===m?" active":"") + "' onclick=\"TL.prepayMethod='" + m + "';renderTailorForm()\">" + m + "</button>"
+    ).join("") + "</div>" : "";
+
+  body.innerHTML =
+    "<div class='detail-top'><span class='detail-title'>Нове замовлення на пошив</span></div>" +
+    "<div class='tailor-form'>" +
+      "<div class='cr-block-label first'>Хто приймає</div>" +
+      "<div class='cr-pills'>" + mgrPills + "</div>" +
+
+      "<div class='cr-block-label'>Клієнт</div>" +
+      "<input class='cr-input' placeholder=\"Ім'я клієнта\" value=\"" + esc(TL.client) + "\" oninput='TL.client=this.value'>" +
+      "<input class='cr-input' placeholder='+380...' value=\"" + esc(TL.phone) + "\" oninput='TL.phone=this.value'>" +
+      "<div class='cr-msg-pick'>" + msgPick + "</div>" +
+
+      "<div class='cr-block-label'>Виріб</div>" +
+      "<input class='cr-input' placeholder='Що шиємо — сумка, ремінь, гаманець...' value=\"" + esc(TL.product) + "\" oninput='TL.product=this.value'>" +
+      "<input class='cr-input' placeholder='Матеріал — шкіра, колір, фурнітура' value=\"" + esc(TL.material) + "\" oninput='TL.material=this.value'>" +
+      "<textarea class='cr-input tailor-area' placeholder='Мірки та розміри' oninput='TL.measurements=this.value'>" + esc(TL.measurements) + "</textarea>" +
+      "<textarea class='cr-input tailor-area' placeholder='Умови замовлення' oninput='TL.terms=this.value'>" + esc(TL.terms) + "</textarea>" +
+
+      "<div class='cr-block-label'>Вартість і термін</div>" +
+      "<input class='cr-input' type='number' placeholder='Вартість, ₴' value=\"" + esc(TL.price) + "\" oninput='TL.price=this.value'>" +
+      "<div class='cr-pills'>" + payPills + "</div>" +
+      prepayMethods +
+      "<input class='cr-input' type='date' oninput='TL.deadline=formatDeadlineDate(this.value)'>" +
+
+      "<div class='cr-block-label'>Додатково</div>" +
+      "<input class='cr-input' placeholder='Посилання на фото (Google Drive / Фото)' value=\"" + esc(TL.photo) + "\" oninput='TL.photo=this.value'>" +
+      "<textarea class='cr-input tailor-area' placeholder='Примітка' oninput='TL.note=this.value'>" + esc(TL.note) + "</textarea>" +
+
+      "<div style='display:flex;gap:10px;margin-top:20px'>" +
+        "<button onclick='backToOrders()' style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:13px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:13px'>Скасувати</button>" +
+        "<button class='cr-create-btn' style='flex:2;margin-top:0' onclick='submitTailor()'>Створити замовлення</button>" +
+      "</div>" +
+    "</div>";
+}
+function esc(v) { return String(v||"").replace(/"/g,"&quot;"); }
+
+async function submitTailor() {
+  if (!TL.client.trim()) { alert("Введіть ім'я клієнта"); return; }
+  if (!TL.phone.trim()) { alert("Введіть телефон"); return; }
+  if (!TL.product.trim()) { alert("Вкажіть, що шиємо"); return; }
+  const now = new Date();
+  const pad = n => String(n).padStart(2,"0");
+  const dateStr = pad(now.getDate())+"."+pad(now.getMonth()+1)+"."+now.getFullYear()+" "+pad(now.getHours())+":"+pad(now.getMinutes());
+  const payload = Object.assign({}, TL, { date: dateStr, price: TL.price ? parseInt(TL.price).toLocaleString("uk-UA") + " ₴" : "" });
+
+  const btn = document.querySelector(".cr-create-btn");
+  btn.textContent = "Збереження..."; btn.disabled = true;
+  try {
+    const res = await fetch(API_URL.replace("/order","/tailor"), {
+      method:"POST", mode:"cors", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+    if (result.status === "ok") {
+      btn.textContent = "✓ " + (result.order_num || "Збережено");
+      setTimeout(() => { backToOrders(); loadData(); showPage("tailor"); }, 1000);
+    } else { alert("Помилка: " + result.message); btn.textContent = "Створити замовлення"; btn.disabled = false; }
+  } catch(e) { alert("Помилка збереження: " + e.message); btn.textContent = "Створити замовлення"; btn.disabled = false; }
+}
+
+/* ─── Картка замовлення на пошив ─── */
+let tailorDetailNum = null;
+function openTailor(num) {
+  const t = TAILOR.find(x => gv(x,"Номер") === num);
+  if (!t) return;
+  tailorDetailNum = num;
+  const body = document.getElementById("odm-body");
+  const phone = gv(t,"Телефон");
+  const phoneClean = phone.replace(/[^\d]/g,"");
+  const activeMsg = gv(t,"Месенджер");
+  const curIdx = tailorStatusIdx(gv(t,"Статус"));
+
+  const commLinks = { telegram:"https://t.me/+"+phoneClean, whatsapp:"https://wa.me/"+phoneClean, viber:"viber://chat?number=%2B"+phoneClean };
+  const commHTML = ["telegram","whatsapp","viber"].map(m => {
+    const active = activeMsg === m;
+    return "<a class='d-comm-btn" + (active?" active":"") + "'" + (active?" style='background:"+MSG_COLORS[m]+"'":"") +
+      " href='" + commLinks[m] + "' target='_blank' rel='noopener'>" + MSG_ICONS[m] + MSG_LABELS[m] + "</a>";
+  }).join("");
+
+  const statusBtns = TAILOR_STATUSES.map((s, si) => {
+    const cls = si === curIdx ? "d-status-btn current" : (si < curIdx ? "d-status-btn done" : "d-status-btn");
+    const style = si === curIdx ? " style='background:" + s[2] + "'" : "";
+    return "<button class='" + cls + "'" + style + " onclick=\"setTailorStatus('" + num + "'," + si + ")\">" + s[1] + "</button>";
+  }).join("");
+
+  function row(label, val) {
+    return val ? "<div class='d-pay-row'><span class='pl'>" + label + "</span><span class='pv'>" + val + "</span></div>" : "";
+  }
+  function block(label, content) {
+    return content ? "<div class='dblock'><div class='dblock-label'>" + label + "</div>" + content + "</div>" : "";
+  }
+
+  const photo = gv(t,"Фото");
+  const photoBlock = photo ?
+    "<div class='dblock'><div class='dblock-label'>Фото виробу</div>" +
+      "<a href='" + photo + "' target='_blank' rel='noopener' class='tailor-photo-link'>Відкрити фото ↗</a></div>" : "";
+
+  body.innerHTML =
+    "<div class='detail-top'>" +
+      "<span class='detail-title'>Пошив " + num.replace("RW-P-","П-") + "</span>" +
+      tailorBadge(gv(t,"Статус")) +
+      "<button class='detail-edit' onclick=\"openTailorEdit('" + num + "')\">Редагувати</button>" +
+    "</div>" +
+    "<div class='detail-grid'>" +
+      "<div class='detail-col'>" +
+        "<div class='dblock'><div class='dblock-label'>Клієнт</div>" +
+          "<div class='d-client-head'><div class='d-avatar'>" + (gv(t,"Ім'я клієнта")||"—").charAt(0).toUpperCase() + "</div>" +
+          "<div><div class='d-client-name'><span>" + (gv(t,"Ім'я клієнта")||"—") + "</span></div>" +
+          "<div class='d-client-sub'>" + phone + "</div></div></div>" +
+          "<div class='d-comm'>" + commHTML + "</div></div>" +
+        block("Мірки", gv(t,"Мірки") ? "<div class='tailor-text'>" + gv(t,"Мірки") + "</div>" : "") +
+        block("Умови", gv(t,"Умови") ? "<div class='tailor-text'>" + gv(t,"Умови") + "</div>" : "") +
+      "</div>" +
+      "<div class='detail-col'>" +
+        "<div class='dblock'><div class='dblock-label'>Виріб</div>" +
+          row("Що шиємо", gv(t,"Виріб")) + row("Матеріал", gv(t,"Матеріал")) +
+          row("Термін", gv(t,"Термін")) + row("Прийняв", gv(t,"Приймальник")) +
+          "<div class='d-pay-total'><span class='pl'>Вартість</span><span class='pv'>" + (gv(t,"Вартість")||"—") + "</span></div></div>" +
+        "<div class='dblock'><div class='dblock-label'>Оплата</div>" +
+          row("Тип", gv(t,"Оплата")) + row("Спосіб передоплати", gv(t,"Спосіб передоплати")) +
+          row("Доплата", gv(t,"Сума доплати")) + row("Спосіб доплати", gv(t,"Спосіб доплати")) +
+          (!gv(t,"Оплата") ? "<div class='d-bonus-hint'>Не вказано</div>" : "") + "</div>" +
+        photoBlock +
+        block("Примітка", gv(t,"Примітка") ? "<div class='tailor-text'>" + gv(t,"Примітка") + "</div>" : "") +
+      "</div>" +
+    "</div>" +
+    "<div class='detail-stack'>" +
+      "<div class='dblock'><div class='dblock-label'>Статус</div><div class='d-status-row'>" + statusBtns + "</div></div>" +
+    "</div>";
+
+  document.getElementById("odm-bg").classList.add("open");
+}
+
+async function setTailorStatus(num, idx) {
+  const t = TAILOR.find(x => gv(x,"Номер") === num);
+  if (!t) return;
+  t["Статус"] = TAILOR_STATUSES[idx][0];
+  openTailor(num);
+  try {
+    await fetch(API_URL.replace("/order","/tailor/update"), {
+      method:"POST", mode:"cors", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ order_num: num, status: TAILOR_STATUSES[idx][0] })
+    });
+  } catch(e) { console.error("tailor status failed", e); }
+}
+
+/* ─── Редагування замовлення на пошив ─── */
+function openTailorEdit(num) {
+  if (!isAdmin()) { toast("Редагування доступне лише адміністратору"); return; }
+  const t = TAILOR.find(x => gv(x,"Номер") === num);
+  if (!t) return;
+  TL = {
+    num: num, client: gv(t,"Ім'я клієнта"), phone: gv(t,"Телефон"), messenger: gv(t,"Месенджер"),
+    product: gv(t,"Виріб"), material: gv(t,"Матеріал"), measurements: gv(t,"Мірки"),
+    terms: gv(t,"Умови"), price: String(extractAmt(gv(t,"Вартість"))||""), payment: gv(t,"Оплата"),
+    prepayMethod: gv(t,"Спосіб передоплати"), deadline: gv(t,"Термін"),
+    note: gv(t,"Примітка"), photo: gv(t,"Фото")
+  };
+  renderTailorEditForm();
+}
+
+function renderTailorEditForm() {
+  const body = document.getElementById("odm-body");
+  const msgPick = ["telegram","whatsapp","viber"].map(m => {
+    const active = TL.messenger === m;
+    return "<button class='cr-msg-btn" + (active?" active":"") + "'" + (active?" style='background:"+MSG_COLORS[m]+"'":"") +
+      " onclick=\"TL.messenger = TL.messenger==='" + m + "' ? '' : '" + m + "'; renderTailorEditForm()\">" +
+      "<span class='msg-ico'" + (active?" style='color:#fff'":"") + ">" + MSG_ICONS[m] + "</span>" + MSG_LABELS[m] + "</button>";
+  }).join("");
+  const payPills = ["Передоплата","Післяоплата"].map(p =>
+    "<button class='cr-pill cr-pill-wide" + (TL.payment===p?" active":"") + "' onclick=\"TL.payment='" + p + "';renderTailorEditForm()\">" + p + "</button>"
+  ).join("");
+
+  body.innerHTML =
+    "<div class='detail-top'><span class='detail-title'>Редагування " + TL.num.replace("RW-P-","П-") + "</span></div>" +
+    "<div class='tailor-form'>" +
+      "<div class='cr-block-label first'>Клієнт</div>" +
+      "<input class='cr-input' value=\"" + esc(TL.client) + "\" oninput='TL.client=this.value'>" +
+      "<input class='cr-input' value=\"" + esc(TL.phone) + "\" oninput='TL.phone=this.value'>" +
+      "<div class='cr-msg-pick'>" + msgPick + "</div>" +
+      "<div class='cr-block-label'>Виріб</div>" +
+      "<input class='cr-input' placeholder='Що шиємо' value=\"" + esc(TL.product) + "\" oninput='TL.product=this.value'>" +
+      "<input class='cr-input' placeholder='Матеріал' value=\"" + esc(TL.material) + "\" oninput='TL.material=this.value'>" +
+      "<textarea class='cr-input tailor-area' placeholder='Мірки' oninput='TL.measurements=this.value'>" + esc(TL.measurements) + "</textarea>" +
+      "<textarea class='cr-input tailor-area' placeholder='Умови' oninput='TL.terms=this.value'>" + esc(TL.terms) + "</textarea>" +
+      "<div class='cr-block-label'>Вартість і термін</div>" +
+      "<input class='cr-input' type='number' placeholder='Вартість, ₴' value=\"" + esc(TL.price) + "\" oninput='TL.price=this.value'>" +
+      "<div class='cr-pills'>" + payPills + "</div>" +
+      "<input class='cr-input' placeholder='Термін (дд.мм.рррр)' value=\"" + esc(TL.deadline) + "\" oninput='TL.deadline=this.value'>" +
+      "<div class='cr-block-label'>Додатково</div>" +
+      "<input class='cr-input' placeholder='Посилання на фото' value=\"" + esc(TL.photo) + "\" oninput='TL.photo=this.value'>" +
+      "<textarea class='cr-input tailor-area' placeholder='Примітка' oninput='TL.note=this.value'>" + esc(TL.note) + "</textarea>" +
+      "<div style='display:flex;gap:10px;margin-top:20px'>" +
+        "<button onclick=\"openTailor('" + TL.num + "')\" style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:13px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:13px'>Скасувати</button>" +
+        "<button class='cr-create-btn' style='flex:2;margin-top:0' onclick='saveTailorEdit()'>Зберегти зміни</button>" +
+      "</div>" +
+    "</div>";
+}
+
+async function saveTailorEdit() {
+  const t = TAILOR.find(x => gv(x,"Номер") === TL.num);
+  if (t) {
+    t["Ім'я клієнта"] = TL.client; t["Телефон"] = TL.phone; t["Месенджер"] = TL.messenger;
+    t["Виріб"] = TL.product; t["Матеріал"] = TL.material; t["Мірки"] = TL.measurements;
+    t["Умови"] = TL.terms; t["Оплата"] = TL.payment; t["Термін"] = TL.deadline;
+    t["Примітка"] = TL.note; t["Фото"] = TL.photo;
+    t["Вартість"] = TL.price ? parseInt(TL.price).toLocaleString("uk-UA") + " ₴" : "";
+  }
+  openTailor(TL.num);
+  try {
+    await fetch(API_URL.replace("/order","/tailor/update"), {
+      method:"POST", mode:"cors", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        order_num: TL.num, client: TL.client, phone: TL.phone, messenger: TL.messenger,
+        product: TL.product, material: TL.material, measurements: TL.measurements,
+        terms: TL.terms, payment: TL.payment, deadline: TL.deadline,
+        note: TL.note, photo: TL.photo,
+        price: TL.price ? parseInt(TL.price).toLocaleString("uk-UA") + " ₴" : ""
+      })
+    });
+    toast("Зміни збережено");
+  } catch(e) { console.error("tailor edit failed", e); }
 }
 
 /* ═══════════════ УСПІШНІСТЬ (вчасно / із запізненням) ═══════════════ */
@@ -2125,6 +2651,11 @@ const DOW_NAMES = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
 function sameDay(a, b) {
   return a && b && a.getDate() === b.getDate() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
 }
+/* Локальна дата у форматі YYYY-MM-DD (без переводу в UTC — інакше день зсувається) */
+function localISO(d) {
+  const p = n => String(n).padStart(2,"0");
+  return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate());
+}
 
 /* Всі події календаря: дедлайни замовлень + дедлайни задач */
 function calendarEvents() {
@@ -2140,7 +2671,7 @@ function calendarEvents() {
       events.push({
         type: "order", date: d, done: done,
         late: !done && d < now,
-        title: num.replace("RW-","#") + " " + (gv(o,"Ім'я клієнта") || ""),
+        title: num + " " + (gv(o,"Ім'я клієнта") || ""),
         sub: orderServices(num),
         ref: num
       });
@@ -2156,7 +2687,7 @@ function calendarEvents() {
         type: "task", date: d, done: done,
         late: !done && d < now,
         title: t["Текст"],
-        sub: t["Замовлення"] ? t["Замовлення"].replace("RW-","#") : "",
+        sub: t["Замовлення"] ? t["Замовлення"] : "",
         ref: t["Замовлення"] || ""
       });
     });
@@ -2184,7 +2715,7 @@ renderers.calendar = function() {
       "<div class='cal-ev " + (e.late ? "late" : e.type) + "'>" + (e.done ? "✓ " : "") + e.title + "</div>"
     ).join("");
     const more = dayEvents.length > 3 ? "<div class='cal-more'>+" + (dayEvents.length - 3) + " ще</div>" : "";
-    cells += "<div class='cal-cell" + (inMonth ? "" : " other") + (isToday ? " today" : "") + "' onclick=\"openCalDay('" + d.toISOString().slice(0,10) + "')\">" +
+    cells += "<div class='cal-cell" + (inMonth ? "" : " other") + (isToday ? " today" : "") + "' onclick=\"openCalDay('" + localISO(d) + "')\">" +
       "<div class='cal-daynum'>" + d.getDate() + "</div>" + evHTML + more + "</div>";
   }
 
@@ -2421,7 +2952,7 @@ function openOrder(num) {
       bonusInner += "<div class='d-bonus-hint'>Списання доступне від " + BONUS_MIN_SPEND + " балів</div>";
     }
   }
-  const bonusBlock = "<div class='dblock'><div class='dblock-label'>Бонуси</div>" + bonusInner + "</div>";
+  const bonusBlock = "<div class='dblock admin-only'><div class='dblock-label'>Бонуси</div>" + bonusInner + "</div>";
 
   // Історія (таймлайн з дат виробів)
   const events = [];
@@ -2446,7 +2977,7 @@ function openOrder(num) {
 
   modalBody.innerHTML =
     "<div class='detail-top'>" +
-      "<span class='detail-title'>Замовлення " + num.replace("RW-","#") + "</span>" +
+      "<span class='detail-title'>Замовлення " + num + "</span>" +
       "<span class='badge " + stMeta[1] + "'>" + stMeta[0] + "</span>" +
       "<button class='detail-edit' onclick=\"openEditOrder('" + num + "')\">Редагувати</button>" +
     "</div>" +
@@ -2605,6 +3136,7 @@ async function confirmSettle() {
 /* ─── БОНУСИ ─── */
 /* ─── РУЧНИЙ РЕЙТИНГ КЛІЄНТА ─── */
 function openRatingPick(phone) {
+  if (!isAdmin()) return;
   const cur = manualRating(phone);
   const body = document.getElementById("odm-body");
   const wrap = document.createElement("div");
@@ -2640,6 +3172,7 @@ async function saveRating(phone, rating) {
 
 /* ─── БОНУСИ: нарахування з можливістю змінити суму ─── */
 function openAccrueBonus(num, suggested) {
+  if (!isAdmin()) { toast("Бонуси доступні лише адміністратору"); return; }
   const body = document.getElementById("odm-body");
   const wrap = document.createElement("div");
   wrap.className = "settle-overlay";
@@ -2675,6 +3208,7 @@ async function accrueBonus(num, amount) {
 }
 
 function openSpendBonus(num, balance, total) {
+  if (!isAdmin()) { toast("Бонуси доступні лише адміністратору"); return; }
   // Ліміт списання 30% від суми чека
   const maxByOrder = Math.floor(total * 0.3);
   const maxSpend = Math.min(balance, maxByOrder);
