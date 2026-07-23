@@ -646,6 +646,21 @@ body[data-role="operator"] .detail-edit,
 body[data-role="operator"] .admin-only { display: none !important; }
 body[data-role="operator"] .rating-pick { pointer-events: none; border-bottom: none; }
 body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
+/* ═══════════════ ФОТО ВИРОБУ ═══════════════ */
+.tailor-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.tailor-photo { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: var(--accent-soft); border: 1px solid var(--line); }
+.tailor-photo img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; display: block; }
+.tailor-photo-link { display: flex; align-items: center; justify-content: center; height: 100%; padding: 8px; font-size: 10px; color: var(--cognac); text-align: center; text-decoration: none; }
+.tailor-text { font-size: 13px; color: var(--txt); line-height: 1.6; white-space: pre-wrap; }
+
+#photo-viewer {
+  display: none; position: fixed; inset: 0; z-index: 600;
+  background: rgba(0,0,0,0.85); align-items: center; justify-content: center;
+  padding: 24px; cursor: zoom-out;
+}
+#photo-viewer.open { display: flex; }
+#photo-viewer img { max-width: 100%; max-height: 100%; border-radius: 8px; }
+
 /* ═══════════════ НАЛАШТУВАННЯ ═══════════════ */
 .price-row { display: grid; grid-template-columns: 1fr 90px 100px 40px; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line-soft); }
 .price-row:last-of-type { border-bottom: none; }
@@ -2781,7 +2796,7 @@ function renderTailorForm() {
       "<input class='cr-input' type='date' oninput='TL.deadline=formatDeadlineDate(this.value)'>" +
 
       "<div class='cr-block-label'>Додатково</div>" +
-      "<input class='cr-input' placeholder='Посилання на фото (Google Drive / Фото)' value=\"" + esc(TL.photo) + "\" oninput='TL.photo=this.value'>" +
+      "<input class='cr-input' placeholder='Посилання на фото — кілька через кому' value=\"" + esc(TL.photo) + "\" oninput='TL.photo=this.value'>" +
       "<textarea class='cr-input tailor-area' placeholder='Примітка' oninput='TL.note=this.value'>" + esc(TL.note) + "</textarea>" +
 
       "<div style='display:flex;gap:10px;margin-top:20px'>" +
@@ -2856,9 +2871,22 @@ function openTailor(num) {
   }
 
   const photo = gv(t,"Фото");
-  const photoBlock = photo ?
+  const photoUrls = photo.split(/[\s,;]+/).map(s => s.trim()).filter(Boolean);
+  const photoBlock = photoUrls.length ?
     "<div class='dblock'><div class='dblock-label'>Фото виробу</div>" +
-      "<a href='" + photo + "' target='_blank' rel='noopener' class='tailor-photo-link'>Відкрити фото ↗</a></div>" : "";
+      "<div class='tailor-photos'>" +
+      photoUrls.map((u, i) => {
+        const direct = photoDirectUrl(u);
+        const esc = u.replace(/'/g,"%27");
+        return "<div class='tailor-photo'>" +
+          "<img src='" + direct + "' alt='Фото " + (i+1) + "' loading='lazy' " +
+            "onclick=\"openPhoto('" + direct + "')\" " +
+            "onerror=\"this.parentElement.innerHTML='<a class=\\'tailor-photo-link\\' href=\\'" + esc + "\\' target=\\'_blank\\' rel=\\'noopener\\'>Не вдалося показати — відкрити ↗</a>'\">" +
+        "</div>";
+      }).join("") +
+      "</div>" +
+      "<div class='d-bonus-hint'>Щоб фото відкривалось на інших пристроях, у Google Drive має бути доступ «Усі, хто має посилання».</div>" +
+    "</div>" : "";
 
   body.innerHTML =
     "<div class='detail-top'>" +
@@ -2909,6 +2937,34 @@ async function setTailorStatus(num, idx) {
   } catch(e) { console.error("tailor status failed", e); }
 }
 
+/* ─── ФОТО: перетворення посилання Google Drive на пряме зображення ─── */
+function photoDirectUrl(url) {
+  if (!url) return "";
+  const u = url.trim();
+  // вже пряме зображення
+  if (/\.(jpg|jpeg|png|webp|gif|heic)(\?|$)/i.test(u)) return u;
+  // Google Drive у різних форматах посилань
+  let id = "";
+  let m = u.match(/\/file\/d\/([a-zA-Z0-9_-]{10,})/);
+  if (m) id = m[1];
+  if (!id) { m = u.match(/[?&]id=([a-zA-Z0-9_-]{10,})/); if (m) id = m[1]; }
+  if (!id) { m = u.match(/\/d\/([a-zA-Z0-9_-]{10,})/); if (m) id = m[1]; }
+  if (id) return "https://drive.google.com/thumbnail?id=" + id + "&sz=w1200";
+  return u;
+}
+
+function openPhoto(src) {
+  let ov = document.getElementById("photo-viewer");
+  if (!ov) {
+    ov = document.createElement("div");
+    ov.id = "photo-viewer";
+    ov.onclick = function(){ ov.classList.remove("open"); };
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = "<img src='" + src + "' alt='Фото'>";
+  ov.classList.add("open");
+}
+
 /* ─── Редагування замовлення на виготовлення ─── */
 function openTailorEdit(num) {
   if (!isAdmin()) { toast("Редагування доступне лише адміністратору"); return; }
@@ -2953,7 +3009,7 @@ function renderTailorEditForm() {
       "<div class='cr-pills'>" + payPills + "</div>" +
       "<input class='cr-input' placeholder='Термін (дд.мм.рррр)' value=\"" + esc(TL.deadline) + "\" oninput='TL.deadline=this.value'>" +
       "<div class='cr-block-label'>Додатково</div>" +
-      "<input class='cr-input' placeholder='Посилання на фото' value=\"" + esc(TL.photo) + "\" oninput='TL.photo=this.value'>" +
+      "<input class='cr-input' placeholder='Посилання на фото — кілька через кому' value=\"" + esc(TL.photo) + "\" oninput='TL.photo=this.value'>" +
       "<textarea class='cr-input tailor-area' placeholder='Примітка' oninput='TL.note=this.value'>" + esc(TL.note) + "</textarea>" +
       "<div style='display:flex;gap:10px;margin-top:20px'>" +
         "<button onclick=\"openTailor('" + TL.num + "')\" style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:13px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:13px'>Скасувати</button>" +
