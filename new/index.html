@@ -139,23 +139,19 @@ body {
 .nav-spacer { flex: 1; }
 .nav-div { width: 40px; height: 1px; background: var(--nav-border); margin: 7px 0; flex-shrink: 0; }
 .nav-clock { text-align: center; margin-bottom: 10px; flex-shrink: 0; }
-.nav-clock-time { font-family: 'Tenor Sans', serif; font-size: 15px; color: var(--linen); letter-spacing: 0.06em; }
-.nav-clock-date { font-size: 9px; color: var(--nav-txt); margin-top: 2px; letter-spacing: 0.04em; }
+.nav-analog { width: 58px; height: 58px; display: block; margin: 0 auto; }
+.nav-clock-date { font-size: 9px; color: var(--nav-txt); margin-top: 5px; letter-spacing: 0.04em; }
 
-/* Великий годинник у шапці календаря */
-.cal-clock {
-  display: flex; align-items: baseline; gap: 14px;
-  padding: 18px 22px; margin-bottom: 16px;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
-}
-.cal-clock-time {
-  font-family: 'Tenor Sans', serif; font-size: 38px; line-height: 1;
-  color: var(--txt); letter-spacing: 0.03em;
-}
-.cal-clock-sec { font-family: 'Tenor Sans', serif; font-size: 18px; color: var(--cognac); }
-.cal-clock-info { margin-left: auto; text-align: right; }
-.cal-clock-dow { font-size: 13px; color: var(--txt); }
-.cal-clock-date { font-size: 12px; color: var(--txt-3); margin-top: 3px; }
+/* Міні-календар — тільки на широкій панелі */
+.nav-mini-cal { display: none; width: 148px; padding: 0 4px 10px; flex-shrink: 0; }
+.nmc-title { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cognac); text-align: center; margin-bottom: 7px; }
+.nmc-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.nmc-dow { font-size: 7px; color: rgba(240,235,227,0.35); text-align: center; padding-bottom: 3px; }
+.nmc-day { font-size: 8.5px; text-align: center; padding: 3px 0; border-radius: 4px; color: rgba(240,235,227,0.55); }
+.nmc-day.today { background: var(--cognac); color: #fff; font-weight: 500; }
+.nmc-day.has-ev { box-shadow: inset 0 -2px 0 rgba(160,132,92,0.6); }
+
+
 .nav-theme {
   width: 44px; height: 44px;
   border-radius: 10px;
@@ -740,6 +736,20 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
   .nav-item svg { width: 16px; height: 16px; }
 }
 
+/* Широка панель — на великих екранах */
+@media (min-width: 1400px) {
+  .nav { width: 172px; min-width: 172px; padding: 20px 0 14px; }
+  .nav-item {
+    width: 148px; flex-direction: row; justify-content: flex-start;
+    gap: 11px; padding: 9px 13px; font-size: 11px; text-align: left;
+  }
+  .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
+  .nav-div { width: 120px; }
+  .nav-analog { width: 82px; height: 82px; }
+  .nav-mini-cal { display: block; }
+  .role-badge { font-size: 9px; }
+}
+
 /* ═══════════════ ПАНЕЛЬ ЗНИЗУ ═══════════════
    Телефон у будь-якій орієнтації + планшет вертикально. */
 @media (max-width: 768px),
@@ -883,9 +893,17 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
   </button>
   <div class="nav-spacer"></div>
   <div class="nav-clock">
-    <div class="nav-clock-time" id="nav-clock-time">--:--</div>
+    <svg class="nav-analog" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="47" fill="none" stroke="rgba(160,132,92,0.3)" stroke-width="1.5"/>
+      <g id="clock-ticks"></g>
+      <line id="hand-hour" x1="50" y1="50" x2="50" y2="26" stroke="#F0EBE3" stroke-width="3.2" stroke-linecap="round"/>
+      <line id="hand-min" x1="50" y1="50" x2="50" y2="17" stroke="#F0EBE3" stroke-width="2.4" stroke-linecap="round"/>
+      <line id="hand-sec" x1="50" y1="56" x2="50" y2="14" stroke="#A0845C" stroke-width="1.2" stroke-linecap="round"/>
+      <circle cx="50" cy="50" r="2.6" fill="#A0845C"/>
+    </svg>
     <div class="nav-clock-date" id="nav-clock-date"></div>
   </div>
+  <div class="nav-mini-cal" id="nav-mini-cal"></div>
   <div class="role-badge" id="role-badge"></div>
   <button class="nav-logout" onclick="logout()" title="Вийти">Вихід</button>
   <button class="nav-theme" onclick="toggleTheme()" id="theme-btn" aria-label="Змінити тему">
@@ -2779,20 +2797,75 @@ const DOW_FULL = ["Неділя","Понеділок","Вівторок","Сер
 const DOW_NAMES = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
 
 /* ─── ЖИВИЙ ГОДИННИК ─── */
+(function drawClockTicks(){
+  const g = document.getElementById("clock-ticks");
+  if (!g) return;
+  let html = "";
+  for (let i = 0; i < 12; i++) {
+    const major = i % 3 === 0;
+    const a = i * 30 * Math.PI / 180;
+    const r1 = 43, r2 = major ? 36 : 39;
+    const x1 = 50 + r1 * Math.sin(a), y1 = 50 - r1 * Math.cos(a);
+    const x2 = 50 + r2 * Math.sin(a), y2 = 50 - r2 * Math.cos(a);
+    html += "<line x1='" + x1.toFixed(1) + "' y1='" + y1.toFixed(1) + "' x2='" + x2.toFixed(1) + "' y2='" + y2.toFixed(1) +
+      "' stroke='" + (major ? "#A0845C" : "rgba(240,235,227,0.35)") + "' stroke-width='" + (major ? 2 : 1.4) + "' stroke-linecap='round'/>";
+  }
+  g.innerHTML = html;
+})();
+
+let miniCalKey = "";
+function renderMiniCal() {
+  const box = document.getElementById("nav-mini-cal");
+  if (!box) return;
+  const n = new Date();
+  const key = n.getFullYear() + "-" + n.getMonth() + "-" + n.getDate() + "-" + (typeof TAILOR !== "undefined" ? (ORDERS.length + TASKS.length + TAILOR.length) : 0);
+  if (key === miniCalKey) return;
+  miniCalKey = key;
+
+  const year = n.getFullYear(), month = n.getMonth(), today = n.getDate();
+  const first = new Date(year, month, 1);
+  const offset = (first.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  // дні, на які є події
+  let evDays = new Set();
+  try {
+    calendarEvents().forEach(e => {
+      if (e.date.getMonth() === month && e.date.getFullYear() === year) evDays.add(e.date.getDate());
+    });
+  } catch(err) {}
+
+  let cells = "";
+  ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"].forEach(d => { cells += "<div class='nmc-dow'>" + d + "</div>"; });
+  for (let i = 0; i < offset; i++) cells += "<div></div>";
+  for (let d = 1; d <= daysInMonth; d++) {
+    let cls = "nmc-day";
+    if (d === today) cls += " today";
+    else if (evDays.has(d)) cls += " has-ev";
+    cells += "<div class='" + cls + "'>" + d + "</div>";
+  }
+  box.innerHTML = "<div class='nmc-title'>" + MONTH_NAMES[month] + "</div><div class='nmc-grid'>" + cells + "</div>";
+}
+
 function tickClock() {
   const n = new Date();
   const p = v => String(v).padStart(2,"0");
-  const hm = p(n.getHours()) + ":" + p(n.getMinutes());
   const dateShort = p(n.getDate()) + "." + p(n.getMonth()+1);
-  const dateFull = n.getDate() + " " + MONTH_GEN[n.getMonth()] + " " + n.getFullYear();
 
-  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  set("nav-clock-time", hm);
-  set("nav-clock-date", dateShort);
-  set("cal-clock-time", hm);
-  set("cal-clock-sec", p(n.getSeconds()));
-  set("cal-clock-dow", DOW_FULL[n.getDay()]);
-  set("cal-clock-date", dateFull);
+  // стрілки
+  const sec = n.getSeconds(), min = n.getMinutes(), hour = n.getHours() % 12;
+  const rot = (id, deg) => {
+    const el = document.getElementById(id);
+    if (el) el.setAttribute("transform", "rotate(" + deg.toFixed(2) + " 50 50)");
+  };
+  rot("hand-hour", (hour + min/60) * 30);
+  rot("hand-min", (min + sec/60) * 6);
+  rot("hand-sec", sec * 6);
+
+  const el = document.getElementById("nav-clock-date");
+  if (el) el.textContent = dateShort;
+
+  renderMiniCal();
 }
 setInterval(tickClock, 1000);
 tickClock();
@@ -2890,14 +2963,6 @@ renderers.calendar = function() {
   page.innerHTML =
     "<div class='page-header'><div class='page-title'>Календар</div></div>" +
     "<div class='tab-scroll'>" +
-      "<div class='cal-clock'>" +
-        "<span class='cal-clock-time' id='cal-clock-time'>--:--</span>" +
-        "<span class='cal-clock-sec' id='cal-clock-sec'></span>" +
-        "<div class='cal-clock-info'>" +
-          "<div class='cal-clock-dow' id='cal-clock-dow'></div>" +
-          "<div class='cal-clock-date' id='cal-clock-date'></div>" +
-        "</div>" +
-      "</div>" +
       "<div class='cal-head'>" +
         "<button class='cal-nav-btn' onclick='calShift(-1)'>‹</button>" +
         "<span class='cal-month'>" + MONTH_NAMES[calMonth] + " " + calYear + "</span>" +
