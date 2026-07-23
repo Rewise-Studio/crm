@@ -539,7 +539,17 @@ body {
 .bars-toggle:hover { background: var(--accent-soft); }
 
 .clients-list { display: flex; flex-direction: column; gap: 8px; }
-.client-row { display: grid; grid-template-columns: 28px 1.4fr 1.3fr 90px 70px; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 13px 16px; cursor: pointer; transition: background 0.12s; }
+.client-row { display: grid; grid-template-columns: 28px 1.4fr 1.3fr 90px 74px 84px; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 13px 16px; cursor: pointer; transition: background 0.12s; }
+.client-bonus { font-size: 12px; color: var(--txt-3); text-align: right; }
+.client-bonus.ready { color: #2FA98C; font-weight: 500; }
+.rating-pick { cursor: pointer; border-bottom: 1px dashed var(--cognac-border); }
+.rating-pick:hover { color: var(--txt); }
+.rating-opts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.rating-opt { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 9px; border: 1px solid var(--field-border); background: transparent; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+.rating-opt:hover { border-color: var(--cognac); }
+.rating-opt.on { border-color: var(--cognac); background: var(--accent-soft); }
+.rating-auto { width: 100%; padding: 10px; border-radius: 8px; border: 1px dashed var(--cognac-border); background: transparent; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 12px; cursor: pointer; }
+.rating-auto.on { background: var(--accent-soft); }
 .client-row:hover { background: var(--hover); }
 .client-dot { font-size: 12px; }
 .client-name { font-size: 13px; color: var(--txt); }
@@ -573,6 +583,38 @@ body {
 .task-del { background: none; border: none; color: var(--txt-3); cursor: pointer; font-size: 18px; padding: 0 4px; transition: color 0.15s; }
 .task-del:hover { color: var(--st-postponed-fg); }
 .task-done-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--txt-3); margin: 20px 0 12px; }
+
+/* ═══════════════ КАЛЕНДАР ═══════════════ */
+.cal-head { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+.cal-nav-btn { background: transparent; border: 1px solid var(--field-border); border-radius: 7px; color: var(--txt-2); width: 34px; height: 34px; cursor: pointer; font-size: 16px; transition: all 0.15s; }
+.cal-nav-btn:hover { border-color: var(--cognac); color: var(--txt); }
+.cal-month { font-family: 'Tenor Sans', serif; font-size: 18px; color: var(--txt); min-width: 190px; }
+.cal-today-btn { background: transparent; border: 1px solid var(--cognac-border); border-radius: 7px; color: var(--cognac); padding: 7px 13px; font-family: 'Commissioner', sans-serif; font-size: 12px; cursor: pointer; }
+.cal-today-btn:hover { background: var(--accent-soft); }
+.cal-filters { margin-left: auto; display: flex; gap: 6px; }
+
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.cal-dow { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--txt-3); text-align: center; padding-bottom: 4px; }
+.cal-cell { min-height: 92px; background: var(--surface); border: 1px solid var(--line); border-radius: 9px; padding: 7px 8px; cursor: pointer; transition: border-color 0.15s, background 0.15s; overflow: hidden; }
+.cal-cell:hover { border-color: var(--cognac-border); }
+.cal-cell.other { opacity: 0.4; }
+.cal-cell.today { border-color: var(--cognac); background: var(--accent-soft); }
+.cal-daynum { font-size: 12px; color: var(--txt-2); margin-bottom: 5px; }
+.cal-cell.today .cal-daynum { color: var(--cognac); font-weight: 500; }
+.cal-ev { font-size: 10px; padding: 2px 6px; border-radius: 5px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-ev.order { background: rgba(160,132,92,0.16); color: var(--cognac); }
+.cal-ev.task { background: rgba(47,169,140,0.16); color: #2FA98C; }
+.cal-ev.late { background: var(--st-postponed-bg); color: var(--st-postponed-fg); }
+.cal-more { font-size: 9px; color: var(--txt-3); }
+
+.cal-day-list { display: flex; flex-direction: column; gap: 8px; }
+.cal-day-item { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 9px; padding: 12px 14px; cursor: pointer; }
+.cal-day-item:hover { background: var(--hover); }
+.cal-tag { font-size: 10px; padding: 3px 8px; border-radius: 10px; white-space: nowrap; }
+.cal-tag.order { background: rgba(160,132,92,0.16); color: var(--cognac); }
+.cal-tag.task { background: rgba(47,169,140,0.16); color: #2FA98C; }
+.cal-day-txt { flex: 1; font-size: 13px; color: var(--txt); }
+.cal-day-sub { font-size: 11px; color: var(--txt-3); }
 
 /* ═══════════════ ЗВЕДЕНИЙ ЧЕК ═══════════════ */
 .summary-search-wrap { margin-bottom: 4px; }
@@ -651,7 +693,14 @@ body {
   .tab-scroll { padding: 8px 16px 30px; }
   .stat-cards { grid-template-columns: 1fr 1fr; }
   .stat-cols { grid-template-columns: 1fr; }
-  .client-row { grid-template-columns: 24px 1.3fr 1fr 60px; }
+  .client-row { grid-template-columns: 24px 1.3fr 1fr 62px; }
+  .client-row .client-phone { display: none; }
+  .cal-grid { gap: 3px; }
+  .cal-cell { min-height: 62px; padding: 5px 4px; border-radius: 7px; }
+  .cal-daynum { font-size: 11px; margin-bottom: 3px; }
+  .cal-ev { font-size: 8px; padding: 1px 4px; }
+  .cal-month { font-size: 16px; min-width: 140px; }
+  .cal-filters { margin-left: 0; width: 100%; }
   .client-row .client-sum { display: none; }
   .pay-split { flex-direction: column; }
   .d-comm { gap: 6px; }
@@ -689,6 +738,10 @@ body {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 20 6"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>
     Задачі
   </button>
+  <button class="nav-item" data-page="calendar" onclick="showPage('calendar')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="3" y1="11" x2="21" y2="11"/></svg>
+    Календар
+  </button>
   <div class="nav-spacer"></div>
   <button class="nav-theme" onclick="toggleTheme()" id="theme-btn" aria-label="Змінити тему">
     <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -704,6 +757,7 @@ body {
   <div class="page" id="page-finance"></div>
   <div class="page" id="page-stats"></div>
   <div class="page" id="page-tasks"></div>
+  <div class="page" id="page-calendar"></div>
 
 </div>
 
@@ -815,7 +869,7 @@ async function loadData() {
       fetch(base + encodeURIComponent("Партнери")),
       fetch(base + encodeURIComponent("Задачі")).catch(() => null)
     ]);
-    ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер","Спосіб передоплати","Сума доплати","Спосіб доплати","Сповіщено","Нараховано бонусів","Списано бонусів"]);
+    ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер","Спосіб передоплати","Сума доплати","Спосіб доплати","Сповіщено","Нараховано бонусів","Списано бонусів","Рейтинг вручну"]);
     ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено"]);
     PARTNERS = await parsePartners(r3);
     if (!PARTNERS.length) PARTNERS = ["Сергій"];
@@ -1500,11 +1554,14 @@ renderers.clients = function() {
 
   const rows = clients.map(c => {
     const r = clientRating(c.phone);
+    const bonus = clientBonusBalance(c.phone);
+    const bonusCls = bonus >= BONUS_MIN_SPEND ? " ready" : "";
     return "<div class='client-row' onclick=\"openClientCard('" + c.phone.replace(/'/g,"") + "')\">" +
       "<span class='client-dot'>" + r.dot + "</span>" +
       "<div><div class='client-name'>" + (c.name || "—") + "</div></div>" +
       "<div class='client-phone'>" + c.phone + "</div>" +
       "<span class='client-count'>" + c.count + " замовл.</span>" +
+      "<span class='client-bonus" + bonusCls + "'>" + (bonus > 0 ? bonus + " б." : "—") + "</span>" +
       "<span class='client-sum'>" + c.sum.toLocaleString("uk-UA") + " ₴</span>" +
     "</div>";
   }).join("");
@@ -1743,6 +1800,7 @@ renderers.stats = function() {
         statCard("Повторних", repeat) +
         statCard("Виробів", ITEMS.filter(i=>orderNums.has(gv(i,"Номер замовлення"))).length) +
       "</div>" +
+      punctualityPanel(orders) +
       "<div class='stat-cols'>" +
         "<div class='stat-panel'><div class='stat-panel-label'>Топ послуг</div>" + (topSvc.length ? barsHTML(topSvc, "", "svc") : "<div style='color:var(--txt-3);font-size:12px'>Немає даних</div>") + "</div>" +
         "<div class='stat-panel'>" +
@@ -1997,8 +2055,188 @@ async function saveEditOrder() {
   } catch(err) { console.error("edit save failed", err); }
 }
 
+/* ═══════════════ УСПІШНІСТЬ (вчасно / із запізненням) ═══════════════ */
+function punctualityPanel(orders) {
+  // Замовлення: порівнюємо дату видачі виробу з терміном замовлення
+  let onTime = 0, late = 0, noData = 0;
+  orders.forEach(o => {
+    const term = parseDeadline(gv(o,"Термін"));
+    const its = ITEMS.filter(i => gv(i,"Номер замовлення") === gv(o,"Номер замовлення"));
+    const issuedDates = its.map(it => parseDeadline(gv(it,"Дата видачі"))).filter(Boolean);
+    if (!term || !issuedDates.length || issuedDates.length !== its.length) { noData++; return; }
+    const lastIssued = new Date(Math.max.apply(null, issuedDates));
+    if (lastIssued <= term) onTime++; else late++;
+  });
+
+  // Задачі: дата виконання проти дедлайну
+  let tOnTime = 0, tLate = 0;
+  TASKS.forEach(t => {
+    const dl = parseDeadline(t["Дедлайн"]);
+    if (!dl) return;
+    if (t["Статус"] === "так") {
+      const doneD = parseDeadline(t["Виконано"]);
+      if (doneD) { if (doneD <= dl) tOnTime++; else tLate++; }
+      else tOnTime++;
+    } else {
+      const now = new Date(); now.setHours(0,0,0,0);
+      if (dl < now) tLate++;
+    }
+  });
+
+  const totalMeasured = onTime + late;
+  const pct = totalMeasured ? Math.round(onTime / totalMeasured * 100) : null;
+  const tTotal = tOnTime + tLate;
+  const tPct = tTotal ? Math.round(tOnTime / tTotal * 100) : null;
+
+  function metric(label, value, sub, accent) {
+    return "<div class='pay-split-item'><div class='ps-label'>" + label + "</div>" +
+      "<div class='ps-value'" + (accent ? " style='color:" + accent + "'" : "") + ">" + value + "</div>" +
+      (sub ? "<div style='font-size:11px;color:var(--txt-3);margin-top:4px'>" + sub + "</div>" : "") + "</div>";
+  }
+
+  const pctColor = pct === null ? "" : (pct >= 85 ? "#2FA98C" : pct >= 60 ? "#EF9F27" : "var(--st-postponed-fg)");
+  const tPctColor = tPct === null ? "" : (tPct >= 85 ? "#2FA98C" : tPct >= 60 ? "#EF9F27" : "var(--st-postponed-fg)");
+
+  return "<div class='stat-panel'><div class='stat-panel-label'>Успішність — чи вкладаємось у терміни</div>" +
+    "<div class='pay-split'>" +
+      metric("Замовлення вчасно", pct === null ? "—" : pct + "%", onTime + " з " + totalMeasured + " виданих", pctColor) +
+      metric("Із запізненням", late, totalMeasured ? Math.round(late/totalMeasured*100) + "% виданих" : "", late ? "var(--st-postponed-fg)" : "") +
+      metric("Задачі вчасно", tPct === null ? "—" : tPct + "%", tTotal ? tOnTime + " з " + tTotal : "немає дедлайнів", tPctColor) +
+      metric("Без даних", noData, "немає терміну або не видано", "") +
+    "</div></div>";
+}
+
+/* ═══════════════ ВКЛАДКА КАЛЕНДАР ═══════════════ */
+let calMonth = new Date().getMonth();
+let calYear = new Date().getFullYear();
+let calFilter = "all"; // all | orders | tasks
+let calSelectedDay = null;
+
+const MONTH_NAMES = ["Січень","Лютий","Березень","Квітень","Травень","Червень","Липень","Серпень","Вересень","Жовтень","Листопад","Грудень"];
+const DOW_NAMES = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
+
+function sameDay(a, b) {
+  return a && b && a.getDate() === b.getDate() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
+}
+
+/* Всі події календаря: дедлайни замовлень + дедлайни задач */
+function calendarEvents() {
+  const events = [];
+  if (calFilter !== "tasks") {
+    ORDERS.forEach(o => {
+      const d = parseDeadline(gv(o,"Термін"));
+      if (!d) return;
+      const num = gv(o,"Номер замовлення");
+      const st = getStatus(num);
+      const done = st === "issued";
+      const now = new Date(); now.setHours(0,0,0,0);
+      events.push({
+        type: "order", date: d, done: done,
+        late: !done && d < now,
+        title: num.replace("RW-","#") + " " + (gv(o,"Ім'я клієнта") || ""),
+        sub: orderServices(num),
+        ref: num
+      });
+    });
+  }
+  if (calFilter !== "orders") {
+    TASKS.forEach(t => {
+      const d = parseDeadline(t["Дедлайн"]);
+      if (!d) return;
+      const done = t["Статус"] === "так";
+      const now = new Date(); now.setHours(0,0,0,0);
+      events.push({
+        type: "task", date: d, done: done,
+        late: !done && d < now,
+        title: t["Текст"],
+        sub: t["Замовлення"] ? t["Замовлення"].replace("RW-","#") : "",
+        ref: t["Замовлення"] || ""
+      });
+    });
+  }
+  return events;
+}
+
+renderers.calendar = function() {
+  const page = document.getElementById("page-calendar");
+  const events = calendarEvents();
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Перший день сітки (понеділок тижня, в якому 1-е число)
+  const first = new Date(calYear, calMonth, 1);
+  let startOffset = (first.getDay() + 6) % 7; // Пн = 0
+  const gridStart = new Date(calYear, calMonth, 1 - startOffset);
+
+  let cells = "";
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i);
+    const inMonth = d.getMonth() === calMonth;
+    const isToday = sameDay(d, today);
+    const dayEvents = events.filter(e => sameDay(e.date, d));
+    const evHTML = dayEvents.slice(0, 3).map(e =>
+      "<div class='cal-ev " + (e.late ? "late" : e.type) + "'>" + (e.done ? "✓ " : "") + e.title + "</div>"
+    ).join("");
+    const more = dayEvents.length > 3 ? "<div class='cal-more'>+" + (dayEvents.length - 3) + " ще</div>" : "";
+    cells += "<div class='cal-cell" + (inMonth ? "" : " other") + (isToday ? " today" : "") + "' onclick=\"openCalDay('" + d.toISOString().slice(0,10) + "')\">" +
+      "<div class='cal-daynum'>" + d.getDate() + "</div>" + evHTML + more + "</div>";
+  }
+
+  const dowHTML = DOW_NAMES.map(n => "<div class='cal-dow'>" + n + "</div>").join("");
+  const filterBtn = (k, label) =>
+    "<button class='mt-btn" + (calFilter===k?" active":"") + "' onclick=\"setCalFilter('" + k + "')\">" + label + "</button>";
+
+  page.innerHTML =
+    "<div class='page-header'><div class='page-title'>Календар</div></div>" +
+    "<div class='tab-scroll'>" +
+      "<div class='cal-head'>" +
+        "<button class='cal-nav-btn' onclick='calShift(-1)'>‹</button>" +
+        "<span class='cal-month'>" + MONTH_NAMES[calMonth] + " " + calYear + "</span>" +
+        "<button class='cal-nav-btn' onclick='calShift(1)'>›</button>" +
+        "<button class='cal-today-btn' onclick='calToday()'>Сьогодні</button>" +
+        "<div class='cal-filters'>" + filterBtn("all","Все") + filterBtn("orders","Замовлення") + filterBtn("tasks","Задачі") + "</div>" +
+      "</div>" +
+      "<div class='cal-grid'>" + dowHTML + cells + "</div>" +
+    "</div>";
+};
+
+function calShift(delta) {
+  calMonth += delta;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderers.calendar();
+}
+function calToday() {
+  const n = new Date();
+  calMonth = n.getMonth(); calYear = n.getFullYear();
+  renderers.calendar();
+}
+function setCalFilter(k) { calFilter = k; renderers.calendar(); }
+
+/* Перегляд конкретного дня — у модалці */
+function openCalDay(iso) {
+  const d = new Date(iso + "T00:00:00");
+  const events = calendarEvents().filter(e => sameDay(e.date, d));
+  const body = document.getElementById("odm-body");
+  const dateLabel = d.getDate() + " " + MONTH_NAMES[d.getMonth()].toLowerCase() + " " + d.getFullYear();
+
+  const list = events.length ? events.map(e =>
+    "<div class='cal-day-item'" + (e.type === "order" && e.ref ? " onclick=\"openOrder('" + e.ref + "')\"" : "") + ">" +
+      "<span class='cal-tag " + e.type + "'>" + (e.type === "order" ? "Замовлення" : "Задача") + "</span>" +
+      "<div style='flex:1'><div class='cal-day-txt'>" + (e.done ? "✓ " : "") + e.title + "</div>" +
+        (e.sub ? "<div class='cal-day-sub'>" + e.sub + "</div>" : "") + "</div>" +
+      (e.late ? "<span class='badge b-postponed'>Прострочено</span>" : "") +
+    "</div>"
+  ).join("") : "<div class='orders-empty'>На цей день нічого не заплановано</div>";
+
+  body.innerHTML =
+    "<div class='detail-top'><span class='detail-title'>" + dateLabel + "</span></div>" +
+    "<div class='cal-day-list'>" + list + "</div>";
+  document.getElementById("odm-bg").classList.add("open");
+}
+
 /* ═══════════════ БОНУСИ ═══════════════ */
-const BONUS_PCT = 3; // відсоток нарахування від суми чека
+const BONUS_PCT = 3;          // відсоток нарахування від суми чека
+const BONUS_MIN_SPEND = 200;  // мінімальний баланс для списання балів
 
 /* Баланс балів клієнта = сума нарахованих - сума списаних по всіх замовленнях телефону */
 function clientBonusBalance(phone) {
@@ -2090,7 +2328,7 @@ function openOrder(num) {
     (prevOrder ? "<div class='d-client-history'><span>Попереднє замовлення</span><span class='h-val'>" + gv(prevOrder,"Дата створення").split(" ")[0] + "</span></div>" : "");
 
   const clientBlock =
-    "<div class='dblock'><div class='dblock-label'>Клієнт · " + rating.label + " " + rating.dot + "</div>" +
+    "<div class='dblock'><div class='dblock-label'>Клієнт · <span class='rating-pick' onclick=\"openRatingPick('" + phone.replace(/'/g,"") + "')\">" + rating.label + " " + rating.dot + (rating.manual ? " ✎" : "") + "</span></div>" +
     "<div class='d-client-head'>" +
       "<div class='d-avatar'>" + name.charAt(0).toUpperCase() + "</div>" +
       "<div><div class='d-client-name'><span>" + name + "</span></div>" +
@@ -2164,13 +2402,18 @@ function openOrder(num) {
   if (spent) bonusInner += "<div class='d-pay-row'><span class='pl'>Списано за це замовлення</span><span class='pv'>−" + spent.toLocaleString("uk-UA") + "</span></div>";
   // Кнопка нарахування — коли все видано і ще не нараховано
   if (allIssued && !accrued) {
-    bonusInner += "<button class='d-settle-btn' style='background:#2FA98C' onclick=\"accrueBonus('" + num + "'," + wouldAccrue + ")\">Нарахувати " + wouldAccrue + " балів (" + BONUS_PCT + "%)</button>";
+    bonusInner += "<button class='d-settle-btn' style='background:#2FA98C' onclick=\"openAccrueBonus('" + num + "'," + wouldAccrue + ")\">Нарахувати " + wouldAccrue + " балів (" + BONUS_PCT + "%)</button>";
+    bonusInner += "<div class='d-bonus-hint'>Не обов'язково — якщо була знижка, можна не нараховувати.</div>";
   } else if (!accrued) {
-    bonusInner += "<div class='d-bonus-hint'>Нарахування " + wouldAccrue + " балів (" + BONUS_PCT + "%) після видачі</div>";
+    bonusInner += "<div class='d-bonus-hint'>Нарахування " + wouldAccrue + " балів (" + BONUS_PCT + "%) — доступне після видачі</div>";
   }
-  // Списання — якщо є баланс і ще не списували в цьому замовленні
-  if (balance > 0 && !spent) {
-    bonusInner += "<button class='d-settle-btn' style='background:none;border:1px solid var(--cognac-border);color:var(--cognac);margin-top:8px' onclick=\"openSpendBonus('" + num + "'," + balance + "," + total + ")\">Списати бали при оплаті</button>";
+  // Списання — якщо баланс досяг мінімуму і ще не списували в цьому замовленні
+  if (!spent) {
+    if (balance >= BONUS_MIN_SPEND) {
+      bonusInner += "<button class='d-settle-btn' style='background:none;border:1px solid var(--cognac-border);color:var(--cognac);margin-top:8px' onclick=\"openSpendBonus('" + num + "'," + balance + "," + total + ")\">Списати бали (доступно " + balance + ")</button>";
+    } else if (balance > 0) {
+      bonusInner += "<div class='d-bonus-hint'>Списання доступне від " + BONUS_MIN_SPEND + " балів</div>";
+    }
   }
   const bonusBlock = "<div class='dblock'><div class='dblock-label'>Бонуси</div>" + bonusInner + "</div>";
 
@@ -2221,7 +2464,27 @@ function copyIcon() {
 }
 
 /* Рейтинг клієнта за середньою затримкою видачі */
+const RATING_META = {
+  green:  { dot: "🟢", label: "Надійний" },
+  yellow: { dot: "🟡", label: "Звичайний" },
+  red:    { dot: "🔴", label: "Уважно" }
+};
+
+/* Ручне перевизначення рейтингу (остання непорожня позначка по телефону) */
+function manualRating(phone) {
+  const orders = ORDERS.filter(o => gv(o,"Телефон") === phone);
+  for (let i = orders.length - 1; i >= 0; i--) {
+    const v = gv(orders[i], "Рейтинг вручну");
+    if (v) return v;
+  }
+  return "";
+}
+
 function clientRating(phone) {
+  const manual = manualRating(phone);
+  if (manual && RATING_META[manual]) {
+    return Object.assign({}, RATING_META[manual], { manual: true });
+  }
   const orders = ORDERS.filter(o => gv(o,"Телефон") === phone);
   let delays = [], hasIssue = false;
   orders.forEach(o => {
@@ -2334,6 +2597,65 @@ async function confirmSettle() {
 }
 
 /* ─── БОНУСИ ─── */
+/* ─── РУЧНИЙ РЕЙТИНГ КЛІЄНТА ─── */
+function openRatingPick(phone) {
+  const cur = manualRating(phone);
+  const body = document.getElementById("odm-body");
+  const wrap = document.createElement("div");
+  wrap.className = "settle-overlay";
+  const opt = (key, label, dot) =>
+    "<button class='rating-opt" + (cur===key?" on":"") + "' onclick=\"saveRating('" + phone + "','" + key + "')\">" +
+      "<span style='font-size:16px'>" + dot + "</span>" + label + "</button>";
+  wrap.innerHTML =
+    "<div class='settle-card'>" +
+      "<div class='dblock-label'>Статус клієнта</div>" +
+      "<div class='rating-opts'>" +
+        opt("green","Надійний","🟢") + opt("yellow","Звичайний","🟡") + opt("red","Уважно","🔴") +
+      "</div>" +
+      "<button class='rating-auto" + (!cur?" on":"") + "' onclick=\"saveRating('" + phone + "','')\">Автоматично (за затримками)</button>" +
+      "<button onclick='closeSettle()' style='width:100%;margin-top:10px;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:11px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px'>Скасувати</button>" +
+    "</div>";
+  body.appendChild(wrap);
+}
+
+async function saveRating(phone, rating) {
+  // локально: пишемо в останнє замовлення цього телефону
+  const orders = ORDERS.filter(o => gv(o,"Телефон") === phone);
+  if (orders.length) orders[orders.length-1]["Рейтинг вручну"] = rating;
+  closeSettle();
+  if (detailOrderNum) openOrder(detailOrderNum); else if (renderers[currentPage]) renderers[currentPage]();
+  try {
+    await fetch(API_URL.replace("/order","/client/rating"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ phone: phone, rating: rating })
+    });
+  } catch(e) { console.error("rating save failed", e); }
+}
+
+/* ─── БОНУСИ: нарахування з можливістю змінити суму ─── */
+function openAccrueBonus(num, suggested) {
+  const body = document.getElementById("odm-body");
+  const wrap = document.createElement("div");
+  wrap.className = "settle-overlay";
+  wrap.innerHTML =
+    "<div class='settle-card'>" +
+      "<div class='dblock-label'>Нарахувати бонуси</div>" +
+      "<div style='font-size:12px;color:var(--txt-2);margin-bottom:10px'>Стандартно " + BONUS_PCT + "% від суми чека. Можна змінити або не нараховувати взагалі.</div>" +
+      "<input class='cr-input' id='accrue-amt' type='number' value='" + suggested + "'>" +
+      "<div style='display:flex;gap:8px;margin-top:10px'>" +
+        "<button onclick='closeSettle()' style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:11px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px'>Скасувати</button>" +
+        "<button class='d-settle-btn' style='flex:2;margin-top:0;background:#2FA98C' onclick=\"confirmAccrue('" + num + "')\">Нарахувати</button>" +
+      "</div>" +
+    "</div>";
+  body.appendChild(wrap);
+}
+function confirmAccrue(num) {
+  const amt = parseInt(document.getElementById("accrue-amt").value || "0");
+  if (!amt) { alert("Вкажіть суму або скасуйте"); return; }
+  closeSettle();
+  accrueBonus(num, amt);
+}
+
 async function accrueBonus(num, amount) {
   const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
   if (o) o["Нараховано бонусів"] = String(amount);
