@@ -15,6 +15,7 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Tenor+Sans&family=Commissioner:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -717,9 +718,13 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 }
 
 /* ═══════════════ ОНЛАЙН-ПРАЙС ═══════════════ */
-.pl-grid { column-count: 2; column-gap: 18px; }
-.pl-card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 0; margin-bottom: 18px; overflow: hidden; break-inside: avoid; -webkit-column-break-inside: avoid; box-shadow: 0 1px 2px rgba(58,50,40,0.05), 0 6px 16px rgba(58,50,40,0.05); }
-.pl-card-label { font-family: 'Tenor Sans', serif; font-size: 14px; letter-spacing: 0.01em; color: var(--txt); background: var(--accent-soft); padding: 13px 18px; border-bottom: 1px solid var(--cognac-border); }
+.pl-grid { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; }
+.pl-card { width: calc(50% - 9px); background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 0; overflow: hidden; box-shadow: 0 1px 2px rgba(58,50,40,0.05), 0 6px 16px rgba(58,50,40,0.05); }
+.pl-card-label { display: flex; align-items: center; font-family: 'Tenor Sans', serif; font-size: 14px; letter-spacing: 0.01em; color: var(--txt); background: var(--accent-soft); padding: 13px 18px; border-bottom: 1px solid var(--cognac-border); cursor: grab; user-select: none; -webkit-user-select: none; }
+.pl-card-label:active { cursor: grabbing; }
+.pl-grip { display: inline-flex; color: var(--cognac); margin-right: 9px; opacity: 0.6; flex-shrink: 0; }
+.pl-ghost { opacity: 0.35; }
+.pl-drag { box-shadow: 0 14px 34px rgba(58,50,40,0.2); }
 .pl-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 11px 18px; border-bottom: 1px solid var(--line-soft); cursor: pointer; transition: background 0.12s, box-shadow 0.12s; }
 .pl-row:last-child { border-bottom: none; padding-bottom: 15px; }
 .pl-row:hover { background: var(--hover); }
@@ -730,7 +735,7 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .pl-price { font-family: 'Tenor Sans', serif; font-size: 15px; color: var(--cognac); white-space: nowrap; flex-shrink: 0; }
 .pl-unit { font-family: 'Commissioner', sans-serif; font-size: 11px; color: var(--txt-3); margin-left: 4px; }
 @media (max-width: 680px) {
-  .pl-grid { column-count: 1; }
+  .pl-card { width: 100%; }
   .pl-name { font-size: 14px; }
   .pl-price { font-size: 16px; }
 }
@@ -2616,6 +2621,22 @@ async function saveEditOrder() {
 let plCat = "";
 let plSearch = "";
 
+/* Порядок карток прайсу — зберігається в цьому браузері (перетягуванням) */
+function plOrderKey(catKey) { return "rw_pl_order_" + catKey; }
+function plSavedOrder(catKey) {
+  try { return JSON.parse(localStorage.getItem(plOrderKey(catKey)) || "[]"); } catch(e) { return []; }
+}
+function plSaveOrder(catKey, order) {
+  try { localStorage.setItem(plOrderKey(catKey), JSON.stringify(order)); } catch(e) {}
+}
+function plOrderedDepts(catKey) {
+  const all = Object.keys(PRICE[catKey].departments);
+  const saved = plSavedOrder(catKey).filter(d => all.includes(d));
+  const rest = all.filter(d => !saved.includes(d));
+  return saved.concat(rest);
+}
+const PL_GRIP = "<span class='pl-grip'><svg viewBox='0 0 20 20' width='12' height='12' fill='currentColor'><circle cx='7' cy='4.5' r='1.5'/><circle cx='13' cy='4.5' r='1.5'/><circle cx='7' cy='10' r='1.5'/><circle cx='13' cy='10' r='1.5'/><circle cx='7' cy='15.5' r='1.5'/><circle cx='13' cy='15.5' r='1.5'/></svg></span>";
+
 renderers.pricelist = function() {
   const page = document.getElementById("page-pricelist");
   if (!priceLoaded) {
@@ -2643,7 +2664,7 @@ renderers.pricelist = function() {
 
   scope.forEach(catKey => {
     const cat = PRICE[catKey];
-    Object.keys(cat.departments).forEach(dept => {
+    (q ? Object.keys(cat.departments) : plOrderedDepts(catKey)).forEach(dept => {
       const items = cat.departments[dept].filter(s =>
         s.active !== false && (!q || s.name.toLowerCase().includes(q) || dept.toLowerCase().includes(q))
       );
@@ -2660,8 +2681,8 @@ renderers.pricelist = function() {
           "</div>" +
         "</div>";
       }).join("");
-      blocks += "<div class='pl-card'>" +
-        "<div class='pl-card-label'>" + (q ? cat.label + " · " : "") + dept + "</div>" + rows + "</div>";
+      blocks += "<div class='pl-card' data-dept=\"" + dept.replace(/"/g,"&quot;") + "\">" +
+        "<div class='pl-card-label'>" + (q ? "" : PL_GRIP) + (q ? cat.label + " · " : "") + dept + "</div>" + rows + "</div>";
     });
   });
 
@@ -2673,9 +2694,29 @@ renderers.pricelist = function() {
       "</div>" +
     "</div>" +
     "<div class='tab-scroll'>" +
-      (q ? "" : "<div class='cr-pills' style='margin-bottom:16px'>" + catPills + "</div>") +
+      (q ? "" : "<div class='cr-pills' style='margin-bottom:12px'>" + catPills + "</div>") +
+      (q ? "" : "<div class='d-bonus-hint' style='margin-bottom:14px'>Перетягни картку за заголовок, щоб змінити порядок — він зберігається на цьому пристрої.</div>") +
       (found ? "<div class='pl-grid'>" + blocks + "</div>" : "<div class='orders-empty'>Нічого не знайдено</div>") +
     "</div>";
+
+  if (!q) {
+    const grid = document.querySelector("#page-pricelist .pl-grid");
+    if (grid && window.Sortable) {
+      Sortable.create(grid, {
+        handle: ".pl-card-label",
+        draggable: ".pl-card",
+        animation: 150,
+        delay: 120,
+        delayOnTouchOnly: true,
+        ghostClass: "pl-ghost",
+        chosenClass: "pl-drag",
+        onEnd: function() {
+          const order = Array.from(grid.querySelectorAll(".pl-card")).map(el => el.getAttribute("data-dept"));
+          plSaveOrder(plCat, order);
+        }
+      });
+    }
+  }
 };
 
 function setPlCat(k) { plCat = k; renderers.pricelist(); }
