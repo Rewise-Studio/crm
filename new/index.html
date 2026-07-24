@@ -717,11 +717,11 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 }
 
 /* ═══════════════ ОНЛАЙН-ПРАЙС ═══════════════ */
-.pl-grid { column-count: 2; column-gap: 16px; max-width: 760px; margin: 0 auto; }
-.pl-card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 0; margin-bottom: 14px; overflow: hidden; break-inside: avoid; -webkit-column-break-inside: avoid; box-shadow: 0 1px 2px rgba(58,50,40,0.05), 0 6px 16px rgba(58,50,40,0.05); }
-.pl-card-label { font-family: 'Tenor Sans', serif; font-size: 14px; letter-spacing: 0.01em; color: var(--txt); background: var(--accent-soft); padding: 12px 16px; border-bottom: 1px solid var(--cognac-border); }
-.pl-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 16px; border-bottom: 1px solid var(--line-soft); cursor: pointer; transition: background 0.12s, box-shadow 0.12s; }
-.pl-row:last-child { border-bottom: none; padding-bottom: 13px; }
+.pl-grid { column-count: 2; column-gap: 18px; }
+.pl-card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 0; margin-bottom: 18px; overflow: hidden; break-inside: avoid; -webkit-column-break-inside: avoid; box-shadow: 0 1px 2px rgba(58,50,40,0.05), 0 6px 16px rgba(58,50,40,0.05); }
+.pl-card-label { font-family: 'Tenor Sans', serif; font-size: 14px; letter-spacing: 0.01em; color: var(--txt); background: var(--accent-soft); padding: 13px 18px; border-bottom: 1px solid var(--cognac-border); }
+.pl-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 11px 18px; border-bottom: 1px solid var(--line-soft); cursor: pointer; transition: background 0.12s, box-shadow 0.12s; }
+.pl-row:last-child { border-bottom: none; padding-bottom: 15px; }
 .pl-row:hover { background: var(--hover); }
 .pl-row.pl-lit { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--cognac); }
 .pl-row.pl-lit .pl-price { color: var(--leather); }
@@ -2673,7 +2673,7 @@ renderers.pricelist = function() {
       "</div>" +
     "</div>" +
     "<div class='tab-scroll'>" +
-      (q ? "" : "<div class='cr-pills' style='margin:0 auto 16px;max-width:760px;justify-content:center'>" + catPills + "</div>") +
+      (q ? "" : "<div class='cr-pills' style='margin-bottom:16px'>" + catPills + "</div>") +
       (found ? "<div class='pl-grid'>" + blocks + "</div>" : "<div class='orders-empty'>Нічого не знайдено</div>") +
     "</div>";
 };
