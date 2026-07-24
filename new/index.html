@@ -718,10 +718,10 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 
 /* ═══════════════ ОНЛАЙН-ПРАЙС ═══════════════ */
 .pl-grid { column-count: 3; column-gap: 14px; }
-.pl-card { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 14px 16px; margin-bottom: 14px; break-inside: avoid; -webkit-column-break-inside: avoid; }
-.pl-card-label { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cognac); margin-bottom: 10px; }
-.pl-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line-soft); }
-.pl-row:last-child { border-bottom: none; padding-bottom: 0; }
+.pl-card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 0; margin-bottom: 14px; overflow: hidden; break-inside: avoid; -webkit-column-break-inside: avoid; box-shadow: 0 1px 2px rgba(58,50,40,0.05), 0 6px 16px rgba(58,50,40,0.05); }
+.pl-card-label { font-family: 'Tenor Sans', serif; font-size: 14px; letter-spacing: 0.01em; color: var(--txt); background: var(--accent-soft); padding: 12px 16px; border-bottom: 1px solid var(--cognac-border); }
+.pl-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 16px; border-bottom: 1px solid var(--line-soft); }
+.pl-row:last-child { border-bottom: none; padding-bottom: 13px; }
 .pl-name { flex: 1; min-width: 0; font-size: 13px; color: var(--txt); line-height: 1.35; }
 .pl-hint { font-size: 10px; color: var(--txt-3); margin-top: 3px; line-height: 1.4; }
 .pl-price { font-family: 'Tenor Sans', serif; font-size: 15px; color: var(--cognac); white-space: nowrap; flex-shrink: 0; }
