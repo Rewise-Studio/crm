@@ -733,6 +733,8 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .pl-name { flex: 1; min-width: 0; font-size: 13px; color: var(--txt); line-height: 1.35; }
 .pl-hint { font-size: 10px; color: var(--txt-3); margin-top: 3px; line-height: 1.4; }
 .pl-price { font-family: 'Tenor Sans', serif; font-size: 15px; color: var(--cognac); white-space: nowrap; flex-shrink: 0; }
+.pl-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+.pl-term { font-size: 10px; color: var(--txt-3); white-space: nowrap; }
 .pl-unit { font-family: 'Commissioner', sans-serif; font-size: 11px; color: var(--txt-3); margin-left: 4px; }
 @media (max-width: 680px) {
   .pl-card { width: 100%; }
@@ -806,6 +808,19 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .cal-cell.other { opacity: 0.4; }
 .cal-cell.today { border-color: var(--cognac); background: var(--accent-soft); }
 .cal-daynum { font-size: 12px; color: var(--txt-2); margin-bottom: 5px; }
+.cal-dayhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+.cal-dayhead .cal-daynum { margin-bottom: 0; }
+.cal-load { font-size: 9px; font-weight: 500; padding: 1px 6px; border-radius: 8px; line-height: 1.4; }
+.cal-load.free { background: rgba(47,169,140,0.16); color: #2FA98C; }
+.cal-load.busy { background: var(--st-work-bg); color: var(--st-work-fg); }
+.cal-load.full { background: var(--st-postponed-bg); color: var(--st-postponed-fg); }
+.cr-deadline-hint { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.deadline-load { font-size: 12px; padding: 7px 11px; border-radius: 7px; }
+.deadline-load.free { background: rgba(47,169,140,0.14); color: #2FA98C; }
+.deadline-load.busy { background: var(--st-work-bg); color: var(--st-work-fg); }
+.deadline-load.full { background: var(--st-postponed-bg); color: var(--st-postponed-fg); }
+.deadline-reco { background: transparent; border: 1px dashed var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 12px; padding: 9px 12px; cursor: pointer; text-align: left; transition: background 0.15s; }
+.deadline-reco:hover { background: var(--accent-soft); }
 .cal-cell.today .cal-daynum { color: var(--cognac); font-weight: 500; }
 .cal-ev { font-size: 10px; padding: 2px 6px; border-radius: 5px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cal-ev.order { background: rgba(160,132,92,0.16); color: var(--cognac); }
@@ -1102,6 +1117,21 @@ const SHEET_ID = "1kDJ893PFa_DTNKt-r8wQES_JFXbJSDNU8niRLz70Aao";
 const PRICE_GID = "934403054";
 const API_URL = "https://price-production-97b5.up.railway.app/order";
 
+/* ═══════════════ РЕКВІЗИТИ ДЛЯ ОПЛАТИ (номер картки) ═══════════════
+   Номер картки вводиться у застосунку: Налаштування → Параметри → «Реквізити для оплати».
+   Зберігається в листі «Налаштування» (не в коді) і підтягується при завантаженні. */
+const PAY = {
+  card:      "",         // заповнюється з налаштувань
+  cardLabel: "Картка",
+  holder:    "",         // імʼя одержувача (необовʼязково)
+  qrLink:    "",
+  qrImg:     ""
+};
+
+/* Планування завантаження: скільки робіт студія комфортно бере на день.
+   Використовується для підказки рекомендованої дати (не блокує вибір). */
+let DAILY_CAP = 5;
+
 /* ═══════════════ ДОСТУП: АДМІН / ПРИЙМАЛЬНИК ═══════════════
    Паролі зберігаються у вигляді SHA-256 хешів.
    Щоб змінити пароль — згенеруй новий хеш і встав сюди.
@@ -1337,6 +1367,9 @@ async function parseSettings(res) {
     BONUS_PCT_RATING.red    = numOrNull("Бонус % уважно");
     BONUS_MIN_SPEND = num("Мінімум списання", BONUS_MIN_SPEND);
     BONUS_SPEND_CAP = num("Ліміт списання %", BONUS_SPEND_CAP);
+    if (map["Картка"] !== undefined) PAY.card = String(map["Картка"]).trim();
+    if (map["Отримувач"] !== undefined) PAY.holder = String(map["Отримувач"]).trim();
+    DAILY_CAP = num("Норма на день", DAILY_CAP);
   } catch(e) { console.error("settings parse error", e); }
 }
 
@@ -1466,10 +1499,12 @@ async function loadPrice() {
     PRICE = {};
     // шукаємо колонку "Активна" за назвою в шапці
     let activeIdx = -1;
+    let termIdx = -1;
     if (json.table && json.table.cols) {
       json.table.cols.forEach(function(col, i){
         const lbl = String((col && col.label) || "").trim().toLowerCase();
         if (lbl === "активна" || lbl === "активність" || lbl === "active") activeIdx = i;
+        if (termIdx === -1 && (lbl.indexOf("термін") !== -1 || lbl.indexOf("строк") !== -1 || lbl.indexOf("срок") !== -1 || lbl.indexOf("виконан") !== -1)) termIdx = i;
       });
     }
     json.table.rows.forEach(function(row){
@@ -1484,10 +1519,12 @@ async function loadPrice() {
         const v = String(c[activeIdx].v).trim().toLowerCase();
         active = !(v === "ні" || v === "no" || v === "false" || v === "0");
       }
+      let term = "";
+      if (termIdx >= 0 && c[termIdx] && c[termIdx].v != null) term = gvizDate(String(c[termIdx].v).trim());
       if (!category || !deptName || !svcName) return;
       if (!PRICE[category]) PRICE[category] = { label: CATEGORY_LABELS[category] || category, departments: {} };
       if (!PRICE[category].departments[deptName]) PRICE[category].departments[deptName] = [];
-      PRICE[category].departments[deptName].push({ name: svcName, price: price, unit: unit, active: active });
+      PRICE[category].departments[deptName].push({ name: svcName, price: price, unit: unit, active: active, term: term });
     });
     priceLoaded = true;
     if (["create","settings","pricelist"].includes(currentPage)) renderers[currentPage]();
@@ -1565,7 +1602,8 @@ renderers.create = function() {
               "<button class='cr-pill" + (NO.deadline==='Без терміну'?' active':'') + "' onclick=\"setDeadline('Без терміну',this)\">Без терміну</button>" +
               "<button class='cr-pill' onclick=\"setDeadline('date',this)\">Вказати дату</button>" +
             "</div>" +
-            "<input class='cr-input cr-deadline-date' id='cr-deadline-date' type='date' oninput='NO.deadline=formatDeadlineDate(this.value)'>" +
+            "<input class='cr-input cr-deadline-date' id='cr-deadline-date' type='date' oninput='onCreateDeadlinePick(this.value)'>" +
+            "<div class='cr-deadline-hint' id='cr-deadline-hint'></div>" +
           "</div>" +
           "<div class='cr-box cr-box-full'>" +
             "<div class='cr-block-label first'>Речі та послуги</div>" +
@@ -1589,6 +1627,7 @@ renderers.create = function() {
     else { renderItems(); }
   }
   updateReceipt();
+  renderDeadlineHint("cr-deadline-hint", "applyCreateReco", ddmmToISO(NO.deadline));
 };
 
 function renderManagers() {
@@ -2676,8 +2715,11 @@ renderers.pricelist = function() {
           "<div class='pl-name'>" + s.name +
             (hint ? "<div class='pl-hint'>" + hint + "</div>" : "") +
           "</div>" +
-          "<div class='pl-price'>" + s.price.toLocaleString("uk-UA") + " ₴" +
-            (s.unit ? "<span class='pl-unit'>/ " + s.unit + "</span>" : "") +
+          "<div class='pl-meta'>" +
+            "<div class='pl-price'>" + s.price.toLocaleString("uk-UA") + " ₴" +
+              (s.unit ? "<span class='pl-unit'>/ " + s.unit + "</span>" : "") +
+            "</div>" +
+            (s.term ? "<div class='pl-term'>⏱ " + s.term + "</div>" : "") +
           "</div>" +
         "</div>";
       }).join("");
@@ -3007,6 +3049,22 @@ function renderParamsEditor() {
       "<button class='cr-create-btn' onclick='saveParams()'>Зберегти</button>" +
     "</div>" +
     "<div class='stat-panel' style='max-width:560px'>" +
+      "<div class='stat-panel-label'>Реквізити для оплати</div>" +
+      "<div class='param-hint' style='margin-bottom:12px'>Показуються кнопкою «Реквізити для оплати» у картці замовлення. Зберігаються в таблиці, а не в коді — тож на всіх пристроях однакові.</div>" +
+      "<div class='task-field-label'>Номер картки</div>" +
+      "<input class='cr-input' id='set-pay-card' placeholder='0000 0000 0000 0000' value=\"" + esc(PAY.card) + "\">" +
+      "<div class='task-field-label'>Отримувач (необовʼязково)</div>" +
+      "<input class='cr-input' id='set-pay-holder' placeholder=\"Ім'я одержувача\" value=\"" + esc(PAY.holder) + "\">" +
+      "<button class='cr-create-btn' onclick='savePayReqs()'>Зберегти</button>" +
+    "</div>" +
+    "<div class='stat-panel' style='max-width:560px'>" +
+      "<div class='stat-panel-label'>Планування завантаження</div>" +
+      "<div class='param-row'><div><div class='param-name'>Норма робіт на день</div>" +
+        "<div class='param-hint'>Скільки виробів комфортно брати на один день. Використовується для підказки рекомендованої дати та позначок завантаження в календарі. Нічого не блокує — лише радить.</div></div>" +
+        "<input class='ic-mini param-input' type='number' id='set-daily-cap' value='" + DAILY_CAP + "'></div>" +
+      "<button class='cr-create-btn' onclick='savePlanning()'>Зберегти</button>" +
+    "</div>" +
+    "<div class='stat-panel' style='max-width:560px'>" +
       "<div class='stat-panel-label'>Приймальники</div>" +
       "<div class='param-hint' style='margin-bottom:10px'>Список береться з листа «Партнери» у таблиці. Щоб додати або прибрати людину — відредагуй той лист.</div>" +
       "<div class='cr-pills'>" + PARTNERS.map(p => "<span class='cr-pill' style='cursor:default'>" + p + "</span>").join("") + "</div>" +
@@ -3044,7 +3102,22 @@ async function saveParams() {
   toast(ok ? "Налаштування збережено" : "Не вдалося зберегти");
 }
 
-/* ═══════════════ ВКЛАДКА ВИГОТОВЛЕННЯ ═══════════════ */
+async function savePayReqs() {
+  const card = document.getElementById("set-pay-card").value.trim();
+  const holder = document.getElementById("set-pay-holder").value.trim();
+  PAY.card = card;
+  PAY.holder = holder;
+  const ok = await priceApi("/settings/update", { items: { "Картка": card, "Отримувач": holder } });
+  toast(ok ? "Реквізити збережено" : "Не вдалося зберегти");
+}
+
+async function savePlanning() {
+  const cap = parseInt(document.getElementById("set-daily-cap").value || "0");
+  if (isNaN(cap) || cap < 1 || cap > 100) { toast("Норма має бути від 1 до 100"); return; }
+  DAILY_CAP = cap;
+  const ok = await priceApi("/settings/update", { items: { "Норма на день": cap } });
+  toast(ok ? "Норму збережено" : "Не вдалося зберегти");
+}
 const TAILOR_STATUSES = [
   ["🆕 Новий", "Прийнято", "#378ADD"],
   ["⚙️ В роботі", "В роботі", "#EF9F27"],
@@ -3214,7 +3287,8 @@ function renderTailorForm() {
         "<div class='cr-pills'>" + payPills + "</div>" +
         prepayBlock +
         "<div class='cr-block-label'>Термін виконання</div>" +
-        "<input class='cr-input' type='date' oninput='TL.deadline=formatDeadlineDate(this.value)'>" +
+        "<input class='cr-input' type='date' value=\"" + ddmmToISO(TL.deadline) + "\" oninput='TL.deadline=formatDeadlineDate(this.value);renderDeadlineHint(\"tl-deadline-hint\",\"applyTailorReco\",this.value)'>" +
+        "<div class='cr-deadline-hint' id='tl-deadline-hint'>" + deadlineHintHTML("applyTailorReco", ddmmToISO(TL.deadline)) + "</div>" +
       "</div>" +
 
       "<div class='cr-box cr-box-full'>" +
@@ -3734,8 +3808,80 @@ function localISO(d) {
 }
 
 /* Всі події календаря: дедлайни замовлень + дедлайни задач */
-function calendarEvents() {
-  const events = [];
+/* ═══════════════ ЗАВАНТАЖЕННЯ ДНІВ (планування термінів) ═══════════════
+   Скільки активних робіт (не виданих) стоїть на конкретну дату — ремонт + пошив. */
+function dayLoad(d) {
+  let n = 0;
+  ORDERS.forEach(o => {
+    if (getStatus(gv(o,"Номер замовлення")) === "issued") return;
+    const dl = parseDeadline(gv(o,"Термін"));
+    if (dl && sameDay(dl, d)) n++;
+  });
+  TAILOR.forEach(t => {
+    if (gv(t,"Статус") === "📦 Виданий") return;
+    const dl = parseDeadline(gv(t,"Термін"));
+    if (dl && sameDay(dl, d)) n++;
+  });
+  return n;
+}
+function loadLevel(load) {
+  if (!DAILY_CAP) return "";
+  if (load >= DAILY_CAP) return "full";
+  if (load >= Math.ceil(DAILY_CAP * 0.6)) return "busy";
+  return "free";
+}
+/* Найближча дата (з сьогодні), де завантаження нижче норми */
+function recommendedDeadline() {
+  if (!DAILY_CAP) return null;
+  const base = new Date(); base.setHours(0,0,0,0);
+  for (let i = 0; i < 180; i++) {
+    const cur = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
+    if (dayLoad(cur) < DAILY_CAP) return cur;
+  }
+  return null;
+}
+function ddmmToISO(s) { const d = parseDeadline(s); return d ? localISO(d) : ""; }
+
+/* Підказка під полем терміну: завантаження обраного дня + рекомендована дата */
+function deadlineHintHTML(applyFn, pickedISO) {
+  if (!DAILY_CAP) return "";
+  let html = "";
+  if (pickedISO) {
+    const d = new Date(pickedISO + "T00:00:00");
+    const load = dayLoad(d), lvl = loadLevel(load);
+    const label = lvl === "full" ? "завантажено" : (lvl === "busy" ? "щільно" : "вільно");
+    html += "<div class='deadline-load " + lvl + "'>На " + formatDeadlineDate(pickedISO) + ": " + load + " з " + DAILY_CAP + " — " + label + "</div>";
+  }
+  const reco = recommendedDeadline();
+  if (reco) {
+    const iso = localISO(reco);
+    const rload = dayLoad(reco);
+    html += "<button type='button' class='deadline-reco' onclick=\"" + applyFn + "('" + iso + "')\">Рекомендовано: " + formatDeadlineDate(iso) + " (" + rload + " з " + DAILY_CAP + ") · застосувати</button>";
+  }
+  return html;
+}
+function renderDeadlineHint(containerId, applyFn, pickedISO) {
+  const box = document.getElementById(containerId);
+  if (box) box.innerHTML = deadlineHintHTML(applyFn, pickedISO);
+}
+/* Застосування рекомендованої дати у формі створення / пошиву */
+function onCreateDeadlinePick(iso) {
+  NO.deadline = formatDeadlineDate(iso);
+  renderDeadlineHint("cr-deadline-hint", "applyCreateReco", iso);
+}
+function applyCreateReco(iso) {
+  const inp = document.getElementById("cr-deadline-date");
+  if (inp) { inp.style.display = "block"; inp.value = iso; }
+  document.querySelectorAll("#cr-deadline .cr-pill").forEach(b => b.classList.remove("active"));
+  NO.deadline = formatDeadlineDate(iso);
+  renderDeadlineHint("cr-deadline-hint", "applyCreateReco", iso);
+}
+function applyTailorReco(iso) {
+  TL.deadline = formatDeadlineDate(iso);
+  renderTailorForm();
+}
+
+function calendarEvents() {  const events = [];
   if (calFilter === "all" || calFilter === "orders") {
     ORDERS.forEach(o => {
       const d = parseDeadline(gv(o,"Термін"));
@@ -3806,8 +3952,11 @@ renderers.calendar = function() {
       "<div class='cal-ev " + (e.late ? "late" : e.type) + "'>" + (e.done ? "✓ " : "") + e.title + "</div>"
     ).join("");
     const more = dayEvents.length > 3 ? "<div class='cal-more'>+" + (dayEvents.length - 3) + " ще</div>" : "";
+    const load = inMonth ? dayLoad(d) : 0;
+    const loadBadge = (inMonth && DAILY_CAP && load > 0)
+      ? "<span class='cal-load " + loadLevel(load) + "'>" + load + "</span>" : "";
     cells += "<div class='cal-cell" + (inMonth ? "" : " other") + (isToday ? " today" : "") + "' onclick=\"openCalDay('" + localISO(d) + "')\">" +
-      "<div class='cal-daynum'>" + d.getDate() + "</div>" + evHTML + more + "</div>";
+      "<div class='cal-dayhead'><span class='cal-daynum'>" + d.getDate() + "</span>" + loadBadge + "</div>" + evHTML + more + "</div>";
   }
 
   const dowHTML = DOW_NAMES.map(n => "<div class='cal-dow'>" + n + "</div>").join("");
@@ -4025,6 +4174,7 @@ function openOrder(num) {
     "<div class='d-pay-row'><span class='pl'>Термін</span><span class='pv'>" + (gv(o,"Термін") || "—") + "</span></div>" +
     "<div class='d-pay-total'><span class='pl'>" + (toPay > 0 ? "До сплати" : "Сплачено") + "</span><span class='pv'>" + (toPay > 0 ? toPay.toLocaleString("uk-UA") + " ₴" : total.toLocaleString("uk-UA") + " ₴") + "</span></div>" +
     (toPay > 0 ? "<button class='d-settle-btn' onclick=\"openSettle('" + num + "'," + toPay + ")\">Прийняти доплату " + toPay.toLocaleString("uk-UA") + " ₴</button>" : "") +
+    (payConfigured() ? "<button class='d-settle-btn' style='background:none;border:1px solid var(--cognac-border);color:var(--cognac);margin-top:8px' onclick='openPayQR()'>Реквізити для оплати</button>" : "") +
     "</div>";
 
   // Бонуси
@@ -4243,6 +4393,36 @@ function openSettle(num, toPay) {
     "</div>";
   body.appendChild(wrap);
 }
+
+/* Чи налаштовані реквізити для QR-оплати */
+function payConfigured() { return !!(PAY.qrImg || PAY.qrLink || PAY.card); }
+
+/* Блок QR + картка (використовується у вікні «QR для оплати») */
+function payPanelHTML() {
+  let info = "";
+  if (PAY.holder) info += "<div style='font-size:12px;color:var(--txt-2);margin-bottom:8px'>" + PAY.holder + "</div>";
+  if (PAY.card) {
+    info += "<div style='font-size:15px;color:var(--txt)'>" + (PAY.cardLabel || "Картка") + ": <b style='letter-spacing:0.03em'>" + PAY.card + "</b></div>" +
+      "<button onclick=\"copyToClipboard('" + PAY.card.replace(/\s/g,"") + "')\" style='margin-top:12px;background:none;border:1px solid var(--cognac-border);border-radius:8px;color:var(--cognac);font-family:Commissioner,sans-serif;font-size:13px;padding:9px 16px;cursor:pointer'>Скопіювати номер</button>";
+  }
+  return "<div style='margin-top:8px;text-align:center'>" + info + "</div>";
+}
+
+/* Окреме вікно з QR — не залежить від способу оплати */
+function openPayQR() {
+  if (!payConfigured()) { toast("QR ще не налаштовано"); return; }
+  const body = document.getElementById("odm-body");
+  const wrap = document.createElement("div");
+  wrap.className = "settle-overlay";
+  wrap.innerHTML =
+    "<div class='settle-card' style='text-align:center'>" +
+      "<div class='dblock-label' style='text-align:left'>Реквізити для оплати</div>" +
+      payPanelHTML() +
+      "<button onclick='closeSettle()' style='width:100%;margin-top:14px;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:11px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px'>Закрити</button>" +
+    "</div>";
+  body.appendChild(wrap);
+}
+
 function setSettleMethod(m, btn) {
   settleState.method = m;
   btn.parentElement.querySelectorAll(".cr-pill").forEach(b => b.classList.remove("active"));
