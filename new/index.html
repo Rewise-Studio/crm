@@ -733,20 +733,30 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 }
 
 /* ═══════════════ ОНЛАЙН-ПРАЙС ═══════════════ */
-.pl-list { max-width: 860px; margin: 0 auto; }
-.pl-toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; max-width: 860px; margin-left: auto; margin-right: auto; }
-.pl-toolbar .cr-pills { margin: 0; flex: 1; }
-.pl-toggle-all { background: transparent; border: 1px solid var(--field-border); border-radius: 7px; color: var(--txt-2); font-family: 'Commissioner', sans-serif; font-size: 12px; padding: 8px 12px; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
-.pl-toggle-all:hover { border-color: var(--cognac); color: var(--txt); }
-.pl-acc { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(58,50,40,0.04); }
-.pl-acc-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: var(--accent-soft); border-bottom: 1px solid var(--cognac-border); cursor: pointer; user-select: none; -webkit-user-select: none; }
-.pl-acc.closed .pl-acc-head { border-bottom: none; }
-.pl-acc-title { flex: 1; font-family: 'Tenor Sans', serif; font-size: 15px; color: var(--txt); }
-.pl-acc-count { font-size: 11px; color: var(--txt-3); background: var(--surface-2); border-radius: 10px; padding: 1px 9px; }
-.pl-acc-chev { width: 16px; height: 16px; color: var(--cognac); transition: transform 0.2s; flex-shrink: 0; }
-.pl-acc.closed .pl-acc-chev { transform: rotate(-90deg); }
-.pl-acc.closed .pl-acc-body { display: none; }
-.pl-card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 0; overflow: hidden; box-shadow: 0 1px 2px rgba(58,50,40,0.05), 0 6px 16px rgba(58,50,40,0.05); }
+.pl-wrap { max-width: 860px; margin: 0 auto; }
+.pl-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.pl-tab { flex: 1; text-align: center; padding: 12px; border-radius: 10px; background: transparent; border: 1px solid var(--field-border); color: var(--txt-2); font-family: 'Commissioner', sans-serif; font-size: 15px; cursor: pointer; transition: all 0.15s; }
+.pl-tab:hover { border-color: var(--cognac); }
+.pl-tab.active { background: var(--accent-soft); border-color: var(--cognac); color: var(--leather); }
+[data-theme="dark"] .pl-tab.active { color: var(--txt); }
+.pl-searchbar { display: flex; align-items: center; gap: 9px; background: var(--surface-2); border: 1px solid var(--field-border); border-radius: 10px; padding: 11px 14px; margin-bottom: 12px; }
+.pl-searchbar svg { width: 16px; height: 16px; stroke-width: 1.8; color: var(--cognac); flex-shrink: 0; }
+.pl-searchbar input { flex: 1; min-width: 0; background: none; border: none; outline: none; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 14px; }
+.pl-searchbar input::placeholder { color: var(--txt-3); }
+.pl-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.pl-filter { padding: 7px 14px; border-radius: 18px; border: 1px solid var(--field-border); background: transparent; color: var(--txt-2); font-family: 'Commissioner', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+.pl-filter:hover { border-color: var(--cognac); }
+.pl-filter.active { background: var(--cognac); border-color: var(--cognac); color: #fff; }
+.pl-cards { display: flex; flex-direction: column; gap: 10px; }
+.pl-scard { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: background 0.12s, box-shadow 0.12s; }
+.pl-scard:hover { background: var(--hover); }
+.pl-scard.pl-lit { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--cognac); }
+.pl-scard-name { font-size: 14px; color: var(--txt); line-height: 1.35; }
+.pl-scard-hint { font-size: 11px; color: var(--txt-3); margin-top: 3px; line-height: 1.4; }
+.pl-scard-foot { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 9px; }
+.pl-scard-price { font-family: 'Tenor Sans', serif; font-size: 17px; color: var(--cognac); white-space: nowrap; }
+.pl-scard-price .pl-unit { font-family: 'Commissioner', sans-serif; font-size: 11px; color: var(--txt-3); }
+.pl-scard-term { font-size: 11px; color: var(--txt-3); white-space: nowrap; }
 .pl-card-label { display: flex; align-items: center; font-family: 'Tenor Sans', serif; font-size: 14px; letter-spacing: 0.01em; color: var(--txt); background: var(--accent-soft); padding: 13px 18px; border-bottom: 1px solid var(--cognac-border); cursor: grab; user-select: none; -webkit-user-select: none; }
 .pl-card-label:active { cursor: grabbing; }
 .pl-grip { display: inline-flex; color: var(--cognac); margin-right: 9px; opacity: 0.6; flex-shrink: 0; }
@@ -769,7 +779,7 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 }
 
 /* ═══════════════ НАЛАШТУВАННЯ ═══════════════ */
-.price-row { display: grid; grid-template-columns: 1fr 90px 100px 40px; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line-soft); }
+.price-row { display: grid; grid-template-columns: 1fr 76px 84px 74px 40px; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line-soft); }
 .price-row:last-of-type { border-bottom: none; }
 .price-row.hidden-row { opacity: 0.5; }
 .price-name { font-size: 13px; color: var(--txt); }
@@ -813,7 +823,7 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .param-input { max-width: 90px; text-align: right; }
 
 @media (max-width: 768px) {
-  .price-row { grid-template-columns: 1fr 78px 38px; }
+  .price-row { grid-template-columns: 1fr 64px 56px 34px; }
   .price-row .price-unit { display: none; }
   .price-add { flex-wrap: wrap; }
 }
@@ -2835,6 +2845,19 @@ async function saveEditOrder() {
 /* ═══════════════ ВКЛАДКА ОНЛАЙН-ПРАЙС (для консультацій) ═══════════════ */
 let plCat = "";
 let plSearch = "";
+let plDept = "";
+function setPlDept(d) { plDept = d; renderers.pricelist(); }
+function plDays(n) {
+  const a = n % 10, b = n % 100;
+  if (a === 1 && b !== 11) return "день";
+  if (a >= 2 && a <= 4 && (b < 10 || b >= 20)) return "дні";
+  return "днів";
+}
+function plTermText(t) {
+  const s = String(t).trim();
+  if (/^\d+$/.test(s)) { const n = parseInt(s); return n + " " + plDays(n); }
+  return s;
+}
 
 /* Розкладка карток прайсу по колонках — зберігається в цьому браузері (перетягуванням) */
 function plLayoutKey(catKey) { return "rw_pl_layout_" + catKey; }
@@ -2882,75 +2905,58 @@ renderers.pricelist = function() {
   if (!plCat || !PRICE[plCat]) plCat = cats[0];
 
   const q = plSearch.trim().toLowerCase();
-  const catPills = cats.map(k =>
-    "<button class='cr-pill" + (plCat===k?" active":"") + "' onclick=\"setPlCat('" + k + "')\">" + PRICE[k].label + "</button>"
+  const tabs = cats.map(k =>
+    "<button class='pl-tab" + (plCat===k?" active":"") + "' onclick=\"setPlCat('" + k + "')\">" + PRICE[k].label + "</button>"
   ).join("");
 
+  const depts = Object.keys(PRICE[plCat].departments);
+  if (plDept && !depts.includes(plDept)) plDept = "";
+  const filters = "<button class='pl-filter" + (!plDept?" active":"") + "' onclick=\"setPlDept('')\">Усі</button>" +
+    depts.map(d => "<button class='pl-filter" + (plDept===d?" active":"") + "' onclick=\"setPlDept('" + d.replace(/'/g,"\\'") + "')\">" + d + "</button>").join("");
+
   let found = 0;
-  function accHTML(catKey, dept, prefix) {
-    const cat = PRICE[catKey];
-    const items = (cat.departments[dept] || []).filter(s =>
-      s.active !== false && (!q || s.name.toLowerCase().includes(q) || dept.toLowerCase().includes(q))
-    );
-    if (!items.length) return "";
-    found += items.length;
-    const rows = items.map(s => {
-      const hint = svcHint(s.name);
-      return "<div class='pl-row' onclick=\"this.classList.toggle('pl-lit')\">" +
-        "<div class='pl-name'>" + s.name +
-          (hint ? "<div class='pl-hint'>" + hint + "</div>" : "") +
-        "</div>" +
-        "<div class='pl-meta'>" +
-          "<div class='pl-price'>" + s.price.toLocaleString("uk-UA") + " ₴" +
-            (s.unit ? "<span class='pl-unit'>/ " + s.unit + "</span>" : "") +
-          "</div>" +
-          (s.term ? "<div class='pl-term'>⏱ " + s.term + "</div>" : "") +
-        "</div>" +
-      "</div>";
-    }).join("");
-    const title = (prefix ? cat.label + " · " : "") + dept;
-    const chev = "<svg class='pl-acc-chev' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>";
-    return "<div class='pl-acc'>" +
-      "<div class='pl-acc-head' onclick=\"this.parentElement.classList.toggle('closed')\">" +
-        "<span class='pl-acc-title'>" + title + "</span>" +
-        "<span class='pl-acc-count'>" + items.length + "</span>" + chev +
+  function cardFor(s) {
+    found++;
+    const hint = svcHint(s.name);
+    return "<div class='pl-scard' onclick=\"this.classList.toggle('pl-lit')\">" +
+      "<div class='pl-scard-name'>" + s.name + "</div>" +
+      (hint ? "<div class='pl-scard-hint'>" + hint + "</div>" : "") +
+      "<div class='pl-scard-foot'>" +
+        "<div class='pl-scard-price'>" + s.price.toLocaleString("uk-UA") + " ₴" +
+          (s.unit ? "<span class='pl-unit'> / " + s.unit + "</span>" : "") + "</div>" +
+        (s.term ? "<div class='pl-scard-term'>⏱ " + plTermText(s.term) + "</div>" : "") +
       "</div>" +
-      "<div class='pl-acc-body'>" + rows + "</div>" +
     "</div>";
   }
 
-  let body = "";
+  let cardsHTML = "";
   if (q) {
-    let acc = "";
-    cats.forEach(catKey => Object.keys(PRICE[catKey].departments).forEach(dept => { acc += accHTML(catKey, dept, true); }));
-    body = found ? "<div class='pl-list'>" + acc + "</div>" : "<div class='orders-empty'>Нічого не знайдено</div>";
+    cats.forEach(catKey => Object.keys(PRICE[catKey].departments).forEach(dept => {
+      PRICE[catKey].departments[dept].forEach(s => {
+        if (s.active === false) return;
+        if (s.name.toLowerCase().includes(q) || dept.toLowerCase().includes(q)) cardsHTML += cardFor(s);
+      });
+    }));
   } else {
-    let acc = "";
-    Object.keys(PRICE[plCat].departments).forEach(dept => { acc += accHTML(plCat, dept, false); });
-    body = found ? "<div class='pl-list'>" + acc + "</div>" : "<div class='orders-empty'>Прайс порожній</div>";
+    (plDept ? [plDept] : depts).forEach(dept => {
+      PRICE[plCat].departments[dept].forEach(s => { if (s.active !== false) cardsHTML += cardFor(s); });
+    });
   }
+
+  const searchSVG = "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>";
 
   page.innerHTML =
-    "<div class='page-header'><div class='page-title'>Прайс</div>" +
-      "<div class='search-box'>" +
-        "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>" +
-        "<input type='text' placeholder='Пошук послуги...' value=\"" + plSearch.replace(/"/g,"&quot;") + "\" oninput='onPlSearch(this.value)'>" +
-      "</div>" +
-    "</div>" +
-    "<div class='tab-scroll'>" +
-      (q ? "" : "<div class='pl-toolbar'><div class='cr-pills'>" + catPills + "</div>" +
-        "<button class='pl-toggle-all' onclick='plToggleAll()'>Згорнути / розгорнути все</button></div>") +
-      body +
-    "</div>";
+    "<div class='page-header'><div class='page-title'>Прайс</div></div>" +
+    "<div class='tab-scroll'><div class='pl-wrap'>" +
+      "<div class='pl-tabs'>" + tabs + "</div>" +
+      "<div class='pl-searchbar'>" + searchSVG +
+        "<input type='text' placeholder='Пошук послуги…' value=\"" + plSearch.replace(/"/g,"&quot;") + "\" oninput='onPlSearch(this.value)'></div>" +
+      (q ? "" : "<div class='pl-filters'>" + filters + "</div>") +
+      (found ? "<div class='pl-cards'>" + cardsHTML + "</div>" : "<div class='orders-empty'>Нічого не знайдено</div>") +
+    "</div></div>";
 };
 
-function plToggleAll() {
-  const accs = document.querySelectorAll("#page-pricelist .pl-acc");
-  const anyOpen = Array.from(accs).some(a => !a.classList.contains("closed"));
-  accs.forEach(a => a.classList.toggle("closed", anyOpen));
-}
-
-function setPlCat(k) { plCat = k; renderers.pricelist(); }
+function setPlCat(k) { plCat = k; plDept = ""; renderers.pricelist(); }
 function onPlSearch(v) { plSearch = v; renderers.pricelist(); }
 
 /* ═══════════════ ВКЛАДКА НАЛАШТУВАННЯ ═══════════════ */
@@ -3005,12 +3011,15 @@ function renderPriceEditor() {
       const sName = s.name.replace(/'/g,"\\'");
       const pKey = "p|" + priceOpenCat + "|" + dept + "|" + s.name;
       const aKey = "a|" + priceOpenCat + "|" + dept + "|" + s.name;
+      const tKey = "t|" + priceOpenCat + "|" + dept + "|" + s.name;
       const pend = pendingPrice[pKey];
       const aPend = pendingPrice[aKey];
+      const tPend = pendingPrice[tKey];
       const shownActive = aPend ? aPend.newValue : (s.active !== false);
       const shownPrice = pend ? pend.newValue : s.price;
+      const shownTerm = tPend ? tPend.newValue : (s.term || "");
 
-      return "<div class='price-row" + (shownActive ? "" : " hidden-row") + (pend || aPend ? " pending" : "") + "'>" +
+      return "<div class='price-row" + (shownActive ? "" : " hidden-row") + (pend || aPend || tPend ? " pending" : "") + "'>" +
         "<span class='price-name'>" + s.name +
           (shownActive ? "" : " <span class='price-hidden-tag'>приховано</span>") +
           (pend ? " <span class='price-was'>було " + s.price + " ₴</span>" : "") +
@@ -3018,6 +3027,8 @@ function renderPriceEditor() {
         "<span class='price-unit'>" + (s.unit || "") + "</span>" +
         "<input class='price-input' type='number' value='" + shownPrice + "' " +
           "onchange=\"stagePrice('" + priceOpenCat + "','" + dEsc + "','" + sName + "',this.value)\">" +
+        "<input class='price-input' type='number' value='" + shownTerm + "' placeholder='дн' title='Термін, днів' " +
+          "onchange=\"stageTerm('" + priceOpenCat + "','" + dEsc + "','" + sName + "',this.value)\">" +
         "<button class='price-btn' title='" + (shownActive?"Приховати":"Показати") + "' " +
           "onclick=\"stageActive('" + priceOpenCat + "','" + dEsc + "','" + sName + "'," + (shownActive?"false":"true") + ")\">" +
           (shownActive ? "🚫" : "👁") + "</button>" +
@@ -3034,6 +3045,7 @@ function renderPriceEditor() {
         "<span class='price-name'>" + ch.name + " <span class='price-new-tag'>нова</span></span>" +
         "<span class='price-unit'>" + (ch.unit || "") + "</span>" +
         "<span class='price-input-static'>" + ch.newValue + " ₴</span>" +
+        "<span class='price-input-static'>" + (ch.term ? ch.term + " дн" : "—") + "</span>" +
         "<button class='price-btn' title='Прибрати' onclick=\"cancelPending('" + k.replace(/'/g,"\\'") + "')\">×</button>" +
       "</div>";
     }).join("");
@@ -3043,8 +3055,9 @@ function renderPriceEditor() {
       rows + newRows +
       "<div class='price-add'>" +
         "<input class='ic-mini' id='pa-name-" + id + "' placeholder='Нова послуга'>" +
-        "<input class='ic-mini' style='max-width:110px' id='pa-unit-" + id + "' placeholder='Одиниця'>" +
-        "<input class='ic-mini' style='max-width:100px' type='number' id='pa-price-" + id + "' placeholder='₴'>" +
+        "<input class='ic-mini' style='max-width:100px' id='pa-unit-" + id + "' placeholder='Одиниця'>" +
+        "<input class='ic-mini' style='max-width:80px' type='number' id='pa-price-" + id + "' placeholder='₴'>" +
+        "<input class='ic-mini' style='max-width:72px' type='number' id='pa-term-" + id + "' placeholder='дн'>" +
         "<button class='ic-manual-add' onclick=\"stageAdd('" + priceOpenCat + "','" + dEsc + "')\">+</button>" +
       "</div>" +
     "</div>";
@@ -3094,20 +3107,35 @@ function stageActive(cat, dept, name, makeActive) {
   renderPriceEditor();
 }
 
+function stageTerm(cat, dept, name, value) {
+  const s = findPriceSvc(cat, dept, name);
+  if (!s) return;
+  const raw = String(value).trim();
+  const key = "t|" + cat + "|" + dept + "|" + name;
+  const cur = String(s.term || "").trim();
+  if (raw !== "" && (isNaN(parseInt(raw)) || parseInt(raw) < 0)) { toast("Термін — число днів"); renderPriceEditor(); return; }
+  const norm = raw === "" ? "" : String(parseInt(raw));
+  if (norm === cur) delete pendingPrice[key];
+  else pendingPrice[key] = { type: "term", cat, dept, name, oldValue: cur, newValue: norm };
+  renderPriceEditor();
+}
+
 function stageAdd(cat, dept) {
   const id = hashId(cat + dept);
   const nameEl = document.getElementById("pa-name-" + id);
   const unitEl = document.getElementById("pa-unit-" + id);
   const priceEl = document.getElementById("pa-price-" + id);
+  const termEl = document.getElementById("pa-term-" + id);
   const name = nameEl.value.trim();
   const unit = unitEl.value.trim();
   const price = parseInt(priceEl.value || "0");
+  const term = termEl && termEl.value.trim() ? String(parseInt(termEl.value)) : "";
   if (!name) { toast("Вкажіть назву послуги"); return; }
   if (!price) { toast("Вкажіть ціну"); return; }
   if (findPriceSvc(cat, dept, name)) { toast("Така послуга вже є"); return; }
   const key = "n|" + cat + "|" + dept + "|" + name;
-  pendingPrice[key] = { type: "add", cat, dept, name, unit, newValue: price };
-  nameEl.value = ""; unitEl.value = ""; priceEl.value = "";
+  pendingPrice[key] = { type: "add", cat, dept, name, unit, term, newValue: price };
+  nameEl.value = ""; unitEl.value = ""; priceEl.value = ""; if (termEl) termEl.value = "";
   renderPriceEditor();
 }
 
@@ -3133,8 +3161,14 @@ function openPriceConfirm() {
       return "<div class='chg-row'><span class='chg-name'>" + ch.name + "</span>" +
         "<span class='chg-val'>" + (ch.newValue ? "показати" : "приховати") + "</span></div>";
     }
+    if (ch.type === "term") {
+      const oldT = ch.oldValue ? ch.oldValue + " дн" : "—";
+      const newT = ch.newValue ? ch.newValue + " дн" : "—";
+      return "<div class='chg-row'><span class='chg-name'>" + ch.name + "</span>" +
+        "<span class='chg-val'>термін <s>" + oldT + "</s> → <b>" + newT + "</b></span></div>";
+    }
     return "<div class='chg-row'><span class='chg-name'>" + ch.name + " <span class='price-new-tag'>нова</span></span>" +
-      "<span class='chg-val'><b>" + ch.newValue + " ₴</b></span></div>";
+      "<span class='chg-val'><b>" + ch.newValue + " ₴</b>" + (ch.term ? " · " + ch.term + " дн" : "") + "</span></div>";
   }).join("");
 
   let ov = document.getElementById("price-confirm");
@@ -3202,9 +3236,12 @@ async function applyPendingPrice() {
     } else if (ch.type === "active") {
       ok = await priceApi("/price/update", { category: ch.cat, department: ch.dept, service: ch.name, active: ch.newValue });
       if (ok) { const s = findPriceSvc(ch.cat, ch.dept, ch.name); if (s) s.active = ch.newValue; }
+    } else if (ch.type === "term") {
+      ok = await priceApi("/price/update", { category: ch.cat, department: ch.dept, service: ch.name, term: ch.newValue });
+      if (ok) { const s = findPriceSvc(ch.cat, ch.dept, ch.name); if (s) s.term = ch.newValue; }
     } else {
-      ok = await priceApi("/price/add", { category: ch.cat, department: ch.dept, service: ch.name, unit: ch.unit, price: ch.newValue });
-      if (ok) PRICE[ch.cat].departments[ch.dept].push({ name: ch.name, price: ch.newValue, unit: ch.unit, active: true });
+      ok = await priceApi("/price/add", { category: ch.cat, department: ch.dept, service: ch.name, unit: ch.unit, price: ch.newValue, term: ch.term || "" });
+      if (ok) PRICE[ch.cat].departments[ch.dept].push({ name: ch.name, price: ch.newValue, unit: ch.unit, active: true, term: ch.term || "" });
     }
     if (ok) delete pendingPrice[k]; else failed++;
   }
