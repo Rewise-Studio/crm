@@ -184,6 +184,10 @@ body {
   justify-content: space-between;
   flex-shrink: 0;
 }
+.grp-switch { display: flex; gap: 8px; padding: 16px 28px 0; }
+.grp-tab { padding: 8px 16px; border-radius: 18px; border: 1px solid var(--field-border); background: transparent; color: var(--txt-2); font-family: 'Commissioner', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+.grp-tab:hover { border-color: var(--cognac); }
+.grp-tab.active { background: var(--cognac); border-color: var(--cognac); color: #fff; }
 .page-title { font-family: 'Tenor Sans', serif; font-size: 20px; color: var(--txt); }
 
 .btn-primary {
@@ -458,6 +462,15 @@ body {
 .d-pay-total .pv { font-family: 'Tenor Sans', serif; font-size: 17px; color: var(--txt); }
 .d-settle-btn { width: 100%; margin-top: 14px; background: var(--cognac); border: none; border-radius: 8px; color: #fff; font-family: 'Commissioner', sans-serif; font-size: 12px; padding: 11px; cursor: pointer; transition: background 0.15s; }
 .d-settle-btn:hover { background: var(--leather); }
+.d-exec { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line-soft); }
+.d-exec-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
+.d-exec-row .pl { color: var(--txt-2); }
+.d-exec-row .pv { color: var(--txt); }
+.d-exec-btns { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.d-work-btn { flex: 1; min-width: 140px; background: transparent; border: 1px solid var(--cognac-border); border-radius: 8px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 12px; padding: 10px; cursor: pointer; transition: all 0.15s; }
+.d-work-btn:hover { background: var(--accent-soft); }
+.d-issue-btn { flex: 1; min-width: 140px; background: var(--cognac); border: none; border-radius: 8px; color: #fff; font-family: 'Commissioner', sans-serif; font-size: 12px; padding: 10px; cursor: pointer; transition: background 0.15s; }
+.d-issue-btn:hover { background: var(--leather); }
 .d-bonus-hint { font-size: 11px; color: var(--txt-3); margin-top: 10px; font-style: italic; }
 .settle-methods { display: flex; gap: 8px; margin: 12px 0; }
 .settle-methods .cr-pill { flex: 1; text-align: center; }
@@ -1012,6 +1025,7 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 
 @media (max-width: 768px) {
   .page-header { padding: 18px 18px; }
+  .grp-switch { padding: 14px 18px 0; }
   .filters { padding: 0 18px 12px; }
   .order-row {
     grid-template-columns: 52px 1.4fr 1fr 82px;
@@ -1066,13 +1080,9 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     Створити
   </button>
-  <button class="nav-item active" data-page="orders" onclick="showPage('orders')">
+  <button class="nav-item active" data-page="worklist" onclick="showPage('worklist')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg>
     Замовлення
-  </button>
-  <button class="nav-item" data-page="tailor" onclick="showPage('tailor')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
-    Виготовлення
   </button>
   <button class="nav-item" data-page="pricelist" onclick="showPage('pricelist')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
@@ -1083,22 +1093,14 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     Клієнти
   </button>
-  <button class="nav-item" data-page="finance" onclick="showPage('finance')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M14.8 9A2 2 0 0 0 13 8h-2a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4h-2a2 2 0 0 1-1.8-1"/><line x1="12" y1="6" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="18"/></svg>
-    Фінанси
-  </button>
-  <button class="nav-item" data-page="stats" onclick="showPage('stats')">
+  <button class="nav-item" data-page="analytics" onclick="showPage('analytics')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="13"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="9"/></svg>
-    Статистика
+    Аналітика
   </button>
   <div class="nav-div"></div>
-  <button class="nav-item" data-page="tasks" onclick="showPage('tasks')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 20 6"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>
-    Задачі
-  </button>
-  <button class="nav-item" data-page="calendar" onclick="showPage('calendar')">
+  <button class="nav-item" data-page="planning" onclick="showPage('planning')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="3" y1="11" x2="21" y2="11"/></svg>
-    Календар
+    Планування
   </button>
   <div class="nav-div"></div>
   <button class="nav-item admin-only" data-page="settings" onclick="showPage('settings')">
@@ -1267,21 +1269,42 @@ function toggleTheme() {
 
 /* ═══════════════ РОУТИНГ ═══════════════ */
 let currentPage = "orders";
+/* Об'єднані розділи: одна іконка → внутрішні вкладки */
+const NAV_GROUP = { orders: "worklist", tailor: "worklist", finance: "analytics", stats: "analytics", tasks: "planning", calendar: "planning" };
+const GROUP_DEFAULT = { worklist: "orders", analytics: "finance", planning: "tasks" };
+const groupTab = { worklist: "orders", analytics: "finance", planning: "tasks" };
 function showPage(name) {
+  // Вхід у групу → відкриваємо запам'ятовану/типову вкладку
+  if (GROUP_DEFAULT[name]) name = groupTab[name] || GROUP_DEFAULT[name];
   currentPage = name;
+  const grp = NAV_GROUP[name];
+  if (grp) groupTab[grp] = name;
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   document.querySelectorAll(".nav-item").forEach(t => t.classList.remove("active"));
-  document.getElementById("page-" + name).classList.add("active");
-  document.querySelector('.nav-item[data-page="' + name + '"]').classList.add("active");
+  const pageEl = document.getElementById("page-" + name);
+  if (pageEl) pageEl.classList.add("active");
+  const navBtn = document.querySelector('.nav-item[data-page="' + (grp || name) + '"]');
+  if (navBtn) navBtn.classList.add("active");
   if (renderers[name]) renderers[name]();
   if (typeof tickClock === "function") tickClock();
+}
+/* Перемикач вкладок усередині об'єднаного розділу */
+function groupSwitcher(group) {
+  const tabs = group === "worklist"
+    ? [["orders","Ремонт"],["tailor","Виготовлення"]]
+    : group === "analytics"
+    ? [["finance","Фінанси"],["stats","Статистика"]]
+    : [["tasks","Задачі"],["calendar","Календар"]];
+  return "<div class='grp-switch'>" + tabs.map(t =>
+    "<button class='grp-tab" + (currentPage===t[0]?" active":"") + "' onclick=\"showPage('" + t[0] + "')\">" + t[1] + "</button>"
+  ).join("") + "</div>";
 }
 
 /* Рендерери сторінок — заповнюються нижче по шарах */
 const renderers = {};
 
 /* ═══════════════ ШАР ДАНИХ ═══════════════ */
-let ORDERS = [], ITEMS = [], PARTNERS = [], TASKS = [], TAILOR = [], SETTINGS = {}, VYDY = [], BRANDS = [];
+let ORDERS = [], ITEMS = [], PARTNERS = [], TASKS = [], TAILOR = [], SETTINGS = {}, VYDY = [], BRANDS = [], MASTERS = [];
 let ordersFilter = "all", ordersSearch = "";
 let dataLoaded = false;
 
@@ -1344,7 +1367,7 @@ async function parsePartners(res) {
 async function loadData() {
   try {
     const base = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&sheet=";
-    const [r1, r2, r3, r4, r5, r6, r7, r8] = await Promise.all([
+    const [r1, r2, r3, r4, r5, r6, r7, r8, r9] = await Promise.all([
       fetch(base + encodeURIComponent("Замовлення")),
       fetch(base + encodeURIComponent("Вироби")),
       fetch(base + encodeURIComponent("Партнери")),
@@ -1352,10 +1375,11 @@ async function loadData() {
       fetch(base + encodeURIComponent("Виготовлення")).catch(() => null),
       fetch(base + encodeURIComponent("Налаштування")).catch(() => null),
       fetch(base + encodeURIComponent("Види")).catch(() => null),
-      fetch(base + encodeURIComponent("Бренди")).catch(() => null)
+      fetch(base + encodeURIComponent("Бренди")).catch(() => null),
+      fetch(base + encodeURIComponent("Майстри")).catch(() => null)
     ]);
     ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер","Спосіб передоплати","Сума доплати","Спосіб доплати","Сповіщено","Нараховано бонусів","Списано бонусів","Рейтинг вручну"]);
-    ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено"]);
+    ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено","Майстер","Хто видав"]);
     PARTNERS = await parsePartners(r3);
     if (!PARTNERS.length) PARTNERS = ["Сергій"];
     if (r4) { try { TASKS = await parseTasks(r4); } catch(e) { TASKS = []; } }
@@ -1363,6 +1387,7 @@ async function loadData() {
     if (r6) { try { await parseSettings(r6); } catch(e) {} }
     if (r7) { try { VYDY = await parseVydy(r7); } catch(e) { VYDY = []; } }
     if (r8) { try { BRANDS = await parseBrands(r8); } catch(e) { BRANDS = []; } }
+    if (r9) { try { MASTERS = await parseMasters(r9); } catch(e) { MASTERS = []; } }
     dataLoaded = true;
   } catch(e) {
     console.error("loadData error:", e);
@@ -1454,8 +1479,27 @@ async function parseVydy(res) {
     }).filter(v => v["Тип"] && v["Категорія"]);
   } catch(e) { return []; }
 }
-async function parseBrands(res) {
+/* Лист «Майстри»: Майстер | Ставка/год */
+async function parseMasters(res) {
   try {
+    const text = await res.text();
+    const start = text.indexOf("{"), end = text.lastIndexOf("}");
+    if (start === -1) return [];
+    const json = JSON.parse(text.substring(start, end + 1));
+    if (!json.table || !json.table.rows) return [];
+    const out = [];
+    json.table.rows.forEach(row => {
+      const c = row.c || [];
+      const name = c[0] && c[0].v != null ? String(c[0].v).trim() : "";
+      const rate = c[1] && c[1].v != null ? String(c[1].v).trim() : "";
+      if (name && name.toLowerCase() !== "майстер") out.push({ name: name, rate: rate });
+    });
+    return out;
+  } catch(e) { return []; }
+}
+function masterNames() { return MASTERS.map(m => m.name); }
+
+async function parseBrands(res) {  try {
     const text = await res.text();
     const start = text.indexOf("{"), end = text.lastIndexOf("}");
     if (start === -1) return [];
@@ -2251,8 +2295,9 @@ renderers.orders = function() {
   ).join("");
 
   page.innerHTML =
+    groupSwitcher("worklist") +
     "<div class='page-header'>" +
-      "<div class='page-title'>Замовлення</div>" +
+      "<div class='page-title'>Замовлення на ремонт</div>" +
       "<button class='btn-primary' onclick=\"showPage('create')\"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='5' x2='12' y2='19'/><line x1='5' y1='12' x2='19' y2='12'/></svg>Нове замовлення</button>" +
     "</div>" +
     "<div class='filters'>" + tabs +
@@ -2586,6 +2631,7 @@ renderers.finance = function() {
   const totalAvg = totalCount ? Math.round(totalRevenue / totalCount) : 0;
 
   page.innerHTML =
+    groupSwitcher("analytics") +
     "<div class='page-header'><div class='page-title'>Фінанси</div></div>" +
     "<div class='tab-scroll'>" +
       periodTabsHTML("finance") +
@@ -2669,6 +2715,7 @@ renderers.stats = function() {
   window._topClientsByCount = topClientsByCount;
 
   page.innerHTML =
+    groupSwitcher("analytics") +
     "<div class='page-header'><div class='page-title'>Статистика</div></div>" +
     "<div class='tab-scroll'>" +
       periodTabsHTML("stats") +
@@ -2746,6 +2793,7 @@ renderers.tasks = function() {
     "<span class='task-order-chip'>" + taskAddOrder + "<button onclick='clearTaskOrder()'>×</button></span>" : "";
 
   page.innerHTML =
+    groupSwitcher("planning") +
     "<div class='page-header'><div class='page-title'>Задачі</div></div>" +
     "<div class='tab-scroll'>" +
       "<div class='task-add-form'>" +
@@ -3510,6 +3558,7 @@ renderers.tailor = function() {
   }).join("");
 
   page.innerHTML =
+    groupSwitcher("worklist") +
     "<div class='page-header'><div class='page-title'>Виготовлення</div>" +
       "<button class='btn-primary' onclick='openTailorCreate()'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='5' x2='12' y2='19'/><line x1='5' y1='12' x2='19' y2='12'/></svg>Нове замовлення</button>" +
     "</div>" +
@@ -4287,6 +4336,7 @@ renderers.calendar = function() {
     "<button class='mt-btn" + (calFilter===k?" active":"") + "' onclick=\"setCalFilter('" + k + "')\">" + label + "</button>";
 
   page.innerHTML =
+    groupSwitcher("planning") +
     "<div class='page-header'><div class='page-title'>Календар</div></div>" +
     "<div class='tab-scroll'>" +
       "<div class='cal-head'>" +
@@ -4467,11 +4517,29 @@ function openOrder(num) {
     const notifyCheck = "<label class='d-notify-check' onclick=\"toggleNotified('" + itemNum + "'," + idx + ",event)\">" +
       "<span class='d-check" + (notified ? " on" : "") + "'>" + (notified ? "✓" : "") + "</span>" +
       (notified ? "Сповіщено " + notified : "Позначити, що сповіщено") + "</label>";
+
+    // Виконавці: хто взяв у роботу / хто видав
+    const master = gv(it,"Майстер");
+    const issuedBy = gv(it,"Хто видав");
+    const dWork = gv(it,"Дата в роботі");
+    const dIssue = gv(it,"Дата видачі");
+    const issued = gv(it,"Статус") === "📦 Виданий";
+    let execHTML = "";
+    if (master) execHTML += "<div class='d-exec-row'><span class='pl'>У роботі</span><span class='pv'>" + master + (dWork ? " · " + dWork : "") + "</span></div>";
+    if (issuedBy) execHTML += "<div class='d-exec-row'><span class='pl'>Видав</span><span class='pv'>" + issuedBy + (dIssue ? " · " + dIssue : "") + "</span></div>";
+    let execBtns = "";
+    if (!master) execBtns += "<button class='d-work-btn' onclick=\"openMasterPick('" + num + "'," + idx + ",'work')\">Прийняти в роботу</button>";
+    if (!issued) execBtns += "<button class='d-issue-btn' onclick=\"openMasterPick('" + num + "'," + idx + ",'issue')\">Видати</button>";
+    const execBlock = (execHTML || execBtns)
+      ? "<div class='d-exec'>" + execHTML + (execBtns ? "<div class='d-exec-btns'>" + execBtns + "</div>" : "") + "</div>"
+      : "";
+
     return "<div class='d-item'>" +
       "<div class='d-item-head'><div><span class='d-item-num'>№" + (idx+1) + "</span> <span class='d-item-name'>" + iname + "</span></div>" +
       "<span class='d-item-price'>" + (itemTotal ? itemTotal.toLocaleString("uk-UA") + " ₴" : "—") + "</span></div>" +
       "<div class='d-item-svc'>" + gv(it,"Послуги") + "</div>" +
       "<div class='d-status-row'>" + statusBtns + "</div>" +
+      execBlock +
       notifyCheck +
       "</div>";
   }).join("");
@@ -4645,6 +4713,44 @@ function clientRating(phone) {
     return Object.assign({}, RATING_META.green, { key: "green" });
   }
   return Object.assign({}, RATING_META.yellow, { key: "yellow" });
+}
+
+/* ─── Виконавці: прийняти в роботу / видати з вибором майстра ─── */
+function openMasterPick(num, itemIdx, action) {
+  const body = document.getElementById("odm-body");
+  const title = action === "work" ? "Хто приймає в роботу?" : "Хто видає?";
+  const names = masterNames();
+  const opts = names.length
+    ? names.map(m => "<button class='rating-opt' onclick=\"assignMaster('" + num + "'," + itemIdx + ",'" + action + "','" + m.replace(/'/g,"\\'") + "')\">" + m + "</button>").join("")
+    : "<div class='d-bonus-hint'>Додайте майстрів у лист «Майстри»</div>";
+  const wrap = document.createElement("div");
+  wrap.className = "settle-overlay";
+  wrap.innerHTML =
+    "<div class='settle-card'>" +
+      "<div class='dblock-label'>" + title + "</div>" +
+      "<div class='rating-opts'>" + opts + "</div>" +
+      "<button onclick='closeSettle()' style='width:100%;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:11px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px'>Скасувати</button>" +
+    "</div>";
+  body.appendChild(wrap);
+}
+async function assignMaster(num, itemIdx, action, master) {
+  const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+  const it = its[itemIdx];
+  if (!it) return;
+  const nowVal = new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit",year:"numeric"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
+  const status = action === "work" ? "⚙️ В роботі" : "📦 Виданий";
+  it["Статус"] = status;
+  if (action === "work") { it["Майстер"] = master; it["Дата в роботі"] = nowVal; }
+  else { it["Хто видав"] = master; it["Дата видачі"] = nowVal; }
+  closeSettle();
+  openOrder(num);
+  const itemNum = gv(it,"Номер виробу") || (num + "-" + (itemIdx+1));
+  try {
+    await fetch(API_URL.replace("/order","/status"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ item_num: itemNum, status: status, master: master })
+    });
+  } catch(e) { console.error("assign master failed", e); }
 }
 
 /* Зміна статусу виробу (запис через API) */
