@@ -139,7 +139,8 @@ body {
 .nav-item.active { background: var(--cognac); color: var(--nav-txt-active); }
 .nav-spacer { flex: 1; }
 .nav-div { width: 40px; height: 1px; background: var(--nav-border); margin: 7px 0; flex-shrink: 0; }
-.nav-clock { text-align: center; margin-bottom: 10px; flex-shrink: 0; }
+.nav-clock { text-align: center; margin: 8px 0; flex-shrink: 0; }
+.nav-role-static { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--nav-txt); text-align: center; opacity: 0.75; margin-bottom: 8px; flex-shrink: 0; }
 .nav-analog { width: 58px; height: 58px; display: block; margin: 0 auto; }
 .nav-clock-date { display: none; }
 
@@ -796,8 +797,9 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .pl-filter { padding: 7px 14px; border-radius: 18px; border: 1px solid var(--field-border); background: transparent; color: var(--txt-2); font-family: 'Commissioner', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.15s; }
 .pl-filter:hover { border-color: var(--cognac); }
 .pl-filter.active { background: var(--cognac); border-color: var(--cognac); color: #fff; }
-.pl-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: start; }
-@media (max-width: 720px) { .pl-cards { grid-template-columns: 1fr; } }
+.pl-cards { column-count: 2; column-gap: 10px; }
+.pl-cards .pl-scard { break-inside: avoid; -webkit-column-break-inside: avoid; margin-bottom: 10px; }
+@media (max-width: 720px) { .pl-cards { column-count: 1; } }
 .pl-scard { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: background 0.12s, box-shadow 0.12s; }
 .pl-scard:hover { background: var(--hover); }
 .pl-scard.pl-lit { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--cognac); }
@@ -1029,7 +1031,7 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
   .nav-spacer { display: none; }
   .nav-div { display: none; }
   .nav-clock { display: none; }
-  .role-badge { display: none; }
+  .role-badge, .nav-role-static { display: none; }
   .nav-logout { display: none; }
   .nav-theme {
     width: auto; flex: 1; height: auto; padding: 6px 2px;
@@ -1154,6 +1156,8 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
     <div class="nav-clock-date" id="nav-clock-date"></div>
   </div>
   <div class="nav-mini-cal" id="nav-mini-cal"></div>
+  <div class="nav-spacer"></div>
+  <div class="nav-role-static">Адмін</div>
   <div class="role-badge" id="role-badge"></div>
   <button class="nav-logout" onclick="logout()" title="Вийти">Вихід</button>
   <button class="nav-theme" onclick="toggleTheme()" id="theme-btn" aria-label="Змінити тему">
