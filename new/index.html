@@ -270,6 +270,19 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .itemcard-rm { background: none; border: none; color: var(--txt-3); cursor: pointer; font-size: 17px; line-height: 1; padding: 0; transition: color 0.15s; }
 .itemcard-rm:hover { color: var(--st-postponed-fg); }
 .ic-row { display: flex; gap: 8px; margin-bottom: 9px; }
+.rw-sel { position: relative; margin-bottom: 8px; }
+.rw-sel-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 6px; padding: 9px 12px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 13px; cursor: pointer; text-align: left; }
+.rw-sel-btn.ph { color: var(--txt-3); }
+.rw-sel-chev { width: 15px; height: 15px; color: var(--txt-3); transition: transform 0.15s; flex-shrink: 0; }
+.rw-sel.open .rw-sel-chev { transform: rotate(180deg); }
+.rw-sel-dd { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--surface-2); border: 1px solid var(--field-border); border-radius: 8px; box-shadow: 0 8px 24px rgba(58,50,40,0.14); z-index: 50; max-height: 240px; overflow-y: auto; display: none; }
+.rw-sel.open .rw-sel-dd { display: block; }
+.rw-opt { padding: 9px 12px; font-size: 13px; color: var(--txt); cursor: pointer; }
+.rw-opt:hover { background: var(--hover); }
+.rw-opt.sel { color: var(--cognac); background: var(--accent-soft); }
+.ic-details { margin: 10px 0 4px; }
+.ic-details-toggle { background: none; border: none; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 12px; cursor: pointer; padding: 2px 0; }
+.ic-details-body { margin-top: 8px; padding: 10px 12px; background: var(--field-bg); border: 1px solid var(--line-soft); border-radius: 8px; }
 .ic-field { flex: 1; }
 .ic-field label { display: block; font-size: 10px; color: var(--txt-3); letter-spacing: 0.08em; margin-bottom: 5px; }
 .ic-select, .ic-mini { width: 100%; background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 6px; padding: 9px 11px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 13px; font-weight: 300; outline: none; }
@@ -1342,7 +1355,11 @@ function groupSwitcher(group) {
 const renderers = {};
 
 /* ═══════════════ ШАР ДАНИХ ═══════════════ */
-let ORDERS = [], ITEMS = [], PARTNERS = [], TASKS = [], TAILOR = [], SETTINGS = {}, VYDY = [], BRANDS = [], MASTERS = [];
+let ORDERS = [], ITEMS = [], PARTNERS = [], TASKS = [], TAILOR = [], SETTINGS = {}, VYDY = [], BRANDS = [], MASTERS = [], COLORS = [];
+const DEFAULT_COLORS = ["Чорний","Коричневий","Коньяк","Бежевий","Білий","Сірий","Синій","Бордовий","Зелений"];
+const MATERIALS = ["Шкіра","Замша","Нубук","Текстиль","Лак","Комбінований"];
+const CONDITIONS = ["Новий стан","Гарний стан","Незначні потертості","Потертості","Пошкодження","Сильний знос"];
+const DELIVERY_OPTS = ["Самовивіз","Нова пошта","Кур'єр"];
 let ordersFilter = "all", ordersSearch = "";
 let dataLoaded = false;
 
@@ -1405,7 +1422,7 @@ async function parsePartners(res) {
 async function loadData() {
   try {
     const base = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&sheet=";
-    const [r1, r2, r3, r4, r5, r6, r7, r8, r9] = await Promise.all([
+    const [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10] = await Promise.all([
       fetch(base + encodeURIComponent("Замовлення")),
       fetch(base + encodeURIComponent("Вироби")),
       fetch(base + encodeURIComponent("Партнери")),
@@ -1414,10 +1431,11 @@ async function loadData() {
       fetch(base + encodeURIComponent("Налаштування")).catch(() => null),
       fetch(base + encodeURIComponent("Види")).catch(() => null),
       fetch(base + encodeURIComponent("Бренди")).catch(() => null),
-      fetch(base + encodeURIComponent("Майстри")).catch(() => null)
+      fetch(base + encodeURIComponent("Майстри")).catch(() => null),
+      fetch(base + encodeURIComponent("Кольори")).catch(() => null)
     ]);
     ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер","Спосіб передоплати","Сума доплати","Спосіб доплати","Сповіщено","Нараховано бонусів","Списано бонусів","Рейтинг вручну"]);
-    ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено","Майстер","Хто видав"]);
+    ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено","Майстер","Хто видав","Колір","Матеріал","Стан"]);
     PARTNERS = await parsePartners(r3);
     if (!PARTNERS.length) PARTNERS = ["Сергій"];
     if (r4) { try { TASKS = await parseTasks(r4); } catch(e) { TASKS = []; } }
@@ -1426,6 +1444,7 @@ async function loadData() {
     if (r7) { try { VYDY = await parseVydy(r7); } catch(e) { VYDY = []; } }
     if (r8) { try { BRANDS = await parseBrands(r8); } catch(e) { BRANDS = []; } }
     if (r9) { try { MASTERS = await parseMasters(r9); } catch(e) { MASTERS = []; } }
+    if (r10) { try { COLORS = await parseBrands(r10); } catch(e) { COLORS = []; } }
     dataLoaded = true;
   } catch(e) {
     console.error("loadData error:", e);
@@ -1536,6 +1555,10 @@ async function parseMasters(res) {
   } catch(e) { return []; }
 }
 function masterNames() { return MASTERS.map(m => m.name); }
+function colorList() {
+  const extra = COLORS.filter(c => { const l = c.toLowerCase(); return l !== "колір" && l !== "кольори"; });
+  return Array.from(new Set(DEFAULT_COLORS.concat(extra)));
+}
 
 async function parseBrands(res) {  try {
     const text = await res.text();
@@ -1755,7 +1778,7 @@ function svcHint(name) {
 }
 
 /* ═══════════════ ВКЛАДКА СТВОРИТИ ═══════════════ */
-let NO = { manager: "", client: "", phone: "", messenger: "", items: [], payment: "", prepay: "", prepayMethod: "", deadline: "" };
+let NO = { manager: "", client: "", phone: "", messenger: "", items: [], payment: "", prepay: "", prepayMethod: "", deadline: "", delivery: "Самовивіз" };
 let itemCounter = 0;
 
 /* Оригінальні іконки месенджерів */
@@ -1773,6 +1796,71 @@ function itemServices(item) {
   const c = PRICE[item.category];
   const list = c ? (c.departments[item.department] || []) : [];
   return list.filter(s => s.active !== false);
+}
+
+/* ─── Стилізований випадаючий список ─── */
+function crSelect(id, value, options, handler, opts) {
+  opts = opts || {};
+  const ph = opts.placeholder || "Оберіть…";
+  const argPre = opts.arg != null ? (opts.arg + ",") : "";
+  const label = value || ph;
+  const list = options.map(o => "<div class='rw-opt" + (o===value?" sel":"") + "' onclick=\"" + handler + "(" + argPre + "'" + String(o).replace(/'/g,"\\'") + "');rwSelClose()\">" + o + "</div>").join("");
+  return "<div class='rw-sel' data-sel='" + id + "'>" +
+    "<button type='button' class='rw-sel-btn" + (value?"":" ph") + "' onclick='rwSelToggle(this)'>" +
+      "<span>" + label + "</span>" +
+      "<svg class='rw-sel-chev' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>" +
+    "</button>" +
+    "<div class='rw-sel-dd'>" + list + "</div>" +
+  "</div>";
+}
+function rwSelToggle(btn) {
+  const wrap = btn.parentElement;
+  const open = wrap.classList.contains("open");
+  document.querySelectorAll(".rw-sel.open").forEach(w => w.classList.remove("open"));
+  if (!open) wrap.classList.add("open");
+}
+function rwSelClose() { document.querySelectorAll(".rw-sel.open").forEach(w => w.classList.remove("open")); }
+
+/* Обробники полів форми */
+function setPayVal(v) { NO.payment = v; renderers.create(); }
+function setPayMethodVal(v) { NO.prepayMethod = v; renderers.create(); }
+function setDelivery(v) { NO.delivery = v; }
+function termLabel() {
+  if (NO.deadline === "⚡ Терміново") return "Терміново";
+  if (NO.deadline === "Без терміну") return "Без терміну";
+  if (NO.termMode === "date" || NO.deadline) return "Вказати дату";
+  return "";
+}
+function termShowDate() {
+  return NO.termMode === "date" || (NO.deadline && NO.deadline !== "⚡ Терміново" && NO.deadline !== "Без терміну");
+}
+function setTermVal(v) {
+  if (v === "Терміново") { NO.deadline = "⚡ Терміново"; NO.termMode = "fast"; }
+  else if (v === "Без терміну") { NO.deadline = "Без терміну"; NO.termMode = "none"; }
+  else { NO.termMode = "date"; if (NO.deadline === "⚡ Терміново" || NO.deadline === "Без терміну") NO.deadline = ""; }
+  renderers.create();
+}
+
+/* Деталі речі (колір, матеріал, стан) */
+function toggleItemDetails(id) { const it = NO.items.find(i=>i.id===id); if (it) { it.detailsOpen = !it.detailsOpen; renderItems(); } }
+function setItemMatNote(id, v) { const it = NO.items.find(i=>i.id===id); if (it) { it.matNote = v; renderItems(); } }
+function setItemCondition(id, v) { const it = NO.items.find(i=>i.id===id); if (it) { it.condition = v; renderItems(); } }
+function onItemColorInput(id, v) { const it = NO.items.find(i=>i.id===id); if (it) it.color = v; renderColorDD(id, v); }
+function openColorDD(id) { const it = NO.items.find(i=>i.id===id); renderColorDD(id, it ? it.color : ""); }
+function renderColorDD(id, query) {
+  const dd = document.getElementById("ic-cdd-" + id); if (!dd) return;
+  const q = (query||"").trim().toLowerCase();
+  let list = colorList();
+  if (q) list = list.filter(c => c.toLowerCase().includes(q));
+  list = list.slice(0, 8);
+  if (!list.length) { dd.classList.remove("open"); dd.innerHTML = ""; return; }
+  dd.innerHTML = list.map(c => "<div class='ic-opt' onclick=\"pickColor(" + id + ",'" + c.replace(/'/g,"\\'") + "')\"><span class='o-name'>" + c + "</span></div>").join("");
+  dd.classList.add("open");
+}
+function pickColor(id, c) {
+  const it = NO.items.find(i=>i.id===id); if (it) it.color = c;
+  const inp = document.getElementById("ic-color-" + id); if (inp) inp.value = c;
+  const dd = document.getElementById("ic-cdd-" + id); if (dd) dd.classList.remove("open");
 }
 
 renderers.create = function() {
@@ -1811,24 +1899,16 @@ renderers.create = function() {
             "<div class='cr-msg-pick' id='cr-msg'></div>" +
           "</div>" +
           "<div class='cr-box'>" +
-            "<div class='cr-block-label first'>Оплата та термін</div>" +
-            "<div class='cr-pills' id='cr-pay'>" +
-              "<button class='cr-pill cr-pill-wide" + (NO.payment==='Передоплата'?' active':'') + "' onclick=\"setPay('Передоплата',this)\">Передоплата</button>" +
-              "<button class='cr-pill cr-pill-wide" + (NO.payment==='Післяоплата'?' active':'') + "' onclick=\"setPay('Післяоплата',this)\">Післяоплата</button>" +
-            "</div>" +
+            "<div class='cr-block-label first'>Оплата</div>" +
+            crSelect("pay", NO.payment, ["Передоплата","Післяоплата"], "setPayVal", {placeholder:"Спосіб оплати"}) +
             "<input class='cr-input' id='cr-prepay' type='number' placeholder='Сума передоплати, ₴' style='display:" + (NO.payment==='Передоплата'?'block':'none') + "' value=\"" + (NO.prepay||"") + "\" oninput='NO.prepay=this.value'>" +
-            "<div class='cr-pills' id='cr-prepay-method' style='display:" + (NO.payment==='Передоплата'?'flex':'none') + "'>" +
-              "<button class='cr-pill" + (NO.prepayMethod==='Готівка'?' active':'') + "' onclick=\"setPrepayMethod('Готівка',this)\">Готівка</button>" +
-              "<button class='cr-pill" + (NO.prepayMethod==='Картка'?' active':'') + "' onclick=\"setPrepayMethod('Картка',this)\">Картка</button>" +
-              "<button class='cr-pill" + (NO.prepayMethod==='ФОП'?' active':'') + "' onclick=\"setPrepayMethod('ФОП',this)\">ФОП</button>" +
-            "</div>" +
-            "<div class='cr-pills' id='cr-deadline' style='margin-top:10px'>" +
-              "<button class='cr-pill" + (NO.deadline==='⚡ Терміново'?' active':'') + "' onclick=\"setDeadline('⚡ Терміново',this)\">Терміново</button>" +
-              "<button class='cr-pill" + (NO.deadline==='Без терміну'?' active':'') + "' onclick=\"setDeadline('Без терміну',this)\">Без терміну</button>" +
-              "<button class='cr-pill' onclick=\"setDeadline('date',this)\">Вказати дату</button>" +
-            "</div>" +
-            "<input class='cr-input cr-deadline-date' id='cr-deadline-date' type='date' oninput='onCreateDeadlinePick(this.value)'>" +
+            (NO.payment==='Передоплата' ? crSelect("paymethod", NO.prepayMethod, ["Готівка","Картка","ФОП"], "setPayMethodVal", {placeholder:"Спосіб передоплати"}) : "") +
+            "<div class='cr-block-label'>Термін</div>" +
+            crSelect("term", termLabel(), ["Терміново","Без терміну","Вказати дату"], "setTermVal", {placeholder:"Термін виконання"}) +
+            "<input class='cr-input cr-deadline-date' id='cr-deadline-date' type='date' style='display:" + (termShowDate()?'block':'none') + "' value=\"" + (termShowDate() && NO.deadline ? ddmmToISO(NO.deadline) : "") + "\" oninput='onCreateDeadlinePick(this.value)'>" +
             "<div class='cr-deadline-hint' id='cr-deadline-hint'></div>" +
+            "<div class='cr-block-label'>Спосіб отримання</div>" +
+            crSelect("delivery", NO.delivery || "Самовивіз", DELIVERY_OPTS, "setDelivery", {placeholder:"Самовивіз"}) +
           "</div>" +
           "<div class='cr-box cr-box-full'>" +
             "<div class='cr-block-label first'>Речі та послуги</div>" +
@@ -1971,7 +2051,7 @@ function addItem() {
   if (!priceLoaded) return;
   itemCounter++;
   const cat = firstCategory();
-  NO.items.push({ id: itemCounter, category: cat, department: firstDept(cat), mode: "care", model: "", brand: "", size: "", material: "шкіряна", services: [] });
+  NO.items.push({ id: itemCounter, category: cat, department: firstDept(cat), mode: "care", model: "", brand: "", size: "", material: "шкіряна", services: [], color: "", matNote: "", condition: "", detailsOpen: false });
   renderItems(); updateReceipt();
 }
 function removeItem(id) { NO.items = NO.items.filter(i => i.id !== id); renderItems(); updateReceipt(); }
@@ -2180,6 +2260,21 @@ function renderItems() {
       "</div>" +
       modelRow +
       careBlock +
+      "<div class='ic-details'>" +
+        "<button type='button' class='ic-details-toggle' onclick='toggleItemDetails(" + item.id + ")'>" +
+          (item.detailsOpen ? "− " : "+ ") + "Деталі речі (колір, матеріал, стан)</button>" +
+        (item.detailsOpen ?
+          "<div class='ic-details-body'>" +
+            "<div class='ic-row'>" +
+              "<div class='ic-field'><label>КОЛІР</label><div class='ic-search-wrap'>" +
+                "<input class='ic-mini' id='ic-color-" + item.id + "' placeholder='Оберіть або впишіть' autocomplete='off' value=\"" + (item.color||"").replace(/"/g,"&quot;") + "\" oninput='onItemColorInput(" + item.id + ",this.value)' onfocus='openColorDD(" + item.id + ")'>" +
+                "<div class='ic-dd' id='ic-cdd-" + item.id + "'></div>" +
+              "</div></div>" +
+              "<div class='ic-field'><label>МАТЕРІАЛ</label>" + crSelect("mat" + item.id, item.matNote, MATERIALS, "setItemMatNote", {arg:item.id, placeholder:"Не вказано"}) + "</div>" +
+            "</div>" +
+            "<div class='ic-field'><label>СТАН ПРИ ПРИЙОМІ</label>" + crSelect("cond" + item.id, item.condition, CONDITIONS, "setItemCondition", {arg:item.id, placeholder:"Не вказано"}) + "</div>" +
+          "</div>" : "") +
+      "</div>" +
       "<div class='ic-svclist'>"+svcRows+"</div>" +
       "<div class='ic-otherlabel'>"+otherLabel+"</div>" +
       "<div class='ic-row' style='margin-bottom:8px'><div class='ic-field'><label>ВІДДІЛ</label><select class='ic-select' onchange='changeDept("+item.id+",this.value)'>"+deptOpts+"</select></div></div>" +
@@ -2248,7 +2343,7 @@ function shareReceipt() {
 function cancelCreate() {
   const has = NO.client || NO.phone || (NO.items && NO.items.some(i => i.services && i.services.length));
   if (has && !confirm("Скасувати оформлення? Введені дані зникнуть.")) return;
-  NO = { manager: NO.manager, client:"", phone:"", messenger:"", items:[], payment:"", prepay:"", prepayMethod:"", deadline:"" };
+  NO = { manager: NO.manager, client:"", phone:"", messenger:"", items:[], payment:"", prepay:"", prepayMethod:"", deadline:"", delivery:"Самовивіз" };
   itemCounter = 0;
   showPage("orders");
 }
@@ -2268,6 +2363,23 @@ function restoreDraft() {
   renderers.create();
 }
 function discardDraft() { try { localStorage.removeItem("rw_draft"); } catch(e) {} renderers.create(); }
+
+/* Нові кольори з замовлення — дописуємо в лист «Кольори» */
+async function saveNewColors(items) {
+  const known = new Set(colorList().map(c => c.toLowerCase()));
+  const fresh = [];
+  items.forEach(it => {
+    const c = (it.color || "").trim();
+    if (c && !known.has(c.toLowerCase())) { known.add(c.toLowerCase()); fresh.push(c); COLORS.push(c); }
+  });
+  if (!fresh.length) return;
+  try {
+    await fetch(API_URL.replace("/order","/colors/add"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ colors: fresh })
+    });
+  } catch(e) { console.error("colors add failed", e); }
+}
 
 /* Нові бренди з замовлення — дописуємо в лист «Бренди» */
 async function saveNewBrands(items) {
@@ -2309,6 +2421,7 @@ async function submitOrder() {  if (!NO.manager) { alert("Оберіть при�
   const payload = {
     date: dateStr, manager: NO.manager, client: NO.client, phone: NO.phone,
     payment: paymentStr, deadline: NO.deadline, messenger: NO.messenger || "",
+    delivery: NO.delivery || "Самовивіз",
     prepayMethod: NO.payment === "Передоплата" ? (NO.prepayMethod || "") : "",
     prepay: NO.payment === "Передоплата" && NO.prepay ? parseInt(NO.prepay) : 0,
     items: validItems.map(item => {
@@ -2318,7 +2431,10 @@ async function submitOrder() {  if (!NO.manager) { alert("Оберіть при�
         type: item.model || catLabel,
         brand: item.brand || "",
         services: item.services.map(s=>s.name).join(", "),
-        total: total.toLocaleString("uk-UA") + " ₴"
+        total: total.toLocaleString("uk-UA") + " ₴",
+        color: item.color || "",
+        material: item.matNote || "",
+        condition: item.condition || ""
       };
     })
   };
@@ -2332,8 +2448,9 @@ async function submitOrder() {  if (!NO.manager) { alert("Оберіть при�
     if (result.status === "ok") {
       btn.textContent = "✓ " + (result.order_num || "Збережено");
       saveNewBrands(validItems);
+      saveNewColors(validItems);
       try { localStorage.removeItem("rw_draft"); } catch(e) {}
-      NO = { manager: NO.manager, client:"", phone:"", messenger:"", items:[], payment:"", prepay:"", prepayMethod:"", deadline:"" };
+      NO = { manager: NO.manager, client:"", phone:"", messenger:"", items:[], payment:"", prepay:"", prepayMethod:"", deadline:"", delivery:"Самовивіз" };
       itemCounter = 0;
       setTimeout(() => { loadData(); showPage("orders"); }, 1200);
     } else {
@@ -2347,6 +2464,7 @@ async function submitOrder() {  if (!NO.manager) { alert("Оберіть при�
 /* Закриття dropdown'ів */
 document.addEventListener("click", function(e) {
   if (!e.target.closest(".ic-search-wrap") && !e.target.closest(".task-order-search")) document.querySelectorAll(".ic-dd.open").forEach(dd => dd.classList.remove("open"));
+  if (!e.target.closest(".rw-sel")) document.querySelectorAll(".rw-sel.open").forEach(w => w.classList.remove("open"));
   if (!e.target.closest(".cr-client-suggest")) { const s = document.getElementById("cr-suggest"); if (s) s.classList.remove("open"); }
 });
 
