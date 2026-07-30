@@ -216,27 +216,27 @@ body {
 .stub svg { width: 34px; height: 34px; stroke-width: 1.4; opacity: 0.7; }
 
 /* ═══════════════ ВКЛАДКА СТВОРИТИ (КОШТОРИС) ═══════════════ */
-.create-wrap { display: flex; flex: 1; min-height: 0; }
-.create-left { width: 66%; padding: 8px 28px 40px; overflow-y: auto; }
-.create-right { width: 34%; padding: 8px 26px 40px 4px; }
+.create-wrap { display: flex; flex: 1; min-height: 0; max-width: 1200px; width: 100%; margin: 0 auto; }
+.create-left { width: 64%; padding: 6px 20px 32px; overflow-y: auto; }
+.create-right { width: 36%; padding: 6px 20px 32px 4px; }
 .create-right-sticky { position: sticky; top: 8px; }
 
-.cr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
-.cr-box { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 16px 18px; }
+.cr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+.cr-box { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 12px 14px; }
 .cr-box-full { grid-column: 1 / -1; }
 .cr-box .cr-block-label { margin-top: 16px; }
 .cr-box .cr-block-label.first { margin-top: 0; }
 
-.cr-block-label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cognac); margin: 22px 0 12px; }
-.cr-block-label.first { margin-top: 8px; }
+.cr-block-label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cognac); margin: 14px 0 8px; }
+.cr-block-label.first { margin-top: 6px; }
 
-.cr-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-.cr-pill { padding: 9px 15px; border-radius: 20px; border: 1px solid var(--field-border); background: transparent; color: var(--txt-2); font-family: 'Commissioner', sans-serif; font-size: 13px; font-weight: 300; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.cr-pills { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 9px; }
+.cr-pill { padding: 7px 13px; border-radius: 20px; border: 1px solid var(--field-border); background: transparent; color: var(--txt-2); font-family: 'Commissioner', sans-serif; font-size: 13px; font-weight: 300; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
 .cr-pill:hover { border-color: var(--cognac); color: var(--txt); }
 .cr-pill.active { background: var(--cognac); color: #fff; border-color: var(--cognac); }
 .cr-pill-wide { flex: 1; text-align: center; }
 
-.cr-input { width: 100%; background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 6px; padding: 11px 13px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 14px; font-weight: 300; outline: none; transition: border-color 0.15s; margin-bottom: 9px; }
+.cr-input { width: 100%; background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 6px; padding: 9px 12px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 13px; font-weight: 300; outline: none; transition: border-color 0.15s; margin-bottom: 7px; }
 input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; min-width: 0; max-width: 100%; }
 .cr-input:focus { border-color: var(--cognac); }
 .cr-input::placeholder { color: var(--txt-3); }
@@ -523,7 +523,35 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 }
 .search-box input::placeholder { color: var(--txt-3); }
 
+.cr-head-btns { display: flex; gap: 8px; }
+.cr-head-btn { background: transparent; border: 1px solid var(--field-border); border-radius: 8px; color: var(--txt-2); font-family: 'Commissioner', sans-serif; font-size: 12px; padding: 9px 14px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.cr-head-btn:hover { border-color: var(--cognac); color: var(--txt); }
+.cr-head-btn.primary { background: var(--btn-primary-bg, #3A3228); border-color: transparent; color: #fff; }
+.cr-head-btn.primary:hover { background: var(--leather); color: #fff; }
+.cr-draft-bar { max-width: 1200px; width: 100%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--accent-soft); border: 1px solid var(--cognac-border); border-radius: 8px; padding: 9px 16px; font-size: 12px; color: var(--txt); }
+.cr-draft-bar span { display: flex; gap: 8px; }
+.cr-draft-bar button { background: none; border: 1px solid var(--cognac-border); border-radius: 6px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 11px; padding: 5px 11px; cursor: pointer; }
+@media (max-width: 620px) {
+  .cr-head-btn { padding: 8px 10px; font-size: 11px; }
+  .cr-head-btns { gap: 6px; }
+}
 .orders-scroll { flex: 1; overflow-y: auto; padding: 14px 28px 28px; }
+.orders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 12px; }
+.order-card { background: var(--surface-2); border: 1px solid var(--line); border-left: 3px solid var(--cognac); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: border-color 0.15s, background 0.15s; -webkit-touch-callout: none; }
+.order-card:hover { border-color: var(--field-border); }
+.order-card.important { border-color: #C0392B; background: rgba(192,57,43,0.05); box-shadow: inset 0 0 0 1px rgba(192,57,43,0.3); }
+.ocard-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.ocard-top-right { display: flex; align-items: center; gap: 8px; }
+.ocard-flag { background: none; border: none; padding: 2px; cursor: pointer; color: var(--txt-3); display: flex; }
+.ocard-flag svg { width: 15px; height: 15px; }
+.ocard-flag.on { color: #C0392B; }
+.ocard-name { font-size: 14px; color: var(--txt); }
+.ocard-sub { font-size: 11px; color: var(--txt-3); margin-top: 2px; }
+.ocard-item { font-size: 12px; color: var(--txt-2); margin-top: 6px; }
+.ocard-foot { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line-soft); }
+.ocard-foot .oc-svc { font-size: 11px; color: var(--txt-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ocard-foot .oc-date { font-size: 11px; color: var(--txt-2); white-space: nowrap; }
+.ocard-foot .oc-date.warn { color: var(--st-postponed-fg); }
 .order-row {
   display: grid;
   grid-template-columns: 54px 1.7fr 1.6fr 1.3fr 100px 86px;
@@ -1741,8 +1769,23 @@ renderers.create = function() {
   const page = document.getElementById("page-create");
   if (!NO.manager && PARTNERS.length) NO.manager = PARTNERS[0];
 
+  let draftBar = "";
+  try {
+    const d = localStorage.getItem("rw_draft");
+    const empty = !NO.client && !NO.phone && (!NO.items || !NO.items.length);
+    if (d && empty) draftBar = "<div class='cr-draft-bar'>Є збережена чернетка замовлення." +
+      "<span><button onclick='restoreDraft()'>Відновити</button><button onclick='discardDraft()'>Видалити</button></span></div>";
+  } catch(e) {}
+
   page.innerHTML =
-    "<div class='page-header'><div class='page-title'>Нове замовлення</div></div>" +
+    "<div class='page-header'><div class='page-title'>Нове замовлення</div>" +
+      "<div class='cr-head-btns'>" +
+        "<button class='cr-head-btn' onclick='cancelCreate()'>Скасувати</button>" +
+        "<button class='cr-head-btn' onclick='saveDraft()'>Зберегти чернетку</button>" +
+        "<button class='cr-head-btn primary' onclick='submitOrder()'>Створити замовлення</button>" +
+      "</div>" +
+    "</div>" +
+    draftBar +
     "<div class='create-wrap'>" +
       "<div class='create-left'>" +
         "<div class='cr-grid'>" +
@@ -2191,6 +2234,31 @@ function shareReceipt() {
   }).catch(()=>btn.innerHTML=orig);
 }
 
+/* Скасування оформлення (з підтвердженням) + чернетка (локально) */
+function cancelCreate() {
+  const has = NO.client || NO.phone || (NO.items && NO.items.some(i => i.services && i.services.length));
+  if (has && !confirm("Скасувати оформлення? Введені дані зникнуть.")) return;
+  NO = { manager: NO.manager, client:"", phone:"", messenger:"", items:[], payment:"", prepay:"", prepayMethod:"", deadline:"" };
+  itemCounter = 0;
+  showPage("orders");
+}
+function saveDraft() {
+  try { localStorage.setItem("rw_draft", JSON.stringify(NO)); toast("Чернетку збережено"); }
+  catch(e) { toast("Не вдалося зберегти чернетку"); }
+}
+function restoreDraft() {
+  try {
+    const d = JSON.parse(localStorage.getItem("rw_draft"));
+    if (d) {
+      NO = d;
+      if (!NO.manager && PARTNERS.length) NO.manager = PARTNERS[0];
+      itemCounter = (NO.items || []).reduce((m,i) => Math.max(m, i.id || 0), 0);
+    }
+  } catch(e) {}
+  renderers.create();
+}
+function discardDraft() { try { localStorage.removeItem("rw_draft"); } catch(e) {} renderers.create(); }
+
 /* Нові бренди з замовлення — дописуємо в лист «Бренди» */
 async function saveNewBrands(items) {
   const known = new Set(BRANDS.map(b => b.toLowerCase()));
@@ -2254,6 +2322,7 @@ async function submitOrder() {  if (!NO.manager) { alert("Оберіть при�
     if (result.status === "ok") {
       btn.textContent = "✓ " + (result.order_num || "Збережено");
       saveNewBrands(validItems);
+      try { localStorage.removeItem("rw_draft"); } catch(e) {}
       NO = { manager: NO.manager, client:"", phone:"", messenger:"", items:[], payment:"", prepay:"", prepayMethod:"", deadline:"" };
       itemCounter = 0;
       setTimeout(() => { loadData(); showPage("orders"); }, 1200);
@@ -2331,22 +2400,62 @@ function renderOrdersList() {
     return;
   }
 
-  box.innerHTML = filtered.map(o => {
+  box.innerHTML = "<div class='orders-grid'>" + filtered.map(o => {
     const num = gv(o,"Номер замовлення");
-    const shortNum = num;
     const st = getStatus(num);
     const accent = STATUS_ACCENT[st] || "var(--cognac)";
     const warn = deadlineWarn(o);
     const term = gv(o,"Термін") || "—";
-    return "<div class='order-row" + (warn ? " urgent-soon" : "") + "' style='border-left-color:" + accent + "' onclick=\"openOrder('" + num + "')\">" +
-      "<span class='order-num'>" + shortNum + "</span>" +
-      "<div><div class='oc-name'>" + (gv(o,"Ім'я клієнта") || "—") + "</div><div class='oc-sub'>" + gv(o,"Телефон") + "</div></div>" +
-      "<div><div class='oc-name'>" + orderItemName(num) + "</div><div class='oc-sub'>" + gv(o,"Приймальник") + "</div></div>" +
-      "<div class='oc-svc oc-svc-cell'>" + orderServices(num) + "</div>" +
-      "<span>" + statusBadge(num) + "</span>" +
-      "<span class='oc-date oc-date-cell" + (warn ? " warn" : "") + "'>" + term + "</span>" +
+    const imp = isImportant(num);
+    const flagSvg = "<svg viewBox='0 0 24 24' fill='" + (imp?"currentColor":"none") + "' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 21V4h13l-2 4 2 4H4'/></svg>";
+    return "<div class='order-card" + (warn ? " urgent-soon" : "") + (imp ? " important" : "") + "' data-num=\"" + num + "\" style='border-left-color:" + accent + "' onclick=\"openOrder('" + num + "')\" oncontextmenu=\"toggleImportant('" + num + "',event);return false\">" +
+      "<div class='ocard-top'>" +
+        "<span class='order-num'>" + num + "</span>" +
+        "<div class='ocard-top-right'>" + statusBadge(num) +
+          "<button class='ocard-flag" + (imp?" on":"") + "' onclick=\"toggleImportant('" + num + "',event)\" aria-label='Позначити важливим'>" + flagSvg + "</button>" +
+        "</div>" +
+      "</div>" +
+      "<div class='ocard-name'>" + (gv(o,"Ім'я клієнта") || "—") + "</div>" +
+      "<div class='ocard-sub'>" + gv(o,"Телефон") + (gv(o,"Приймальник") ? " · " + gv(o,"Приймальник") : "") + "</div>" +
+      "<div class='ocard-item'>" + orderItemName(num) + "</div>" +
+      "<div class='ocard-foot'><span class='oc-svc'>" + orderServices(num) + "</span>" +
+        "<span class='oc-date" + (warn ? " warn" : "") + "'>" + term + "</span></div>" +
     "</div>";
-  }).join("");
+  }).join("") + "</div>";
+  bindOrderLongPress();
+}
+
+/* Важливі замовлення — локальна позначка (це пристрій) */
+function importantSet() {
+  try { return new Set(JSON.parse(localStorage.getItem("rw_important") || "[]")); } catch(e) { return new Set(); }
+}
+function isImportant(num) { return importantSet().has(num); }
+function toggleImportant(num, ev) {
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+  const s = importantSet();
+  if (s.has(num)) s.delete(num); else s.add(num);
+  try { localStorage.setItem("rw_important", JSON.stringify([...s])); } catch(e) {}
+  renderOrdersList();
+}
+let _lpSuppressClick = false;
+function bindOrderLongPress() {
+  document.querySelectorAll("#orders-scroll .order-card").forEach(el => {
+    const num = el.getAttribute("data-num");
+    let timer = null;
+    el.addEventListener("touchstart", () => {
+      timer = setTimeout(() => {
+        timer = null; _lpSuppressClick = true;
+        toggleImportant(num);
+        if (navigator.vibrate) navigator.vibrate(18);
+      }, 500);
+    }, { passive: true });
+    const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+    el.addEventListener("touchend", cancel);
+    el.addEventListener("touchmove", cancel);
+    el.addEventListener("click", e => {
+      if (_lpSuppressClick) { e.stopImmediatePropagation(); e.preventDefault(); _lpSuppressClick = false; }
+    }, true);
+  });
 }
 
 /* ═══════════════ ПЕРІОД (спільний для вкладок) ═══════════════ */
