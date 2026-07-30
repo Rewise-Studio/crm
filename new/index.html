@@ -237,6 +237,7 @@ body {
 .cr-pill-wide { flex: 1; text-align: center; }
 
 .cr-input { width: 100%; background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 6px; padding: 11px 13px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 14px; font-weight: 300; outline: none; transition: border-color 0.15s; margin-bottom: 9px; }
+input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; min-width: 0; max-width: 100%; }
 .cr-input:focus { border-color: var(--cognac); }
 .cr-input::placeholder { color: var(--txt-3); }
 
@@ -938,9 +939,8 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
   .nav-theme { width: 36px; height: 32px; }
   .nav-theme svg { width: 15px; height: 15px; }
   .role-badge { font-size: 8px; }
-  /* Годинник одразу під пунктами — без великого проміжку */
-  .nav-spacer { display: none; }
-  .nav-clock { margin-top: 10px; margin-bottom: 8px; }
+  /* Годинник лишається внизу панелі разом з датою */
+  .nav-clock { margin-bottom: 8px; }
   .nav-analog { width: 50px; height: 50px; }
   .nav-clock-date { font-size: 8px; margin-top: 4px; }
 }
@@ -1998,10 +1998,6 @@ function toggleOp(id, op) {
 function setItemMode(id, mode) {
   const it = NO.items.find(i=>i.id===id); if (!it) return;
   it.mode = mode;
-  if (mode === "repair") {
-    it.services = it.services.filter(s => s.kind !== "core");
-    it.model = "";
-  }
   renderItems(); updateReceipt();
 }
 
