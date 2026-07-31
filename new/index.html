@@ -225,6 +225,10 @@ body {
 .cr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
 .cr-box { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 12px 14px; }
 .cr-box-full { grid-column: 1 / -1; }
+.cr-mgr-center { justify-content: center; }
+.cr-right-actions { display: flex; gap: 8px; margin-bottom: 12px; }
+.cr-right-actions .cr-head-btn { flex: 1; text-align: center; padding: 9px 8px; }
+.cr-create-under { width: 100%; margin-top: 12px; }
 .cr-box .cr-block-label { margin-top: 16px; }
 .cr-box .cr-block-label.first { margin-top: 0; }
 
@@ -281,8 +285,14 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .rw-opt:hover { background: var(--hover); }
 .rw-opt.sel { color: var(--cognac); background: var(--accent-soft); }
 .ic-details { margin: 10px 0 4px; }
-.ic-details-toggle { background: none; border: none; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 12px; cursor: pointer; padding: 2px 0; }
-.ic-details-body { margin-top: 8px; padding: 10px 12px; background: var(--field-bg); border: 1px solid var(--line-soft); border-radius: 8px; }
+.ic-details-toggle { display: inline-flex; align-items: center; gap: 6px; background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 7px; color: var(--txt-2); font-family: 'Commissioner', sans-serif; font-size: 12px; cursor: pointer; padding: 8px 13px; transition: all 0.15s; }
+.ic-details-toggle:hover { border-color: var(--cognac); color: var(--txt); }
+.ic-details-body { margin-top: 8px; padding: 12px 13px; background: var(--field-bg); border: 1px solid var(--line-soft); border-radius: 8px; }
+.ic-details-row { margin-bottom: 0; }
+.ic-details-row .ic-field { flex: 1; min-width: 0; }
+.ic-add-svc { width: 100%; display: block; margin-top: 10px; background: var(--accent-soft); border: 1px solid var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 12px; letter-spacing: 0.04em; padding: 10px; cursor: pointer; transition: all 0.15s; }
+.ic-add-svc:hover { background: var(--cognac); color: #fff; }
+.ic-add-panel { margin-top: 10px; padding: 12px 13px; background: var(--field-bg); border: 1px solid var(--line-soft); border-radius: 8px; }
 .ic-field { flex: 1; }
 .ic-field label { display: block; font-size: 10px; color: var(--txt-3); letter-spacing: 0.08em; margin-bottom: 5px; }
 .ic-select, .ic-mini { width: 100%; background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 6px; padding: 9px 11px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 13px; font-weight: 300; outline: none; }
@@ -335,7 +345,7 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .ic-seg:hover { border-color: var(--cognac); }
 .ic-seg.on { background: var(--cognac); border-color: var(--cognac); color: #fff; }
 
-.add-item-btn { width: 100%; background: transparent; border: 1px dashed var(--cognac-border); border-radius: 7px; color: var(--cognac); padding: 12px; font-family: 'Commissioner', sans-serif; font-size: 12px; letter-spacing: 0.06em; cursor: pointer; transition: all 0.15s; margin-top: 2px; }
+.add-item-btn { width: 100%; background: transparent; border: 1.5px dashed var(--cognac); border-radius: 8px; color: var(--cognac); padding: 14px; font-family: 'Commissioner', sans-serif; font-size: 13px; letter-spacing: 0.04em; cursor: pointer; transition: all 0.15s; margin-top: 10px; }
 .add-item-btn:hover { background: var(--accent-soft); }
 
 .cr-deadline-date { margin-top: 10px; display: none; }
@@ -1865,7 +1875,6 @@ function pickColor(id, c) {
 
 renderers.create = function() {
   const page = document.getElementById("page-create");
-  if (!NO.manager && PARTNERS.length) NO.manager = PARTNERS[0];
 
   let draftBar = "";
   try {
@@ -1876,21 +1885,17 @@ renderers.create = function() {
   } catch(e) {}
 
   page.innerHTML =
-    "<div class='page-header'><div class='page-title'>Нове замовлення</div>" +
-      "<div class='cr-head-btns'>" +
-        "<button class='cr-head-btn' onclick='cancelCreate()'>Скасувати</button>" +
-        "<button class='cr-head-btn' onclick='saveDraft()'>Зберегти чернетку</button>" +
-        "<button class='cr-head-btn primary' onclick='submitOrder()'>Створити замовлення</button>" +
-      "</div>" +
-    "</div>" +
+    "<div class='page-header'><div class='page-title'>Нове замовлення</div></div>" +
     draftBar +
     "<div class='create-wrap'>" +
       "<div class='create-left'>" +
         "<div class='cr-grid'>" +
           "<div class='cr-box'>" +
             "<div class='cr-block-label first'>Хто приймає</div>" +
-            "<div class='cr-pills' id='cr-mgr'></div>" +
-            "<div class='cr-block-label'>Клієнт</div>" +
+            "<div class='cr-pills cr-mgr-center' id='cr-mgr'></div>" +
+          "</div>" +
+          "<div class='cr-box'>" +
+            "<div class='cr-block-label first'>Клієнт</div>" +
             "<div class='cr-client-suggest'>" +
               "<input class='cr-input' id='cr-client' placeholder=\"Ім'я або назва магазину\" autocomplete='off' value=\"" + (NO.client||"").replace(/"/g,"&quot;") + "\" oninput='onClientInput(this.value)'>" +
               "<div class='cr-suggest-dd' id='cr-suggest'></div>" +
@@ -1903,7 +1908,9 @@ renderers.create = function() {
             crSelect("pay", NO.payment, ["Передоплата","Післяоплата"], "setPayVal", {placeholder:"Спосіб оплати"}) +
             "<input class='cr-input' id='cr-prepay' type='number' placeholder='Сума передоплати, ₴' style='display:" + (NO.payment==='Передоплата'?'block':'none') + "' value=\"" + (NO.prepay||"") + "\" oninput='NO.prepay=this.value'>" +
             (NO.payment==='Передоплата' ? crSelect("paymethod", NO.prepayMethod, ["Готівка","Картка","ФОП"], "setPayMethodVal", {placeholder:"Спосіб передоплати"}) : "") +
-            "<div class='cr-block-label'>Термін</div>" +
+          "</div>" +
+          "<div class='cr-box'>" +
+            "<div class='cr-block-label first'>Термін і доставка</div>" +
             crSelect("term", termLabel(), ["Терміново","Без терміну","Вказати дату"], "setTermVal", {placeholder:"Термін виконання"}) +
             "<input class='cr-input cr-deadline-date' id='cr-deadline-date' type='date' style='display:" + (termShowDate()?'block':'none') + "' value=\"" + (termShowDate() && NO.deadline ? ddmmToISO(NO.deadline) : "") + "\" oninput='onCreateDeadlinePick(this.value)'>" +
             "<div class='cr-deadline-hint' id='cr-deadline-hint'></div>" +
@@ -1913,15 +1920,18 @@ renderers.create = function() {
           "<div class='cr-box cr-box-full'>" +
             "<div class='cr-block-label first'>Речі та послуги</div>" +
             "<div id='cr-items'></div>" +
-            "<button class='add-item-btn' onclick='addItem()'>+ Додати річ</button>" +
+            "<button class='add-item-btn' onclick='addItem()'>+ Додати ще одну річ</button>" +
           "</div>" +
         "</div>" +
-        "<button class='cr-create-btn' onclick='submitOrder()'>Створити замовлення</button>" +
       "</div>" +
       "<div class='create-right'><div class='create-right-sticky'>" +
-        "<div class='receipt-actions'><button class='btn-share' onclick='shareReceipt()'>" +
-          "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'><circle cx='18' cy='5' r='3'/><circle cx='6' cy='12' r='3'/><circle cx='18' cy='19' r='3'/><line x1='8.59' y1='13.51' x2='15.42' y2='17.49'/><line x1='15.41' y1='6.51' x2='8.59' y2='10.49'/></svg>Поділитися</button></div>" +
+        "<div class='cr-right-actions'>" +
+          "<button class='cr-head-btn' onclick='cancelCreate()'>Скасувати</button>" +
+          "<button class='cr-head-btn' onclick='saveDraft()'>Зберегти чернетку</button>" +
+          "<button class='cr-head-btn' onclick='shareReceipt()'>Поділитися</button>" +
+        "</div>" +
         "<div id='receipt'></div>" +
+        "<button class='cr-create-btn cr-create-under' onclick='submitOrder()'>Створити замовлення</button>" +
       "</div></div>" +
     "</div>";
 
@@ -2265,24 +2275,29 @@ function renderItems() {
           (item.detailsOpen ? "− " : "+ ") + "Деталі речі (колір, матеріал, стан)</button>" +
         (item.detailsOpen ?
           "<div class='ic-details-body'>" +
-            "<div class='ic-row'>" +
+            "<div class='ic-row ic-details-row'>" +
               "<div class='ic-field'><label>КОЛІР</label><div class='ic-search-wrap'>" +
                 "<input class='ic-mini' id='ic-color-" + item.id + "' placeholder='Оберіть або впишіть' autocomplete='off' value=\"" + (item.color||"").replace(/"/g,"&quot;") + "\" oninput='onItemColorInput(" + item.id + ",this.value)' onfocus='openColorDD(" + item.id + ")'>" +
                 "<div class='ic-dd' id='ic-cdd-" + item.id + "'></div>" +
               "</div></div>" +
               "<div class='ic-field'><label>МАТЕРІАЛ</label>" + crSelect("mat" + item.id, item.matNote, MATERIALS, "setItemMatNote", {arg:item.id, placeholder:"Не вказано"}) + "</div>" +
+              "<div class='ic-field'><label>СТАН</label>" + crSelect("cond" + item.id, item.condition, CONDITIONS, "setItemCondition", {arg:item.id, placeholder:"Не вказано"}) + "</div>" +
             "</div>" +
-            "<div class='ic-field'><label>СТАН ПРИ ПРИЙОМІ</label>" + crSelect("cond" + item.id, item.condition, CONDITIONS, "setItemCondition", {arg:item.id, placeholder:"Не вказано"}) + "</div>" +
           "</div>" : "") +
       "</div>" +
       "<div class='ic-svclist'>"+svcRows+"</div>" +
-      "<div class='ic-otherlabel'>"+otherLabel+"</div>" +
-      "<div class='ic-row' style='margin-bottom:8px'><div class='ic-field'><label>ВІДДІЛ</label><select class='ic-select' onchange='changeDept("+item.id+",this.value)'>"+deptOpts+"</select></div></div>" +
-      "<div class='ic-search-wrap'><input type='text' class='ic-search' id='ic-search-"+item.id+"' placeholder='Пошук послуги у відділі…' autocomplete='off' oninput='filterSvc("+item.id+")' onfocus='openSvcDD("+item.id+")'><div class='ic-dd' id='ic-dd-"+item.id+"'></div></div>" +
-      "<div class='ic-manual'><input class='ic-mini' id='ic-man-name-"+item.id+"' placeholder='Своя послуга...'><input class='ic-mini' style='width:88px;flex:none' type='number' id='ic-man-price-"+item.id+"' placeholder='₴'><button class='ic-manual-add' onclick='addManualSvc("+item.id+")'>+</button></div>";
+      "<button type='button' class='ic-add-svc' onclick='toggleAddSvc("+item.id+")'>" + (item.addSvcOpen?"− Приховати послуги":"+ Додати послугу") + "</button>" +
+      (item.addSvcOpen ?
+        "<div class='ic-add-panel'>" +
+          "<div class='ic-otherlabel'>"+otherLabel+"</div>" +
+          "<div class='ic-row' style='margin-bottom:8px'><div class='ic-field'><label>ВІДДІЛ</label><select class='ic-select' onchange='changeDept("+item.id+",this.value)'>"+deptOpts+"</select></div></div>" +
+          "<div class='ic-search-wrap'><input type='text' class='ic-search' id='ic-search-"+item.id+"' placeholder='Пошук послуги у відділі…' autocomplete='off' oninput='filterSvc("+item.id+")' onfocus='openSvcDD("+item.id+")'><div class='ic-dd' id='ic-dd-"+item.id+"'></div></div>" +
+          "<div class='ic-manual'><input class='ic-mini' id='ic-man-name-"+item.id+"' placeholder='Своя послуга...'><input class='ic-mini' style='width:88px;flex:none' type='number' id='ic-man-price-"+item.id+"' placeholder='₴'><button class='ic-manual-add' onclick='addManualSvc("+item.id+")'>+</button></div>" +
+        "</div>" : "");
     box.appendChild(div);
   });
 }
+function toggleAddSvc(id) { const it = NO.items.find(i=>i.id===id); if (it) { it.addSvcOpen = !it.addSvcOpen; renderItems(); } }
 
 function updateReceipt() {
   const receipt = document.getElementById("receipt");
