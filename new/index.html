@@ -222,7 +222,7 @@ body {
 .create-right { width: 340px; flex-shrink: 0; min-width: 0; padding: 6px 24px 32px 0; }
 .create-right-sticky { position: sticky; top: 8px; }
 
-.cr-grid { display: flex; flex-direction: column; gap: 10px; max-width: 640px; }
+.cr-grid { display: flex; flex-direction: column; gap: 10px; max-width: none; }
 .cr-box { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 12px 14px; }
 .cr-box-full { grid-column: 1 / -1; }
 .cr-mgr-center { justify-content: center; }
@@ -230,7 +230,7 @@ body {
 .cr-msg-icons { display: flex; gap: 6px; flex-shrink: 0; margin: 0; }
 .cr-msg-ico-btn { width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; }
 .cr-msg-ico-btn .msg-ico { margin: 0; }
-.cr-payterm { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+.cr-payterm { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: stretch; }
 @media (max-width: 620px) { .cr-payterm { grid-template-columns: 1fr; } }
 .cr-right-actions { display: flex; gap: 8px; margin-bottom: 12px; }
 .cr-right-actions .cr-head-btn { flex: 1; text-align: center; padding: 9px 8px; }
@@ -1901,12 +1901,12 @@ renderers.create = function() {
             "<div class='cr-pills cr-mgr-center' id='cr-mgr'></div>" +
             "<div class='cr-block-label'>Клієнт</div>" +
             "<div class='cr-client-row'>" +
-              "<div class='cr-client-suggest' style='flex:1.4;min-width:0'>" +
+              "<div class='cr-client-suggest' style='flex:1;min-width:150px'>" +
                 "<input class='cr-input' id='cr-client' placeholder=\"Ім'я або магазин\" autocomplete='off' value=\"" + (NO.client||"").replace(/"/g,"&quot;") + "\" oninput='onClientInput(this.value)'>" +
                 "<div class='cr-suggest-dd' id='cr-suggest'></div>" +
               "</div>" +
-              "<input class='cr-input' id='cr-phone' style='flex:1;min-width:0' placeholder='+380...' value=\"" + (NO.phone||"") + "\" oninput='onPhoneInput(this.value)'>" +
-              "<div class='cr-msg-pick cr-msg-icons' id='cr-msg'></div>" +
+              "<input class='cr-input' id='cr-phone' style='flex:0 1 150px;min-width:130px' placeholder='+380...' value=\"" + (NO.phone||"") + "\" oninput='onPhoneInput(this.value)'>" +
+              "<div class='cr-msg-pick' id='cr-msg' style='flex-shrink:0'></div>" +
             "</div>" +
           "</div>" +
           "<div class='cr-box cr-box-full'>" +
@@ -1981,8 +1981,8 @@ function renderMsgPick() {
     const active = NO.messenger === m;
     const style = active ? " style='background:" + MSG_COLORS[m] + ";border-color:" + MSG_COLORS[m] + "'" : "";
     const icoColor = active ? " style='color:#fff'" : "";
-    return "<button class='cr-msg-btn cr-msg-ico-btn" + (active?" active":"") + "'" + style + " onclick=\"setMessenger('" + m + "')\" title='" + MSG_LABELS[m] + "' aria-label='" + MSG_LABELS[m] + "'>" +
-      "<span class='msg-ico'" + icoColor + ">" + MSG_ICONS[m] + "</span></button>";
+    return "<button class='cr-msg-btn" + (active?" active":"") + "'" + style + " onclick=\"setMessenger('" + m + "')\">" +
+      "<span class='msg-ico'" + icoColor + ">" + MSG_ICONS[m] + "</span>" + MSG_LABELS[m] + "</button>";
   }).join("");
 }
 function setMessenger(m) {
