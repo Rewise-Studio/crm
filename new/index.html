@@ -217,15 +217,21 @@ body {
 .stub svg { width: 34px; height: 34px; stroke-width: 1.4; opacity: 0.7; }
 
 /* ═══════════════ ВКЛАДКА СТВОРИТИ (КОШТОРИС) ═══════════════ */
-.create-wrap { display: flex; flex: 1; min-height: 0; max-width: 1200px; width: 100%; margin: 0 auto; }
-.create-left { width: 64%; padding: 6px 20px 32px; overflow-y: auto; }
-.create-right { width: 36%; padding: 6px 20px 32px 4px; }
+.create-wrap { display: flex; flex: 1; min-height: 0; gap: 18px; }
+.create-left { flex: 1; min-width: 0; padding: 6px 0 32px 24px; overflow-y: auto; }
+.create-right { width: 340px; flex-shrink: 0; min-width: 0; padding: 6px 24px 32px 0; }
 .create-right-sticky { position: sticky; top: 8px; }
 
-.cr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+.cr-grid { display: flex; flex-direction: column; gap: 10px; max-width: 640px; }
 .cr-box { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 12px 14px; }
 .cr-box-full { grid-column: 1 / -1; }
 .cr-mgr-center { justify-content: center; }
+.cr-client-row { display: flex; gap: 8px; align-items: flex-start; }
+.cr-msg-icons { display: flex; gap: 6px; flex-shrink: 0; margin: 0; }
+.cr-msg-ico-btn { width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; }
+.cr-msg-ico-btn .msg-ico { margin: 0; }
+.cr-payterm { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+@media (max-width: 620px) { .cr-payterm { grid-template-columns: 1fr; } }
 .cr-right-actions { display: flex; gap: 8px; margin-bottom: 12px; }
 .cr-right-actions .cr-head-btn { flex: 1; text-align: center; padding: 9px 8px; }
 .cr-create-under { width: 100%; margin-top: 12px; }
@@ -1893,34 +1899,44 @@ renderers.create = function() {
           "<div class='cr-box'>" +
             "<div class='cr-block-label first'>Хто приймає</div>" +
             "<div class='cr-pills cr-mgr-center' id='cr-mgr'></div>" +
-          "</div>" +
-          "<div class='cr-box'>" +
-            "<div class='cr-block-label first'>Клієнт</div>" +
-            "<div class='cr-client-suggest'>" +
-              "<input class='cr-input' id='cr-client' placeholder=\"Ім'я або назва магазину\" autocomplete='off' value=\"" + (NO.client||"").replace(/"/g,"&quot;") + "\" oninput='onClientInput(this.value)'>" +
-              "<div class='cr-suggest-dd' id='cr-suggest'></div>" +
+            "<div class='cr-block-label'>Клієнт</div>" +
+            "<div class='cr-client-row'>" +
+              "<div class='cr-client-suggest' style='flex:1.4;min-width:0'>" +
+                "<input class='cr-input' id='cr-client' placeholder=\"Ім'я або магазин\" autocomplete='off' value=\"" + (NO.client||"").replace(/"/g,"&quot;") + "\" oninput='onClientInput(this.value)'>" +
+                "<div class='cr-suggest-dd' id='cr-suggest'></div>" +
+              "</div>" +
+              "<input class='cr-input' id='cr-phone' style='flex:1;min-width:0' placeholder='+380...' value=\"" + (NO.phone||"") + "\" oninput='onPhoneInput(this.value)'>" +
+              "<div class='cr-msg-pick cr-msg-icons' id='cr-msg'></div>" +
             "</div>" +
-            "<input class='cr-input' id='cr-phone' placeholder='+380...' value=\"" + (NO.phone||"") + "\" oninput='onPhoneInput(this.value)'>" +
-            "<div class='cr-msg-pick' id='cr-msg'></div>" +
-          "</div>" +
-          "<div class='cr-box'>" +
-            "<div class='cr-block-label first'>Оплата</div>" +
-            crSelect("pay", NO.payment, ["Передоплата","Післяоплата"], "setPayVal", {placeholder:"Спосіб оплати"}) +
-            "<input class='cr-input' id='cr-prepay' type='number' placeholder='Сума передоплати, ₴' style='display:" + (NO.payment==='Передоплата'?'block':'none') + "' value=\"" + (NO.prepay||"") + "\" oninput='NO.prepay=this.value'>" +
-            (NO.payment==='Передоплата' ? crSelect("paymethod", NO.prepayMethod, ["Готівка","Картка","ФОП"], "setPayMethodVal", {placeholder:"Спосіб передоплати"}) : "") +
-          "</div>" +
-          "<div class='cr-box'>" +
-            "<div class='cr-block-label first'>Термін і доставка</div>" +
-            crSelect("term", termLabel(), ["Терміново","Без терміну","Вказати дату"], "setTermVal", {placeholder:"Термін виконання"}) +
-            "<input class='cr-input cr-deadline-date' id='cr-deadline-date' type='date' style='display:" + (termShowDate()?'block':'none') + "' value=\"" + (termShowDate() && NO.deadline ? ddmmToISO(NO.deadline) : "") + "\" oninput='onCreateDeadlinePick(this.value)'>" +
-            "<div class='cr-deadline-hint' id='cr-deadline-hint'></div>" +
-            "<div class='cr-block-label'>Спосіб отримання</div>" +
-            crSelect("delivery", NO.delivery || "Самовивіз", DELIVERY_OPTS, "setDelivery", {placeholder:"Самовивіз"}) +
           "</div>" +
           "<div class='cr-box cr-box-full'>" +
             "<div class='cr-block-label first'>Речі та послуги</div>" +
             "<div id='cr-items'></div>" +
             "<button class='add-item-btn' onclick='addItem()'>+ Додати ще одну річ</button>" +
+          "</div>" +
+          "<div class='cr-payterm'>" +
+            "<div class='cr-box'>" +
+              "<div class='cr-block-label first'>Оплата</div>" +
+              "<div class='cr-pills'>" +
+                "<button class='cr-pill cr-pill-wide" + (NO.payment==='Передоплата'?' active':'') + "' onclick=\"setPay('Передоплата',this)\">Передоплата</button>" +
+                "<button class='cr-pill cr-pill-wide" + (NO.payment==='Післяоплата'?' active':'') + "' onclick=\"setPay('Післяоплата',this)\">Післяоплата</button>" +
+              "</div>" +
+              (NO.payment==='Передоплата' ?
+                "<input class='cr-input' id='cr-prepay' type='number' placeholder='Сума передоплати, ₴' value=\"" + (NO.prepay||"") + "\" oninput='NO.prepay=this.value'>" +
+                crSelect("paymethod", NO.prepayMethod, ["Готівка","Картка","ФОП"], "setPayMethodVal", {placeholder:"Спосіб передоплати"}) : "") +
+            "</div>" +
+            "<div class='cr-box'>" +
+              "<div class='cr-block-label first'>Термін і доставка</div>" +
+              "<div class='cr-pills' id='cr-deadline'>" +
+                "<button class='cr-pill" + (NO.deadline==='⚡ Терміново'?' active':'') + "' onclick=\"setDeadline('⚡ Терміново',this)\">Терміново</button>" +
+                "<button class='cr-pill" + (NO.deadline==='Без терміну'?' active':'') + "' onclick=\"setDeadline('Без терміну',this)\">Без терміну</button>" +
+                "<button class='cr-pill" + (termShowDate()?' active':'') + "' onclick=\"setDeadline('date',this)\">Вказати дату</button>" +
+              "</div>" +
+              (termShowDate() ? "<input class='cr-input cr-deadline-date' id='cr-deadline-date' type='date' value=\"" + (NO.deadline ? ddmmToISO(NO.deadline) : "") + "\" oninput='onCreateDeadlinePick(this.value)'>" : "") +
+              "<div class='cr-deadline-hint' id='cr-deadline-hint'></div>" +
+              "<div class='cr-block-label'>Спосіб отримання</div>" +
+              crSelect("delivery", NO.delivery || "Самовивіз", DELIVERY_OPTS, "setDelivery", {placeholder:"Самовивіз"}) +
+            "</div>" +
           "</div>" +
         "</div>" +
       "</div>" +
@@ -1963,10 +1979,10 @@ function renderMsgPick() {
   if (!box) return;
   box.innerHTML = ["telegram","whatsapp","viber"].map(m => {
     const active = NO.messenger === m;
-    const style = active ? " style='background:" + MSG_COLORS[m] + "'" : "";
+    const style = active ? " style='background:" + MSG_COLORS[m] + ";border-color:" + MSG_COLORS[m] + "'" : "";
     const icoColor = active ? " style='color:#fff'" : "";
-    return "<button class='cr-msg-btn" + (active?" active":"") + "'" + style + " onclick=\"setMessenger('" + m + "')\">" +
-      "<span class='msg-ico'" + icoColor + ">" + MSG_ICONS[m] + "</span>" + MSG_LABELS[m] + "</button>";
+    return "<button class='cr-msg-btn cr-msg-ico-btn" + (active?" active":"") + "'" + style + " onclick=\"setMessenger('" + m + "')\" title='" + MSG_LABELS[m] + "' aria-label='" + MSG_LABELS[m] + "'>" +
+      "<span class='msg-ico'" + icoColor + ">" + MSG_ICONS[m] + "</span></button>";
   }).join("");
 }
 function setMessenger(m) {
@@ -2031,12 +2047,8 @@ function pickClient(phone) {
 }
 
 function setPay(type, btn) {
-  NO.payment = type;
-  document.querySelectorAll("#cr-pay .cr-pill").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  document.getElementById("cr-prepay").style.display = type === "Передоплата" ? "block" : "none";
-  const pm = document.getElementById("cr-prepay-method");
-  if (pm) pm.style.display = type === "Передоплата" ? "flex" : "none";
+  NO.payment = (NO.payment === type) ? "" : type;
+  renderers.create();
 }
 function setPrepayMethod(m, btn) {
   NO.prepayMethod = (NO.prepayMethod === m) ? "" : m;
@@ -2044,11 +2056,14 @@ function setPrepayMethod(m, btn) {
   if (NO.prepayMethod) btn.classList.add("active");
 }
 function setDeadline(val, btn) {
-  document.querySelectorAll("#cr-deadline .cr-pill").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  const di = document.getElementById("cr-deadline-date");
-  if (val === "date") { di.style.display = "block"; NO.deadline = ""; di.focus && di.focus(); }
-  else { di.style.display = "none"; NO.deadline = val; }
+  if (val === "date") {
+    NO.termMode = "date";
+    if (NO.deadline === "⚡ Терміново" || NO.deadline === "Без терміну") NO.deadline = "";
+  } else {
+    NO.termMode = (val === "⚡ Терміново") ? "fast" : "none";
+    NO.deadline = val;
+  }
+  renderers.create();
 }
 function formatDeadlineDate(iso) {
   if (!iso) return "";
