@@ -350,6 +350,19 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .ic-seg { flex: 1; padding: 9px 0; border-radius: 7px; border: 1px solid var(--field-border); background: transparent; color: var(--txt-2); font-family: 'Commissioner', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.15s; }
 .ic-seg:hover { border-color: var(--cognac); }
 .ic-seg.on { background: var(--cognac); border-color: var(--cognac); color: #fff; }
+/* ── три колонки: категорія-сегменти · вид · бренд ── */
+.ic-row3 { display: flex; gap: 8px; margin-bottom: 9px; align-items: flex-start; }
+.ic-row3 .ic-field { flex: 1; min-width: 0; }
+.ic-catseg { display: flex; gap: 6px; }
+.ic-catseg .ic-seg { padding: 9px 6px; }
+/* ── низ у три колонки: оплата · термін · спосіб отримання ── */
+.cr-bottom3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; align-items: start; }
+.cr-bottom3 .cr-col + .cr-col { border-left: 1px solid var(--line-soft); padding-left: 22px; }
+.cr-opt-note { text-transform: none; letter-spacing: 0; color: var(--txt-3); font-size: 11px; font-weight: 300; }
+.cr-optrow .cr-pill { opacity: 0.5; border-style: dashed; }
+.cr-optrow .cr-pill:hover { opacity: 0.9; }
+.cr-optrow .cr-pill.active { opacity: 1; border-style: solid; background: var(--cognac); color: #fff; border-color: var(--cognac); }
+@media (max-width: 820px) { .cr-bottom3 { grid-template-columns: 1fr; } .cr-bottom3 .cr-col + .cr-col { border-left: none; padding-left: 0; border-top: 1px solid var(--line-soft); padding-top: 14px; } .ic-row3 { flex-wrap: wrap; } }
 
 .add-item-btn { width: 100%; background: transparent; border: 1.5px dashed var(--cognac); border-radius: 8px; color: var(--cognac); padding: 14px; font-family: 'Commissioner', sans-serif; font-size: 13px; letter-spacing: 0.04em; cursor: pointer; transition: all 0.15s; margin-top: 10px; }
 .add-item-btn:hover { background: var(--accent-soft); }
@@ -1841,6 +1854,12 @@ function rwSelClose() { document.querySelectorAll(".rw-sel.open").forEach(w => w
 function setPayVal(v) { NO.payment = v; renderers.create(); }
 function setPayMethodVal(v) { NO.prepayMethod = v; renderers.create(); }
 function setDelivery(v) { NO.delivery = v; }
+function setDeliveryPill(v, btn) {
+  var active = NO.delivery === v;
+  NO.delivery = active ? "" : v;
+  document.querySelectorAll("#cr-deliv .cr-pill").forEach(function(b){ b.classList.remove("active"); });
+  if (!active) btn.classList.add("active");
+}
 function termLabel() {
   if (NO.deadline === "⚡ Терміново") return "Терміново";
   if (NO.deadline === "Без терміну") return "Без терміну";
@@ -1898,14 +1917,14 @@ renderers.create = function() {
         "<div class='cr-grid'>" +
           "<div class='cr-box'>" +
             "<div class='cr-block-label first'>Хто приймає</div>" +
-            "<div class='cr-pills cr-mgr-center' id='cr-mgr'></div>" +
+            "<div class='cr-pills' id='cr-mgr'></div>" +
             "<div class='cr-block-label'>Клієнт</div>" +
             "<div class='cr-client-row'>" +
+              "<input class='cr-input' id='cr-phone' style='flex:1;min-width:150px' placeholder='+380...' value=\"" + (NO.phone||"+380 ") + "\" oninput='onPhoneInput(this.value)' onfocus='this.setSelectionRange(this.value.length,this.value.length)'>" +
               "<div class='cr-client-suggest' style='flex:1;min-width:150px'>" +
                 "<input class='cr-input' id='cr-client' placeholder=\"Ім'я або магазин\" autocomplete='off' value=\"" + (NO.client||"").replace(/"/g,"&quot;") + "\" oninput='onClientInput(this.value)'>" +
                 "<div class='cr-suggest-dd' id='cr-suggest'></div>" +
               "</div>" +
-              "<input class='cr-input' id='cr-phone' style='flex:0 1 150px;min-width:130px' placeholder='+380...' value=\"" + (NO.phone||"") + "\" oninput='onPhoneInput(this.value)'>" +
               "<div class='cr-msg-pick' id='cr-msg' style='flex-shrink:0'></div>" +
             "</div>" +
           "</div>" +
@@ -1914,28 +1933,34 @@ renderers.create = function() {
             "<div id='cr-items'></div>" +
             "<button class='add-item-btn' onclick='addItem()'>+ Додати ще одну річ</button>" +
           "</div>" +
-          "<div class='cr-payterm'>" +
-            "<div class='cr-box'>" +
-              "<div class='cr-block-label first'>Оплата</div>" +
-              "<div class='cr-pills'>" +
-                "<button class='cr-pill cr-pill-wide" + (NO.payment==='Передоплата'?' active':'') + "' onclick=\"setPay('Передоплата',this)\">Передоплата</button>" +
-                "<button class='cr-pill cr-pill-wide" + (NO.payment==='Післяоплата'?' active':'') + "' onclick=\"setPay('Післяоплата',this)\">Післяоплата</button>" +
+          "<div class='cr-box'>" +
+            "<div class='cr-bottom3'>" +
+              "<div class='cr-col'>" +
+                "<div class='cr-block-label first'>Оплата</div>" +
+                "<div class='cr-pills'>" +
+                  "<button class='cr-pill cr-pill-wide" + (NO.payment==='Передоплата'?' active':'') + "' onclick=\"setPay('Передоплата',this)\">Передоплата</button>" +
+                  "<button class='cr-pill cr-pill-wide" + (NO.payment==='Післяоплата'?' active':'') + "' onclick=\"setPay('Післяоплата',this)\">Післяоплата</button>" +
+                "</div>" +
+                (NO.payment==='Передоплата' ?
+                  "<input class='cr-input' id='cr-prepay' type='number' placeholder='Сума передоплати, ₴' value=\"" + (NO.prepay||"") + "\" oninput='NO.prepay=this.value'>" +
+                  crSelect("paymethod", NO.prepayMethod, ["Готівка","Картка","ФОП"], "setPayMethodVal", {placeholder:"Спосіб передоплати"}) : "") +
               "</div>" +
-              (NO.payment==='Передоплата' ?
-                "<input class='cr-input' id='cr-prepay' type='number' placeholder='Сума передоплати, ₴' value=\"" + (NO.prepay||"") + "\" oninput='NO.prepay=this.value'>" +
-                crSelect("paymethod", NO.prepayMethod, ["Готівка","Картка","ФОП"], "setPayMethodVal", {placeholder:"Спосіб передоплати"}) : "") +
-            "</div>" +
-            "<div class='cr-box'>" +
-              "<div class='cr-block-label first'>Термін і доставка</div>" +
-              "<div class='cr-pills' id='cr-deadline'>" +
-                "<button class='cr-pill" + (NO.deadline==='⚡ Терміново'?' active':'') + "' onclick=\"setDeadline('⚡ Терміново',this)\">Терміново</button>" +
-                "<button class='cr-pill" + (NO.deadline==='Без терміну'?' active':'') + "' onclick=\"setDeadline('Без терміну',this)\">Без терміну</button>" +
-                "<button class='cr-pill" + (termShowDate()?' active':'') + "' onclick=\"setDeadline('date',this)\">Вказати дату</button>" +
+              "<div class='cr-col'>" +
+                "<div class='cr-block-label first'>Термін</div>" +
+                "<div class='cr-pills' id='cr-deadline'>" +
+                  "<button class='cr-pill" + (NO.deadline==='⚡ Терміново'?' active':'') + "' onclick=\"setDeadline('⚡ Терміново',this)\">Терміново</button>" +
+                  "<button class='cr-pill" + (NO.deadline==='Без терміну'?' active':'') + "' onclick=\"setDeadline('Без терміну',this)\">Без терміну</button>" +
+                  "<button class='cr-pill" + (termShowDate()?' active':'') + "' onclick=\"setDeadline('date',this)\">Вказати дату</button>" +
+                "</div>" +
+                (termShowDate() ? "<input class='cr-input cr-deadline-date' id='cr-deadline-date' type='date' value=\"" + (NO.deadline ? ddmmToISO(NO.deadline) : "") + "\" oninput='onCreateDeadlinePick(this.value)'>" : "") +
+                "<div class='cr-deadline-hint' id='cr-deadline-hint'></div>" +
               "</div>" +
-              (termShowDate() ? "<input class='cr-input cr-deadline-date' id='cr-deadline-date' type='date' value=\"" + (NO.deadline ? ddmmToISO(NO.deadline) : "") + "\" oninput='onCreateDeadlinePick(this.value)'>" : "") +
-              "<div class='cr-deadline-hint' id='cr-deadline-hint'></div>" +
-              "<div class='cr-block-label'>Спосіб отримання</div>" +
-              crSelect("delivery", NO.delivery || "Самовивіз", DELIVERY_OPTS, "setDelivery", {placeholder:"Самовивіз"}) +
+              "<div class='cr-col'>" +
+                "<div class='cr-block-label first'>Спосіб отримання <span class='cr-opt-note'>необов'язково</span></div>" +
+                "<div class='cr-pills cr-optrow' id='cr-deliv'>" +
+                  DELIVERY_OPTS.map(function(o){return "<button class='cr-pill" + (NO.delivery===o?' active':'') + "' onclick=\"setDeliveryPill('" + o.replace(/'/g,"\\'") + "',this)\">" + o + "</button>";}).join("") +
+              "</div>" +
+              "</div>" +
             "</div>" +
           "</div>" +
         "</div>" +
@@ -2059,6 +2084,9 @@ function setDeadline(val, btn) {
   if (val === "date") {
     NO.termMode = "date";
     if (NO.deadline === "⚡ Терміново" || NO.deadline === "Без терміну") NO.deadline = "";
+    renderers.create();
+    setTimeout(function(){ var d = document.getElementById("cr-deadline-date"); if (d) { try { d.showPicker(); } catch(e) { d.focus(); } } }, 40);
+    return;
   } else {
     NO.termMode = (val === "⚡ Терміново") ? "fast" : "none";
     NO.deadline = val;
@@ -2258,8 +2286,10 @@ function renderItems() {
     }
 
     // Модель — показуємо в обох режимах (у ремонті це просто підпис)
+    const catSeg = Object.keys(PRICE).map(function(k){return "<button class='ic-seg"+(k===item.category?" on":"")+"' onclick='changeCategory("+item.id+",\""+k+"\")'>"+PRICE[k].label+"</button>";}).join("");
     const modelRow =
-      "<div class='ic-row'>" +
+      "<div class='ic-row3'>" +
+        "<div class='ic-field'><label>КАТЕГОРІЯ</label><div class='ic-segrow ic-catseg'>"+catSeg+"</div></div>" +
         "<div class='ic-field'><label>ВИД ВИРОБУ</label><div class='ic-search-wrap'>" +
           "<input class='ic-mini' id='ic-model-"+item.id+"' placeholder='Оберіть модель…' autocomplete='off' value=\""+modelVal+"\" oninput='filterModel("+item.id+")' onfocus='openModelDD("+item.id+")'>" +
           "<div class='ic-dd' id='ic-mdd-"+item.id+"'></div>" +
@@ -2279,10 +2309,6 @@ function renderItems() {
     div.innerHTML =
       "<div class='itemcard-head'><span class='itemcard-num'>№"+(idx+1)+"</span><button class='itemcard-rm' onclick='removeItem("+item.id+")'>×</button></div>" +
       modeRow +
-      "<div class='ic-row'>" +
-        "<div class='ic-field'><label>КАТЕГОРІЯ</label><select class='ic-select' onchange='changeCategory("+item.id+",this.value)'>"+catOpts+"</select></div>" +
-        "<div class='ic-field'></div>" +
-      "</div>" +
       modelRow +
       careBlock +
       "<div class='ic-details'>" +
