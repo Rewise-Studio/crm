@@ -395,6 +395,18 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 #page-create .ic-oplabel { margin: 10px 0 6px; }
 #page-create .add-item-btn { padding: 11px; margin-top: 8px; }
 #page-create .page-header { padding-top: 8px; padding-bottom: 8px; }
+/* прохід 2: вирівнювання ряду категорія·вид·бренд + щільніше */
+#page-create .ic-row3 { align-items: flex-start; }
+#page-create .ic-row3 .ic-mini { height: 36px; padding-top: 0; padding-bottom: 0; }
+#page-create .ic-catseg .ic-seg { height: 36px; padding-top: 0; padding-bottom: 0; }
+#page-create .cr-grid { gap: 7px; }
+#page-create .cr-box { padding: 9px 12px; }
+#page-create .itemcard { padding: 11px; margin-bottom: 8px; }
+#page-create .ic-moderow .ic-seg { padding: 8px 0; }
+#page-create .ic-oplabel { margin: 8px 0 5px; }
+#page-create .add-item-btn { padding: 9px; margin-top: 7px; }
+#page-create .ic-op { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; }
+.ic-op-hint-inline { text-transform: none; letter-spacing: 0; font-style: italic; color: var(--txt-3); font-weight: 300; font-size: 10px; }
 @media (max-width: 820px) { .cr-bottom3 { grid-template-columns: 1fr; } .cr-bottom3 .cr-col + .cr-col { border-left: none; padding-left: 0; border-top: 1px solid var(--line-soft); padding-top: 14px; } .ic-row3 { flex-wrap: wrap; } }
 
 .add-item-btn { width: 100%; background: transparent; border: 1.5px dashed var(--cognac); border-radius: 8px; color: var(--cognac); padding: 14px; font-family: 'Commissioner', sans-serif; font-size: 13px; letter-spacing: 0.04em; cursor: pointer; transition: all 0.15s; margin-top: 10px; }
@@ -2306,13 +2318,14 @@ function renderItems() {
         return "<button class='ic-op" + (added?" on":"") + ((!p && !added)?" off":"") + "' onclick='toggleOp("+item.id+",\""+op+"\")'>" +
           "<span class='ic-op-name'>"+op+"</span><span class='ic-op-price'>"+priceLbl+"</span></button>";
       }).join("");
-      const opsHint = !item.model
-        ? "<div class='ic-op-hint'>Оберіть вид виробу — і ціна підтягнеться</div>"
-        : (VYDY.length ? "" : "<div class='ic-op-hint'>Додайте лист «Види», щоб працювали моделі</div>");
+      const opsHintTxt = !item.model
+        ? "оберіть вид виробу — і ціна підтягнеться"
+        : (VYDY.length ? "" : "додайте лист «Види», щоб працювали моделі");
+      const opsHintInline = opsHintTxt ? " <span class='ic-op-hint-inline'>· " + opsHintTxt + "</span>" : "";
       careBlock =
         sizeMatRow +
-        "<div class='ic-oplabel'>Операції</div>" +
-        "<div class='ic-oprow'>"+opsHTML+"</div>" + opsHint;
+        "<div class='ic-oplabel'>Операції" + opsHintInline + "</div>" +
+        "<div class='ic-oprow'>"+opsHTML+"</div>";
     }
 
     // Модель — показуємо в обох режимах (у ремонті це просто підпис)
