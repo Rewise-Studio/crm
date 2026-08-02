@@ -1806,13 +1806,23 @@ function orderServices(num) {
   });
   return names.slice(0,3).join(", ") || "—";
 }
+function pluralUk(n, one, few, many) {
+  const a = Math.abs(n) % 100, a1 = a % 10;
+  if (a > 10 && a < 20) return many;
+  if (a1 > 1 && a1 < 5) return few;
+  if (a1 === 1) return one;
+  return many;
+}
 function orderItemName(num) {
   const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
   if (!its.length) return "—";
   const first = its[0];
   const t = gv(first,"Тип"), b = gv(first,"Бренд");
   let name = [t, b].filter(Boolean).join(" · ") || "Виріб";
-  if (its.length > 1) name += " +" + (its.length - 1);
+  if (its.length > 1) {
+    const extra = its.length - 1;
+    name += " +" + extra + " " + pluralUk(extra, "виріб", "вироби", "виробів");
+  }
   return name;
 }
 function orderMaster(num) {
