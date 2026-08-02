@@ -4880,6 +4880,7 @@ function openOrder(num) {
     "<div class='d-client-history'><span>Загальна сума</span><span class='h-val'>" + clientTotal.toLocaleString("uk-UA") + " ₴</span></div>" +
     (prevOrder ? "<div class='d-client-history'><span>Попереднє замовлення</span><span class='h-val'>" + gv(prevOrder,"Дата створення").split(" ")[0] + "</span></div>" : "");
 
+  const delivery = its.length ? gv(its[0],"Доставка") : "";
   const clientBlock =
     "<div class='dblock'><div class='dblock-label'>Клієнт · <span class='rating-pick' onclick=\"openRatingPick('" + phone.replace(/'/g,"") + "')\">" + rating.label + " " + rating.dot + (rating.debt ? " " + rating.debt.toLocaleString("uk-UA") + " ₴" : "") + (rating.manual ? " ✎" : "") + "</span></div>" +
     "<div class='d-client-head'>" +
@@ -4888,6 +4889,7 @@ function openOrder(num) {
       "<div class='d-client-sub'>" + phone + "</div></div>" +
     "</div>" +
     "<div class='d-comm'>" + commHTML + "</div>" +
+    (delivery ? "<div class='d-exec-row' style='margin-top:10px'><span class='pl'>Доставка</span><span class='pv'>" + delivery + "</span></div>" : "") +
     historyHTML +
     "</div>";
 
@@ -5001,9 +5003,10 @@ function openOrder(num) {
   const events = [];
   events.push(["Створено", gv(o,"Дата створення"), gv(o,"Приймальник")]);
   its.forEach((it, idx) => {
+    const persons = [gv(it,"Майстер"), "", gv(it,"Хто видав")];
     ["Дата в роботі","Дата готово","Дата видачі"].forEach((f, fi) => {
       const d = gv(it, f);
-      if (d) events.push([["В роботі","Готово","Видано"][fi] + " №" + (idx+1), d, ""]);
+      if (d) events.push([["В роботі","Готово","Видано"][fi] + " №" + (idx+1), d, persons[fi]]);
     });
   });
   const timelineBlock = "<div class='dblock'><div class='dblock-label'>Історія</div>" +
