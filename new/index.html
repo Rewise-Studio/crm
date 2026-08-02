@@ -397,6 +397,7 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 #page-create .page-header { padding-top: 8px; padding-bottom: 8px; }
 /* прохід 2: вирівнювання ряду категорія·вид·бренд + щільніше */
 #page-create .ic-row3 { align-items: flex-start; }
+#page-create .ic-row3 .ic-search-wrap { margin-top: 0; }
 #page-create .ic-row3 .ic-mini { height: 36px; padding-top: 0; padding-bottom: 0; }
 #page-create .ic-catseg .ic-seg { height: 36px; padding-top: 0; padding-bottom: 0; }
 #page-create .cr-grid { gap: 7px; }
@@ -1141,9 +1142,13 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 @media (max-width: 950px) {
   .create-wrap { flex-direction: column; }
   .create-left { width: 100%; overflow-y: visible; }
-  .create-right { width: 100%; padding-left: 28px; border-top: 1px solid var(--line); }
-  .create-right-sticky { position: static; }
+  .create-right { width: 100%; padding: 6px 24px 32px; border-top: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; }
+  .create-right-sticky { position: static; width: 100%; max-width: 520px; }
   #receipt { max-width: 520px; }
+}
+
+@media (orientation: landscape) and (max-height: 900px) and (max-width: 1200px) {
+  .nav-clock { display: none; }
 }
 
 @media (max-width: 768px) {
