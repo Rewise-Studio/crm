@@ -447,6 +447,7 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .ri-name { font-size: 12px; font-weight: 600; color: #1E1E1E; margin-left: 9px; }
 .r-svcrow { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12px; color: #1E1E1E; padding: 3px 0; font-weight: 500; }
 .r-svcrow > span:first-child { flex: 1; min-width: 0; }
+.r-item-note { font-size: 11px; font-style: italic; color: #6B4F3A; margin-top: 4px; }
 .rs-price { color: var(--brown); font-weight: 600; white-space: nowrap; flex-shrink: 0; }
 .r-divider { border: none; border-top: 1px solid rgba(58,50,40,0.2); margin: 16px 0; }
 .r-total { display: flex; justify-content: space-between; align-items: baseline; }
@@ -2418,7 +2419,8 @@ function updateReceipt() {
     item.services.forEach(s => total += s.price);
     const svcs = item.services.map(s => "<div class='r-svcrow'><span>"+s.name+"</span><span class='rs-price'>"+s.price+" ₴</span></div>").join("");
     const label = [item.model, item.brand].filter(Boolean).join(" · ");
-    itemsHTML += "<div class='r-item'><div class='r-item-title'><span class='ri-num'>№"+(idx+1)+"</span>"+(label?"<span class='ri-name'>"+label+"</span>":"")+"</div>"+svcs+"</div>";
+    const noteHTML = item.note ? "<div class='r-item-note'>Прим.: "+item.note.replace(/&/g,"&amp;").replace(/</g,"&lt;")+"</div>" : "";
+    itemsHTML += "<div class='r-item'><div class='r-item-title'><span class='ri-num'>№"+(idx+1)+"</span>"+(label?"<span class='ri-name'>"+label+"</span>":"")+"</div>"+svcs+noteHTML+"</div>";
   });
   let clientHTML = "";
   if (NO.client || NO.phone) {
