@@ -2617,11 +2617,15 @@ const FILTER_DEFS = [
 renderers.orders = function() {
   const page = document.getElementById("page-orders");
 
-  const counts = { all: ORDERS.length, new:0, work:0, ready:0, issued:0 };
-  ORDERS.forEach(o => {
+  const periodOrders = ordersInPeriod(periodSel.orders);
+  const counts = { all: periodOrders.length, new:0, work:0, ready:0, issued:0 };
+  periodOrders.forEach(o => {
     const st = getStatus(gv(o,"Номер замовлення"));
     if (counts[st] !== undefined) counts[st]++;
   });
+  const activeCount = periodOrders.filter(o => getStatus(gv(o,"Номер замовлення")) !== "issued").length;
+  const periodNums = new Set(periodOrders.map(o => gv(o,"Номер замовлення")));
+  const itemsInWork = ITEMS.filter(i => periodNums.has(gv(i,"Номер замовлення")) && gv(i,"Статус") === "⚙️ В роботі").length;
 
   const tabs = FILTER_DEFS.map(([k,label]) =>
     "<button class='ftab" + (ordersFilter === k ? " active" : "") + "' onclick=\"setOrdersFilter('" + k + "')\">" +
@@ -2634,6 +2638,13 @@ renderers.orders = function() {
       "<div class='page-title'>Замовлення на ремонт</div>" +
       "<button class='btn-primary' onclick=\"showPage('create')\"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='5' x2='12' y2='19'/><line x1='5' y1='12' x2='19' y2='12'/></svg>Нове замовлення</button>" +
     "</div>" +
+    "<div class='stat-cards'>" +
+      statCard("Активних замовлень", activeCount, true) +
+      statCard("Виробів в роботі", itemsInWork) +
+      statCard("Готові до видачі", counts.ready) +
+      statCard("Видано замовлень", counts.issued) +
+    "</div>" +
+    periodTabsHTML("orders") +
     "<div class='filters'>" + tabs +
       "<div class='filters-right'><div class='search-box'>" +
         "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>" +
@@ -2654,7 +2665,7 @@ function renderOrdersList() {
   if (!dataLoaded) { box.innerHTML = "<div class='orders-loading'>Завантаження...</div>"; return; }
 
   const q = ordersSearch.trim().toLowerCase();
-  const filtered = ORDERS.filter(o => {
+  const filtered = ordersInPeriod(periodSel.orders).filter(o => {
     const num = gv(o,"Номер замовлення");
     const stOk = ordersFilter === "all" || getStatus(num) === ordersFilter;
     const qOk = !q ||
@@ -2730,7 +2741,7 @@ function bindOrderLongPress() {
 }
 
 /* ═══════════════ ПЕРІОД (спільний для вкладок) ═══════════════ */
-let periodSel = { clients: "all", finance: "month", stats: "month" };
+let periodSel = { clients: "all", finance: "month", stats: "month", orders: "all" };
 const PERIODS = [["week","Тиждень"],["month","Місяць"],["year","Рік"],["all","Весь час"]];
 function periodStart(key) {
   const now = new Date();
