@@ -2389,8 +2389,8 @@ function renderItems() {
           "</div>" : "") +
       "</div>" +
       "<div class='ic-svclist'>"+svcRows+"</div>" +
-      "<button type='button' class='ic-add-svc' onclick='toggleAddSvc("+item.id+")'>" + (item.addSvcOpen?"− Приховати послуги":"+ Додати послугу") + "</button>" +
-      (item.addSvcOpen ?
+      (isCare ? "<button type='button' class='ic-add-svc' onclick='toggleAddSvc("+item.id+")'>" + (item.addSvcOpen?"− Приховати послуги":"+ Додати послугу") + "</button>" : "") +
+      ((isCare ? item.addSvcOpen : true) ?
         "<div class='ic-add-panel'>" +
           "<div class='ic-otherlabel'>"+otherLabel+"</div>" +
           "<div class='ic-row' style='margin-bottom:8px'><div class='ic-field'><label>ВІДДІЛ</label><select class='ic-select' onchange='changeDept("+item.id+",this.value)'>"+deptOpts+"</select></div></div>" +
