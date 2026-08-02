@@ -296,6 +296,12 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .ic-details-body { margin-top: 8px; padding: 12px 13px; background: var(--field-bg); border: 1px solid var(--line-soft); border-radius: 8px; }
 .ic-details-row { margin-bottom: 0; }
 .ic-details-row .ic-field { flex: 1; min-width: 0; }
+.ic-note-wrap { margin-top: 12px; }
+.ic-note-label { display: block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--txt-3); margin-bottom: 5px; }
+.ic-note { width: 100%; box-sizing: border-box; background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 6px; padding: 8px 11px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 13px; font-weight: 300; outline: none; resize: vertical; min-height: 40px; }
+.ic-note:focus { border-color: var(--cognac); }
+.ic-note::placeholder { color: var(--txt-3); }
+.d-item-note { margin: 6px 0 2px; padding: 6px 10px; background: var(--accent-soft); border-left: 2px solid var(--cognac); border-radius: 4px; font-size: 12px; color: var(--txt); }
 .ic-add-svc { width: 100%; display: block; margin-top: 10px; background: var(--accent-soft); border: 1px solid var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 12px; letter-spacing: 0.04em; padding: 10px; cursor: pointer; transition: all 0.15s; }
 .ic-add-svc:hover { background: var(--cognac); color: #fff; }
 .ic-add-panel { margin-top: 10px; padding: 12px 13px; background: var(--field-bg); border: 1px solid var(--line-soft); border-radius: 8px; }
@@ -398,6 +404,8 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 /* прохід 2: вирівнювання ряду категорія·вид·бренд + щільніше */
 #page-create .ic-row3 { align-items: flex-start; }
 #page-create .ic-row3 .ic-search-wrap { margin-top: 0; }
+#page-create .ic-details-row .ic-search-wrap { margin-top: 0; }
+#page-create .ic-details-row .ic-mini { padding-top: 8px; padding-bottom: 8px; }
 #page-create .ic-row3 .ic-mini { height: 36px; padding-top: 0; padding-bottom: 0; }
 #page-create .ic-catseg .ic-seg { height: 36px; padding-top: 0; padding-bottom: 0; }
 #page-create .cr-grid { gap: 7px; }
@@ -1514,7 +1522,7 @@ async function loadData() {
       fetch(base + encodeURIComponent("Кольори")).catch(() => null)
     ]);
     ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер","Спосіб передоплати","Сума доплати","Спосіб доплати","Сповіщено","Нараховано бонусів","Списано бонусів","Рейтинг вручну"]);
-    ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено","Майстер","Хто видав","Колір","Матеріал","Стан"]);
+    ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено","Майстер","Хто видав","Колір","Матеріал","Стан","Доставка","Коментар"]);
     PARTNERS = await parsePartners(r3);
     if (!PARTNERS.length) PARTNERS = ["Сергій"];
     if (r4) { try { TASKS = await parseTasks(r4); } catch(e) { TASKS = []; } }
@@ -1930,6 +1938,7 @@ function setTermVal(v) {
 function toggleItemDetails(id) { const it = NO.items.find(i=>i.id===id); if (it) { it.detailsOpen = !it.detailsOpen; renderItems(); } }
 function setItemMatNote(id, v) { const it = NO.items.find(i=>i.id===id); if (it) { it.matNote = v; renderItems(); } }
 function setItemCondition(id, v) { const it = NO.items.find(i=>i.id===id); if (it) { it.condition = v; renderItems(); } }
+function setItemNote(id, v) { const it = NO.items.find(i=>i.id===id); if (it) it.note = v; }
 function onItemColorInput(id, v) { const it = NO.items.find(i=>i.id===id); if (it) it.color = v; renderColorDD(id, v); }
 function openColorDD(id) { const it = NO.items.find(i=>i.id===id); renderColorDD(id, it ? it.color : ""); }
 function renderColorDD(id, query) {
@@ -2151,7 +2160,7 @@ function addItem() {
   if (!priceLoaded) return;
   itemCounter++;
   const cat = firstCategory();
-  NO.items.push({ id: itemCounter, category: cat, department: firstDept(cat), mode: "care", model: "", brand: "", size: "", material: "шкіряна", services: [], color: "", matNote: "", condition: "", detailsOpen: false });
+  NO.items.push({ id: itemCounter, category: cat, department: firstDept(cat), mode: "care", model: "", brand: "", size: "", material: "шкіряна", services: [], color: "", matNote: "", condition: "", note: "", detailsOpen: false });
   renderItems(); updateReceipt();
 }
 function removeItem(id) { NO.items = NO.items.filter(i => i.id !== id); renderItems(); updateReceipt(); }
@@ -2361,7 +2370,7 @@ function renderItems() {
       careBlock +
       "<div class='ic-details'>" +
         "<button type='button' class='ic-details-toggle' onclick='toggleItemDetails(" + item.id + ")'>" +
-          (item.detailsOpen ? "− " : "+ ") + "Деталі речі (колір, матеріал, стан)</button>" +
+          (item.detailsOpen ? "− " : "+ ") + "Деталі речі (колір, матеріал, стан, коментар)</button>" +
         (item.detailsOpen ?
           "<div class='ic-details-body'>" +
             "<div class='ic-row ic-details-row'>" +
@@ -2371,6 +2380,10 @@ function renderItems() {
               "</div></div>" +
               "<div class='ic-field'><label>МАТЕРІАЛ</label>" + crSelect("mat" + item.id, item.matNote, MATERIALS, "setItemMatNote", {arg:item.id, placeholder:"Не вказано"}) + "</div>" +
               "<div class='ic-field'><label>СТАН</label>" + crSelect("cond" + item.id, item.condition, CONDITIONS, "setItemCondition", {arg:item.id, placeholder:"Не вказано"}) + "</div>" +
+            "</div>" +
+            "<div class='ic-note-wrap'>" +
+              "<label class='ic-note-label'>Коментар до речі</label>" +
+              "<textarea class='ic-note' id='ic-note-" + item.id + "' rows='2' placeholder='Напр.: без шнурків, без устілок…' oninput='setItemNote(" + item.id + ",this.value)'>" + (item.note||"").replace(/&/g,"&amp;").replace(/</g,"&lt;") + "</textarea>" +
             "</div>" +
           "</div>" : "") +
       "</div>" +
@@ -2534,7 +2547,8 @@ async function submitOrder() {  if (!NO.manager) { alert("Оберіть при�
         total: total.toLocaleString("uk-UA") + " ₴",
         color: item.color || "",
         material: item.matNote || "",
-        condition: item.condition || ""
+        condition: item.condition || "",
+        note: item.note || ""
       };
     })
   };
@@ -4891,6 +4905,7 @@ function openOrder(num) {
     const iname = [gv(it,"Тип"), gv(it,"Бренд")].filter(Boolean).join(" · ") || "Виріб";
     const itemNum = gv(it,"Номер виробу") || (num + "-" + (idx+1));
     const notified = gv(it,"Сповіщено");
+    const itemNote = gv(it,"Коментар");
     const notifyCheck = "<label class='d-notify-check' onclick=\"toggleNotified('" + itemNum + "'," + idx + ",event)\">" +
       "<span class='d-check" + (notified ? " on" : "") + "'>" + (notified ? "✓" : "") + "</span>" +
       (notified ? "Сповіщено " + notified : "Позначити, що сповіщено") + "</label>";
@@ -4915,6 +4930,7 @@ function openOrder(num) {
       "<div class='d-item-head'><div><span class='d-item-num'>№" + (idx+1) + "</span> <span class='d-item-name'>" + iname + "</span></div>" +
       "<span class='d-item-price'>" + (itemTotal ? itemTotal.toLocaleString("uk-UA") + " ₴" : "—") + "</span></div>" +
       "<div class='d-item-svc'>" + gv(it,"Послуги") + "</div>" +
+      (itemNote ? "<div class='d-item-note'>📝 " + itemNote + "</div>" : "") +
       "<div class='d-status-row'>" + statusBtns + "</div>" +
       execBlock +
       notifyCheck +
