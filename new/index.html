@@ -651,32 +651,27 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .ocard-foot .oc-svc { font-size: 11px; color: var(--txt-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ocard-foot .oc-date { font-size: 11px; color: var(--txt-2); white-space: nowrap; }
 .ocard-foot .oc-date.warn { color: var(--st-postponed-fg); }
-.order-row {
-  display: flex;
-  gap: 10px; align-items: center;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--cognac);
-  border-radius: 10px;
-  padding: 10px 14px;
-  cursor: pointer;
-  -webkit-touch-callout: none;
-  transition: background 0.12s, border-color 0.12s;
+.orders-scroll { overflow-x: auto; }
+.orders-table { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.ot-row { display: grid; grid-template-columns: 100px 1.5fr 1.5fr 128px 108px 110px 34px; align-items: center; border-bottom: 1px solid var(--line-soft); cursor: pointer; transition: background 0.12s; }
+.ot-row:last-child { border-bottom: none; }
+.ot-row:hover { background: var(--hover); }
+.ot-row.hdr { background: var(--bg); cursor: default; }
+.ot-row.hdr:hover { background: var(--bg); }
+.ot-row.important { box-shadow: inset 3px 0 0 #C0392B; }
+.ot-row.urgent-soon { box-shadow: inset 3px 0 0 var(--st-postponed-fg); }
+.ot-cell { padding: 11px 12px; font-size: 13px; min-width: 0; overflow: hidden; }
+.ot-cell.h { font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--txt-3); font-weight: 500; }
+.ot-num { font-weight: 500; color: var(--leather); white-space: nowrap; }
+.ot-client .nm { font-weight: 500; color: var(--txt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ot-client .ph { font-size: 11px; color: var(--txt-2); margin-top: 1px; }
+.ot-item, .ot-master, .ot-term { color: var(--txt-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ot-term.warn { color: var(--st-postponed-fg); }
+.ot-flagcell { display: flex; justify-content: center; padding: 4px; }
+@media (max-width: 720px), (orientation: portrait) {
+  .ot-row { grid-template-columns: 82px 1.5fr 116px 92px 30px; }
+  .ot-item, .ot-master, .hdr-item, .hdr-master { display: none; }
 }
-.order-row:hover { background: var(--hover); }
-.order-row.urgent-soon { box-shadow: 0 0 0 1px var(--st-postponed-fg); }
-.order-row.important { border-color: #C0392B; background: rgba(192,57,43,0.05); box-shadow: inset 0 0 0 1px rgba(192,57,43,0.3); }
-.or-body { flex: 1; min-width: 0; }
-.or-l1 { display: flex; align-items: center; gap: 9px; }
-.order-num { font-size: 13px; font-weight: 500; color: var(--leather); white-space: nowrap; flex-shrink: 0; }
-.or-item { flex: 1; min-width: 0; font-size: 13px; color: var(--txt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.or-l1-right { flex-shrink: 0; }
-.or-l2 { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 4px; }
-.or-client { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.or-client .oc-name { font-weight: 500; color: var(--txt); font-size: 14px; }
-.or-client .oc-ph { color: var(--txt-2); font-size: 12px; }
-.or-l2-right { color: var(--txt-2); font-size: 12px; white-space: nowrap; flex-shrink: 0; }
-.or-l2-right.warn { color: var(--st-postponed-fg); }
 .oc-name { font-size: 14px; color: var(--txt); }
 .oc-sub { font-size: 11px; color: var(--txt-3); margin-top: 3px; }
 .oc-svc { font-size: 13px; color: var(--txt-2); }
@@ -2680,28 +2675,31 @@ function renderOrdersList() {
     return;
   }
 
-  box.innerHTML = "<div class='orders-grid'>" + filtered.map(o => {
+  box.innerHTML = "<div class='orders-table'>" +
+    "<div class='ot-row hdr'>" +
+      "<div class='ot-cell h'>Номер</div>" +
+      "<div class='ot-cell h'>Клієнт</div>" +
+      "<div class='ot-cell h hdr-item'>Виріб</div>" +
+      "<div class='ot-cell h'>Статус</div>" +
+      "<div class='ot-cell h'>Термін</div>" +
+      "<div class='ot-cell h hdr-master'>Майстер</div>" +
+      "<div class='ot-cell h'></div>" +
+    "</div>" +
+    filtered.map(o => {
     const num = gv(o,"Номер замовлення");
-    const st = getStatus(num);
-    const accent = STATUS_ACCENT[st] || "var(--cognac)";
     const warn = deadlineWarn(o);
     const term = gv(o,"Термін") || "—";
     const imp = isImportant(num);
     const flagSvg = "<svg viewBox='0 0 24 24' fill='" + (imp?"currentColor":"none") + "' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 21V4h13l-2 4 2 4H4'/></svg>";
     const master = orderMaster(num);
-    return "<div class='order-row" + (warn ? " urgent-soon" : "") + (imp ? " important" : "") + "' data-num=\"" + num + "\" style='border-left-color:" + accent + "' onclick=\"openOrder('" + num + "')\" oncontextmenu=\"toggleImportant('" + num + "',event);return false\">" +
-      "<div class='or-body'>" +
-        "<div class='or-l1'>" +
-          "<span class='order-num'>" + num + "</span>" +
-          "<span class='or-item'>" + orderItemName(num) + "</span>" +
-          "<span class='or-l1-right'>" + statusBadge(num) + "</span>" +
-        "</div>" +
-        "<div class='or-l2'>" +
-          "<span class='or-client'><span class='oc-name'>" + (gv(o,"Ім'я клієнта") || "—") + "</span> <span class='oc-ph'>" + gv(o,"Телефон") + "</span></span>" +
-          "<span class='or-l2-right" + (warn ? " warn" : "") + "'>" + (master ? master + " · " : "") + term + "</span>" +
-        "</div>" +
-      "</div>" +
-      "<button class='ocard-flag" + (imp?" on":"") + "' onclick=\"toggleImportant('" + num + "',event)\" aria-label='Важливо'>" + flagSvg + "</button>" +
+    return "<div class='ot-row" + (warn ? " urgent-soon" : "") + (imp ? " important" : "") + "' data-num=\"" + num + "\" onclick=\"openOrder('" + num + "')\" oncontextmenu=\"toggleImportant('" + num + "',event);return false\">" +
+      "<div class='ot-cell ot-num'>" + num + "</div>" +
+      "<div class='ot-cell ot-client'><div class='nm'>" + (gv(o,"Ім'я клієнта") || "—") + "</div><div class='ph'>" + gv(o,"Телефон") + "</div></div>" +
+      "<div class='ot-cell ot-item'>" + orderItemName(num) + "</div>" +
+      "<div class='ot-cell'>" + statusBadge(num) + "</div>" +
+      "<div class='ot-cell ot-term" + (warn ? " warn" : "") + "'>" + term + "</div>" +
+      "<div class='ot-cell ot-master'>" + (master || "—") + "</div>" +
+      "<div class='ot-cell ot-flagcell'><button class='ocard-flag" + (imp?" on":"") + "' onclick=\"toggleImportant('" + num + "',event)\" aria-label='Важливо'>" + flagSvg + "</button></div>" +
     "</div>";
   }).join("") + "</div>";
   bindOrderLongPress();
