@@ -430,7 +430,7 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .btn-share:hover { background: var(--cognac); color: #fff; }
 .btn-share svg { width: 13px; height: 13px; stroke-width: 1.8; }
 
-#receipt { background: #FBF8F3; color: #1E1E1E; border-radius: 8px; padding: 28px 24px; font-family: 'Commissioner', sans-serif; font-weight: 500; box-shadow: var(--receipt-shadow); }
+#receipt, #order-receipt { background: #FBF8F3; color: #1E1E1E; border-radius: 8px; padding: 28px 24px; font-family: 'Commissioner', sans-serif; font-weight: 500; box-shadow: var(--receipt-shadow); }
 [data-theme="dark"] #receipt { background: var(--linen); }
 .r-header { text-align: center; padding-bottom: 16px; border-bottom: 1px solid rgba(58,50,40,0.15); margin-bottom: 16px; }
 .r-logo { font-family: 'Tenor Sans', serif; font-size: 12px; letter-spacing: 0.25em; color: var(--brown); text-transform: uppercase; margin-bottom: 3px; }
@@ -2474,6 +2474,55 @@ function shareReceipt() {
       }
     }, "image/png");
   }).catch(()=>{ if(btn) btn.innerHTML=orig; });
+}
+
+function orderReceiptHTML(num) {
+  const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
+  const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+  const client = o ? gv(o,"Ім'я клієнта") : "";
+  const phone = o ? gv(o,"Телефон") : "";
+  const created = o ? gv(o,"Дата створення") : "";
+  let total = 0, itemsHTML = "";
+  its.forEach((it, idx) => {
+    const amt = extractAmt(gv(it,"Сума")); total += amt;
+    const name = [gv(it,"Тип"), gv(it,"Бренд")].filter(Boolean).join(" · ") || "Виріб";
+    const svcs = gv(it,"Послуги");
+    const note = gv(it,"Коментар");
+    const svcRow = "<div class='r-svcrow'><span>" + (svcs || "Послуги") + "</span><span class='rs-price'>" + amt.toLocaleString("uk-UA") + " ₴</span></div>";
+    const noteHTML = note ? "<div class='r-item-note'>Прим.: " + note.replace(/&/g,"&amp;").replace(/</g,"&lt;") + "</div>" : "";
+    itemsHTML += "<div class='r-item'><div class='r-item-title'><span class='ri-num'>№" + (idx+1) + "</span><span class='ri-name'>" + name + "</span></div>" + svcRow + noteHTML + "</div>";
+  });
+  let clientHTML = "";
+  if (client || phone) {
+    clientHTML = "<div class='r-client'>";
+    if (client) clientHTML += "<div class='r-crow'><span class='rc-label'>Клієнт</span><span class='rc-value'>" + client + "</span></div>";
+    if (phone) clientHTML += "<div class='r-crow'><span class='rc-label'>Телефон</span><span class='rc-value'>" + phone + "</span></div>";
+    clientHTML += "</div>";
+  }
+  return "<div id='order-receipt'>" +
+    "<div class='r-header'><div class='r-logo'>REWISE · STUDIO</div><div class='r-tag'>Чек · " + num + "</div></div>" +
+    "<div class='r-meta'><span>" + created + "</span></div>" + clientHTML +
+    "<div class='r-items'>" + itemsHTML + "</div>" +
+    (total > 0 ? "<hr class='r-divider'><div class='r-total'><span class='rt-label'>Разом</span><span class='rt-amount'>" + total.toLocaleString("uk-UA") + " ₴</span></div>" : "") +
+    "<div class='r-footer'>rewise-studio · ukraine</div>" +
+  "</div>";
+}
+
+function shareOrderReceipt(num) {
+  const el = document.getElementById("order-receipt");
+  if (!el) return;
+  html2canvas(el, { backgroundColor: "#FBF8F3", scale: 2, useCORS: true }).then(canvas => {
+    canvas.toBlob(blob => {
+      const file = new File([blob], "rewise-chek-" + num + ".png", { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: "Rewise — Чек " + num }).catch(()=>{});
+      } else {
+        const link = document.createElement("a");
+        link.download = "rewise-chek-" + num + ".png";
+        link.href = canvas.toDataURL("image/png"); link.click();
+      }
+    }, "image/png");
+  }).catch(()=>{});
 }
 
 /* Скасування оформлення (з підтвердженням) + чернетка (локально) */
@@ -5066,6 +5115,8 @@ function openOrder(num) {
       "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','accepted')\">" + copyIcon() + "Прийнято</button>" +
     "</div></div>";
 
+  const receiptBlock = "<div class='dblock'><div class='dblock-label'>Чек</div>" + orderReceiptHTML(num) + "<button class='btn-primary' style='width:100%;margin-top:12px' onclick=\"shareOrderReceipt('" + num + "')\">Поділитися чеком</button></div>";
+
   modalBody.innerHTML =
     "<div class='detail-top'>" +
       "<span class='detail-title'>Замовлення " + num + "</span>" +
@@ -5074,7 +5125,7 @@ function openOrder(num) {
     "</div>" +
     "<div class='detail-grid'>" +
       "<div class='detail-col'>" + clientBlock + timelineBlock + "</div>" +
-      "<div class='detail-col'>" + payBlock + bonusBlock + "</div>" +
+      "<div class='detail-col'>" + payBlock + bonusBlock + receiptBlock + "</div>" +
     "</div>" +
     "<div class='detail-stack'>" + itemsBlock + notifyBlock + "</div>";
 
