@@ -5124,10 +5124,10 @@ function openOrder(num) {
       "<button class='detail-edit' onclick=\"openEditOrder('" + num + "')\">Редагувати</button>" +
     "</div>" +
     "<div class='detail-grid'>" +
-      "<div class='detail-col'>" + clientBlock + timelineBlock + "</div>" +
-      "<div class='detail-col'>" + payBlock + bonusBlock + receiptBlock + "</div>" +
+      "<div class='detail-col'>" + clientBlock + payBlock + bonusBlock + timelineBlock + "</div>" +
+      "<div class='detail-col'>" + itemsBlock + receiptBlock + "</div>" +
     "</div>" +
-    "<div class='detail-stack'>" + itemsBlock + notifyBlock + "</div>";
+    "<div class='detail-stack'>" + notifyBlock + "</div>";
 
   document.getElementById("odm-bg").classList.add("open");
 }
