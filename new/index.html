@@ -2980,137 +2980,7 @@ function setTopClientsMode(mode) {
   document.getElementById("tc-count-btn").classList.toggle("active", mode === "count");
 }
 
-/* ═══════════════ ВКЛАДКА ЗАДАЧІ ═══════════════ */
-let taskAddOrder = "";
-
-renderers.tasks = function() {
-  const page = document.getElementById("page-tasks");
-  let active = TASKS.filter(t => t["Статус"] !== "так");
-  const done = TASKS.filter(t => t["Статус"] === "так");
-
-  // Сортування активних задач: спочатку прострочені, потім за найближчим дедлайном, без дедлайну — в кінці
-  function sortKey(t) {
-    const d = parseDeadline(t["Дедлайн"]);
-    return d ? d.getTime() : Infinity;
-  }
-  active = active.sort((a,b) => sortKey(a) - sortKey(b));
-
-  function isOverdue(t) {
-    if (t["Статус"] === "так") return false;
-    const d = parseDeadline(t["Дедлайн"]);
-    if (!d) return false;
-    const now = new Date(); now.setHours(0,0,0,0);
-    return d.getTime() < now.getTime();
-  }
-
-  function taskRow(t) {
-    const isDone = t["Статус"] === "так";
-    const overdue = isOverdue(t);
-    const num = t["Замовлення"];
-    const order = num ? "<span class='task-order' onclick=\"openOrder('" + num + "')\">" + num + "</span>" : "";
-    const deadline = t["Дедлайн"] ? "<span class='task-deadline" + (overdue?" overdue":"") + "'>" + (overdue?"⚠ ":"") + t["Дедлайн"] + "</span>" : "";
-    const created = (t["Створено"]||"").replace(/"/g,"&quot;");
-    const txt = (t["Текст"]||"").replace(/"/g,"&quot;");
-    return "<div class='task-row" + (isDone?" done":"") + (overdue?" overdue-row":"") + "'>" +
-      "<span class='task-check" + (isDone?" on":"") + "' onclick=\"toggleTask('" + txt.replace(/'/g,"\\'") + "','" + created.replace(/'/g,"\\'") + "'," + (!isDone) + ")\">" + (isDone?"✓":"") + "</span>" +
-      "<span class='task-text'>" + t["Текст"] + order + deadline + "</span>" +
-      "<button class='task-del' onclick=\"deleteTask('" + txt.replace(/'/g,"\\'") + "','" + created.replace(/'/g,"\\'") + "')\">×</button>" +
-    "</div>";
-  }
-
-  const orderChip = taskAddOrder ?
-    "<span class='task-order-chip'>" + taskAddOrder + "<button onclick='clearTaskOrder()'>×</button></span>" : "";
-
-  page.innerHTML =
-    groupSwitcher("planning") +
-    "<div class='page-header'><div class='page-title'>Задачі</div></div>" +
-    "<div class='tab-scroll'>" +
-      "<div class='task-add-form'>" +
-        "<div class='task-field-label'>Що потрібно зробити</div>" +
-        "<input class='cr-input' id='task-input' placeholder='Наприклад: передзвонити клієнту, замовити фурнітуру' style='margin-bottom:0' onkeydown='if(event.key===\"Enter\")addTask()'>" +
-        "<div class='task-add-row'>" +
-          "<div class='task-order-search'>" +
-            "<div class='task-field-label'>Замовлення (необов'язково)</div>" +
-            "<input class='ic-mini' id='task-order-input' placeholder='Введи номер або ім\\'я клієнта' autocomplete='off' oninput='filterTaskOrders(this.value)' onfocus='filterTaskOrders(this.value)'>" +
-            "<div class='ic-dd' id='task-order-dd'></div>" +
-            orderChip +
-          "</div>" +
-          "<div style='max-width:170px'>" +
-            "<div class='task-field-label'>До якої дати</div>" +
-            "<input class='ic-mini' id='task-deadline-input' type='date'>" +
-          "</div>" +
-          "<div><div class='task-field-label'>&nbsp;</div><button class='task-add-btn' onclick='addTask()'>+</button></div>" +
-        "</div>" +
-      "</div>" +
-      (active.length ? active.map(taskRow).join("") : "<div style='color:var(--txt-3);font-size:13px;padding:20px 0;text-align:center'>Немає активних задач</div>") +
-      (done.length ? "<div class='task-done-label'>Виконані</div>" + done.map(taskRow).join("") : "") +
-    "</div>";
-};
-
-function filterTaskOrders(q) {
-  q = (q||"").trim().toLowerCase();
-  const dd = document.getElementById("task-order-dd");
-  if (!dd) return;
-  if (!q) { dd.classList.remove("open"); return; }
-  const matches = ORDERS.filter(o =>
-    gv(o,"Номер замовлення").toLowerCase().includes(q) || gv(o,"Ім'я клієнта").toLowerCase().includes(q)
-  ).slice(0, 6);
-  if (!matches.length) { dd.innerHTML = "<div class='ic-opt'><span class='o-empty'>Нічого не знайдено</span></div>"; dd.classList.add("open"); return; }
-  dd.innerHTML = matches.map(o => {
-    const num = gv(o,"Номер замовлення");
-    return "<div class='ic-opt' onclick=\"pickTaskOrder('" + num + "')\"><span class='o-name'>" + num + " · " + gv(o,"Ім'я клієнта") + "</span></div>";
-  }).join("");
-  dd.classList.add("open");
-}
-function pickTaskOrder(num) {
-  taskAddOrder = num;
-  document.getElementById("task-order-dd").classList.remove("open");
-  renderers.tasks();
-}
-function clearTaskOrder() { taskAddOrder = ""; renderers.tasks(); }
-
-async function addTask() {
-  const input = document.getElementById("task-input");
-  const text = input.value.trim();
-  if (!text) return;
-  const deadlineRaw = document.getElementById("task-deadline-input").value;
-  const deadline = deadlineRaw ? formatDeadlineDate(deadlineRaw) : "";
-  const order = taskAddOrder;
-  const created = new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit",year:"numeric"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
-  TASKS.push({ "Текст": text, "Замовлення": order, "Статус": "ні", "Створено": created, "Виконано": "", "Дедлайн": deadline });
-  input.value = "";
-  taskAddOrder = "";
-  renderers.tasks();
-  try {
-    await fetch(API_URL.replace("/order","/task"), {
-      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ text: text, order: order, deadline: deadline })
-    });
-  } catch(e) { console.error("task add failed", e); }
-}
-
-async function toggleTask(text, created, done) {
-  const t = TASKS.find(x => x["Текст"] === text && x["Створено"] === created);
-  if (t) { t["Статус"] = done ? "так" : "ні"; }
-  renderers.tasks();
-  try {
-    await fetch(API_URL.replace("/order","/task/toggle"), {
-      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ text: text, created: created, done: done })
-    });
-  } catch(e) { console.error("task toggle failed", e); }
-}
-
-async function deleteTask(text, created) {
-  TASKS = TASKS.filter(x => !(x["Текст"] === text && x["Створено"] === created));
-  renderers.tasks();
-  try {
-    await fetch(API_URL.replace("/order","/task/delete"), {
-      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ text: text, created: created })
-    });
-  } catch(e) { console.error("task delete failed", e); }
-}
+// Вкладка задач винесено у js/tasks.js (підключено після </script>)
 
 /* ═══════════════ РЕДАГУВАННЯ ЗАМОВЛЕННЯ ═══════════════ */
 let editState = null;
@@ -3216,122 +3086,7 @@ async function saveEditOrder() {
   } catch(err) { console.error("edit save failed", err); }
 }
 
-/* ═══════════════ ВКЛАДКА ОНЛАЙН-ПРАЙС (для консультацій) ═══════════════ */
-let plCat = "";
-let plSearch = "";
-let plDept = "";
-function setPlDept(d) { plDept = d; renderers.pricelist(); }
-function plDays(n) {
-  const a = n % 10, b = n % 100;
-  if (a === 1 && b !== 11) return "день";
-  if (a >= 2 && a <= 4 && (b < 10 || b >= 20)) return "дні";
-  return "днів";
-}
-function plTermText(t) {
-  const s = String(t).trim();
-  if (/^\d+$/.test(s)) { const n = parseInt(s); return n + " " + plDays(n); }
-  return s;
-}
-
-/* Розкладка карток прайсу по колонках — зберігається в цьому браузері (перетягуванням) */
-function plLayoutKey(catKey) { return "rw_pl_layout_" + catKey; }
-function plSavedLayout(catKey) {
-  try { return JSON.parse(localStorage.getItem(plLayoutKey(catKey)) || "null"); } catch(e) { return null; }
-}
-function plSaveLayout(catKey, cols) {
-  try { localStorage.setItem(plLayoutKey(catKey), JSON.stringify(cols)); } catch(e) {}
-}
-/* Повертає масив колонок (масив назв відділів). Нерозміщені — у коротшу колонку. */
-function plColumns(catKey, nCols) {
-  nCols = nCols || 2;
-  const all = Object.keys(PRICE[catKey].departments);
-  const cols = []; for (let i=0;i<nCols;i++) cols.push([]);
-  const placed = new Set();
-  const saved = plSavedLayout(catKey);
-  if (saved && Array.isArray(saved)) {
-    saved.forEach((col, ci) => {
-      const target = Math.min(ci, nCols-1);
-      (col||[]).forEach(d => { if (all.includes(d) && !placed.has(d)) { cols[target].push(d); placed.add(d); } });
-    });
-  }
-  const weight = ci => cols[ci].reduce((n,d) => n + PRICE[catKey].departments[d].length, 0);
-  all.filter(d => !placed.has(d)).forEach(d => {
-    let min = 0; for (let i=1;i<nCols;i++) if (weight(i) < weight(min)) min = i;
-    cols[min].push(d);
-  });
-  return cols;
-}
-const PL_GRIP = "<span class='pl-grip'><svg viewBox='0 0 20 20' width='12' height='12' fill='currentColor'><circle cx='7' cy='4.5' r='1.5'/><circle cx='13' cy='4.5' r='1.5'/><circle cx='7' cy='10' r='1.5'/><circle cx='13' cy='10' r='1.5'/><circle cx='7' cy='15.5' r='1.5'/><circle cx='13' cy='15.5' r='1.5'/></svg></span>";
-
-renderers.pricelist = function() {
-  const page = document.getElementById("page-pricelist");
-  if (!priceLoaded) {
-    page.innerHTML = "<div class='page-header'><div class='page-title'>Прайс</div></div>" +
-      "<div class='orders-loading'>Завантаження...</div>";
-    return;
-  }
-  const cats = Object.keys(PRICE);
-  if (!cats.length) {
-    page.innerHTML = "<div class='page-header'><div class='page-title'>Прайс</div></div>" +
-      "<div class='orders-empty'>Прайс порожній</div>";
-    return;
-  }
-  if (!plCat || !PRICE[plCat]) plCat = cats[0];
-
-  const q = plSearch.trim().toLowerCase();
-  const tabs = cats.map(k =>
-    "<button class='pl-tab" + (plCat===k?" active":"") + "' onclick=\"setPlCat('" + k + "')\">" + PRICE[k].label + "</button>"
-  ).join("");
-
-  const depts = Object.keys(PRICE[plCat].departments);
-  if (plDept && !depts.includes(plDept)) plDept = "";
-  const filters = "<button class='pl-filter" + (!plDept?" active":"") + "' onclick=\"setPlDept('')\">Усі</button>" +
-    depts.map(d => "<button class='pl-filter" + (plDept===d?" active":"") + "' onclick=\"setPlDept('" + d.replace(/'/g,"\\'") + "')\">" + d + "</button>").join("");
-
-  let found = 0;
-  function cardFor(s) {
-    found++;
-    const hint = svcHint(s.name);
-    return "<div class='pl-scard' onclick=\"this.classList.toggle('pl-lit')\">" +
-      "<div class='pl-scard-name'>" + s.name + "</div>" +
-      (hint ? "<div class='pl-scard-hint'>" + hint + "</div>" : "") +
-      "<div class='pl-scard-foot'>" +
-        "<div class='pl-scard-price'>" + s.price.toLocaleString("uk-UA") + " ₴" +
-          (s.unit ? "<span class='pl-unit'> / " + s.unit + "</span>" : "") + "</div>" +
-        (s.term ? "<div class='pl-scard-term'>⏱ " + plTermText(s.term) + "</div>" : "") +
-      "</div>" +
-    "</div>";
-  }
-
-  let cardsHTML = "";
-  if (q) {
-    cats.forEach(catKey => Object.keys(PRICE[catKey].departments).forEach(dept => {
-      PRICE[catKey].departments[dept].forEach(s => {
-        if (s.active === false) return;
-        if (s.name.toLowerCase().includes(q) || dept.toLowerCase().includes(q)) cardsHTML += cardFor(s);
-      });
-    }));
-  } else {
-    (plDept ? [plDept] : depts).forEach(dept => {
-      PRICE[plCat].departments[dept].forEach(s => { if (s.active !== false) cardsHTML += cardFor(s); });
-    });
-  }
-
-  const searchSVG = "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>";
-
-  page.innerHTML =
-    "<div class='page-header'><div class='page-title'>Прайс</div></div>" +
-    "<div class='tab-scroll'><div class='pl-wrap'>" +
-      "<div class='pl-tabs'>" + tabs + "</div>" +
-      "<div class='pl-searchbar'>" + searchSVG +
-        "<input type='text' placeholder='Пошук послуги…' value=\"" + plSearch.replace(/"/g,"&quot;") + "\" oninput='onPlSearch(this.value)'></div>" +
-      (q ? "" : "<div class='pl-filters'>" + filters + "</div>") +
-      (found ? "<div class='pl-cards'>" + cardsHTML + "</div>" : "<div class='orders-empty'>Нічого не знайдено</div>") +
-    "</div></div>";
-};
-
-function setPlCat(k) { plCat = k; plDept = ""; renderers.pricelist(); }
-function onPlSearch(v) { plSearch = v; renderers.pricelist(); }
+// Вкладка прайсу винесено у js/pricelist.js (підключено після </script>)
 
 /* ═══════════════ ВКЛАДКА НАЛАШТУВАННЯ ═══════════════ */
 let settingsSection = "params"; // params | price
@@ -4414,7 +4169,7 @@ function applyCreateReco(iso) {
 /* RWCAL-ANCHOR */
 var calY, calM;
 function calInit(){ var pd = parseDeadline(NO.deadline); var base = pd || new Date(); calY = base.getFullYear(); calM = base.getMonth(); }
-function calShift(delta){ calM += delta; if (calM < 0) { calM = 11; calY--; } if (calM > 11) { calM = 0; calY++; } var pop = document.getElementById("rwcal-pop"); if (pop) pop.innerHTML = renderDatePopHTML(); }
+function datePopShift(delta){ calM += delta; if (calM < 0) { calM = 11; calY--; } if (calM > 11) { calM = 0; calY++; } var pop = document.getElementById("rwcal-pop"); if (pop) pop.innerHTML = renderDatePopHTML(); }
 function renderDatePopHTML(){
   var MN = ["Січень","Лютий","Березень","Квітень","Травень","Червень","Липень","Серпень","Вересень","Жовтень","Листопад","Грудень"];
   var startDow = (new Date(calY, calM, 1).getDay() + 6) % 7;
@@ -4422,7 +4177,7 @@ function renderDatePopHTML(){
   var prevDays = new Date(calY, calM, 0).getDate();
   var todayISO = localISO(new Date());
   var pdd = parseDeadline(NO.deadline); var selISO = pdd ? localISO(pdd) : "";
-  var h = "<div class='rwcal-head'><div class='rwcal-title'>" + MN[calM] + " " + calY + "</div><div class='rwcal-nav'><button type='button' onclick='event.stopPropagation();calShift(-1)'>‹</button><button type='button' onclick='event.stopPropagation();calShift(1)'>›</button></div></div>";
+  var h = "<div class='rwcal-head'><div class='rwcal-title'>" + MN[calM] + " " + calY + "</div><div class='rwcal-nav'><button type='button' onclick='event.stopPropagation();datePopShift(-1)'>‹</button><button type='button' onclick='event.stopPropagation();datePopShift(1)'>›</button></div></div>";
   h += "<div class='rwcal-grid'>";
   ["ПН","ВТ","СР","ЧТ","ПТ","СБ","НД"].forEach(function(d){ h += "<div class='rwcal-dow'>" + d + "</div>"; });
   for (var i = startDow; i > 0; i--) { h += "<div class='rwcal-day mut'>" + (prevDays - i + 1) + "</div>"; }
@@ -4462,137 +4217,7 @@ function applyTailorReco(iso) {
   renderTailorForm();
 }
 
-function calendarEvents() {  const events = [];
-  if (calFilter === "all" || calFilter === "orders") {
-    ORDERS.forEach(o => {
-      const d = parseDeadline(gv(o,"Термін"));
-      if (!d) return;
-      const num = gv(o,"Номер замовлення");
-      const st = getStatus(num);
-      const done = st === "issued";
-      const now = new Date(); now.setHours(0,0,0,0);
-      events.push({
-        type: "order", date: d, done: done,
-        late: !done && d < now,
-        title: num + " " + (gv(o,"Ім'я клієнта") || ""),
-        sub: orderServices(num),
-        ref: num
-      });
-    });
-  }
-  if (calFilter === "all" || calFilter === "tasks") {
-    TASKS.forEach(t => {
-      const d = parseDeadline(t["Дедлайн"]);
-      if (!d) return;
-      const done = t["Статус"] === "так";
-      const now = new Date(); now.setHours(0,0,0,0);
-      events.push({
-        type: "task", date: d, done: done,
-        late: !done && d < now,
-        title: t["Текст"],
-        sub: t["Замовлення"] ? t["Замовлення"] : "",
-        ref: t["Замовлення"] || ""
-      });
-    });
-  }
-  if (calFilter === "all" || calFilter === "tailor") {
-    TAILOR.forEach(t => {
-      const d = parseDeadline(gv(t,"Термін"));
-      if (!d) return;
-      const done = gv(t,"Статус") === "📦 Виданий";
-      const now = new Date(); now.setHours(0,0,0,0);
-      events.push({
-        type: "tailor", date: d, done: done,
-        late: !done && d < now,
-        title: gv(t,"Номер") + " " + (gv(t,"Виріб") || ""),
-        sub: gv(t,"Ім'я клієнта"),
-        ref: gv(t,"Номер")
-      });
-    });
-  }
-  return events;
-}
-
-renderers.calendar = function() {
-  const page = document.getElementById("page-calendar");
-  const events = calendarEvents();
-  const today = new Date(); today.setHours(0,0,0,0);
-
-  // Перший день сітки (понеділок тижня, в якому 1-е число)
-  const first = new Date(calYear, calMonth, 1);
-  let startOffset = (first.getDay() + 6) % 7; // Пн = 0
-  const gridStart = new Date(calYear, calMonth, 1 - startOffset);
-
-  let cells = "";
-  for (let i = 0; i < 42; i++) {
-    const d = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i);
-    const inMonth = d.getMonth() === calMonth;
-    const isToday = sameDay(d, today);
-    const dayEvents = events.filter(e => sameDay(e.date, d));
-    const evHTML = dayEvents.slice(0, 3).map(e =>
-      "<div class='cal-ev " + (e.late ? "late" : e.type) + "'>" + (e.done ? "✓ " : "") + e.title + "</div>"
-    ).join("");
-    const more = dayEvents.length > 3 ? "<div class='cal-more'>+" + (dayEvents.length - 3) + " ще</div>" : "";
-    const load = inMonth ? dayLoad(d) : 0;
-    const loadBadge = (inMonth && DAILY_CAP && load > 0)
-      ? "<span class='cal-load " + loadLevel(load) + "'>" + load + "</span>" : "";
-    cells += "<div class='cal-cell" + (inMonth ? "" : " other") + (isToday ? " today" : "") + "' onclick=\"openCalDay('" + localISO(d) + "')\">" +
-      "<div class='cal-dayhead'><span class='cal-daynum'>" + d.getDate() + "</span>" + loadBadge + "</div>" + evHTML + more + "</div>";
-  }
-
-  const dowHTML = DOW_NAMES.map(n => "<div class='cal-dow'>" + n + "</div>").join("");
-  const filterBtn = (k, label) =>
-    "<button class='mt-btn" + (calFilter===k?" active":"") + "' onclick=\"setCalFilter('" + k + "')\">" + label + "</button>";
-
-  page.innerHTML =
-    groupSwitcher("planning") +
-    "<div class='page-header'><div class='page-title'>Календар</div></div>" +
-    "<div class='tab-scroll'>" +
-      "<div class='cal-head'>" +
-        "<button class='cal-nav-btn' onclick='calShift(-1)'>‹</button>" +
-        "<span class='cal-month'>" + MONTH_NAMES[calMonth] + " " + calYear + "</span>" +
-        "<button class='cal-nav-btn' onclick='calShift(1)'>›</button>" +
-        "<button class='cal-today-btn' onclick='calToday()'>Сьогодні</button>" +
-        "<div class='cal-filters'>" + filterBtn("all","Все") + filterBtn("orders","Ремонт") + filterBtn("tailor","Виготовлення") + filterBtn("tasks","Задачі") + "</div>" +
-      "</div>" +
-      "<div class='cal-grid'>" + dowHTML + cells + "</div>" +
-    "</div>";
-};
-
-function calShift(delta) {
-  calMonth += delta;
-  if (calMonth < 0) { calMonth = 11; calYear--; }
-  if (calMonth > 11) { calMonth = 0; calYear++; }
-  renderers.calendar();
-}
-function calToday() {
-  const n = new Date();
-  calMonth = n.getMonth(); calYear = n.getFullYear();
-  renderers.calendar();
-}
-function setCalFilter(k) { calFilter = k; renderers.calendar(); }
-
-/* Перегляд конкретного дня — у модалці */
-function openCalDay(iso) {
-  const d = new Date(iso + "T00:00:00");
-  const events = calendarEvents().filter(e => sameDay(e.date, d));
-  const body = document.getElementById("odm-body");
-  const dateLabel = d.getDate() + " " + MONTH_NAMES[d.getMonth()].toLowerCase() + " " + d.getFullYear();
-
-  const list = events.length ? events.map(e =>
-    "<div class='cal-day-item'" + (e.ref && e.type === "order" ? " onclick=\"openOrder('" + e.ref + "')\"" : (e.ref && e.type === "tailor" ? " onclick=\"openTailor('" + e.ref + "')\"" : "")) + ">" +
-      "<span class='cal-tag " + e.type + "'>" + (e.type === "order" ? "Ремонт" : e.type === "tailor" ? "Виготовлення" : "Задача") + "</span>" +
-      "<div style='flex:1'><div class='cal-day-txt'>" + (e.done ? "✓ " : "") + e.title + "</div>" +
-        (e.sub ? "<div class='cal-day-sub'>" + e.sub + "</div>" : "") + "</div>" +
-      (e.late ? "<span class='badge b-postponed'>Прострочено</span>" : "") +
-    "</div>"
-  ).join("") : "<div class='orders-empty'>На цей день нічого не заплановано</div>";
-
-  body.innerHTML =
-    "<div class='detail-top'><span class='detail-title'>" + dateLabel + "</span></div>" +
-    "<div class='cal-day-list'>" + list + "</div>";
-  document.getElementById("odm-bg").classList.add("open");
-}
+// Календар-сторінка винесено у js/calendar.js (підключено після </script>)
 
 /* ═══════════════ БОНУСИ ═══════════════ */
 let BONUS_PCT = 3;            // базовий відсоток (запасний варіант)
@@ -5262,5 +4887,8 @@ loadPrice();
   }
 })();
 </script>
+<script src="js/pricelist.js?v=1"></script>
+<script src="js/tasks.js?v=1"></script>
+<script src="js/calendar.js?v=1"></script>
 </body>
 </html>
