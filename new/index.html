@@ -1207,10 +1207,11 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 <div class="login-bg" id="login-bg">
   <div class="login-card">
     <div class="login-logo">REWISE · STUDIO</div>
-    <div class="login-sub">Система обліку</div>
+    <div class="login-sub">Вхід адміністратора</div>
     <input class="cr-input" id="login-pw" type="password" placeholder="Пароль" onkeydown="if(event.key==='Enter')doLogin()">
     <div class="login-err" id="login-err"></div>
     <button class="cr-create-btn" style="margin-top:6px" onclick="doLogin()">Увійти</button>
+    <button style="margin-top:8px;width:100%;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:11px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:13px" onclick="cancelLogin()">Скасувати</button>
   </div>
 </div>
 
@@ -1233,7 +1234,7 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     Клієнти
   </button>
-  <button class="nav-item" data-page="analytics" onclick="showPage('analytics')">
+  <button class="nav-item admin-only" data-page="analytics" onclick="showPage('analytics')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="13"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="9"/></svg>
     Аналітика
   </button>
@@ -1261,9 +1262,9 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
   </div>
   <div class="nav-mini-cal" id="nav-mini-cal"></div>
   <div class="nav-spacer"></div>
-  <div class="nav-role-static">Адмін</div>
+  <div class="nav-role-static">Роль</div>
   <div class="role-badge" id="role-badge"></div>
-  <button class="nav-logout" onclick="logout()" title="Вийти">Вихід</button>
+  <button class="nav-logout" id="role-action-btn" onclick="roleAction()" title="Вхід адміністратора / Вихід">Адмін</button>
   <button class="nav-theme" onclick="toggleTheme()" id="theme-btn" aria-label="Змінити тему">
     <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
   </button>
@@ -1324,11 +1325,10 @@ let DAILY_CAP = 5;
    код сторінки публічний, тож не використовуй тут важливі паролі.
 */
 /* Поки що вхід вимкнено — увімкнеш, коли все запрацює: постав true */
-const AUTH_ENABLED = false;
+const AUTH_ENABLED = true;
 
 const ROLE_HASHES = {
-  admin:    "f4a0cf470541412d693f5f5143ece2fdc4f0990835718deb52886237c065ccb5", // rewise-admin
-  operator: "d5c31568d65b9870fa470aa465d7a891a7b70e93be235116e4dc17f5ac1b9710"  // rewise-master
+  admin: "888df25ae35772424a560c7152a1de794440e0ea5cfee62828333a456a506e05" // 9999
 };
 const ROLE_LABELS = { admin: "Адміністратор", operator: "Приймальник" };
 let userRole = "";
@@ -1359,35 +1359,41 @@ async function doLogin() {
 }
 
 function logout() {
-  userRole = "";
-  try { sessionStorage.removeItem("rw_role"); } catch(e) {}
-  document.getElementById("login-pw").value = "";
-  document.getElementById("login-bg").classList.remove("hidden");
+  userRole = "operator";
+  try { sessionStorage.setItem("rw_role", "operator"); } catch(e) {}
+  applyRoleUI();
+  const lb = document.getElementById("login-bg");
+  if (lb) lb.classList.add("hidden");
+  if (typeof showPage === "function") showPage("worklist");
 }
 
 function applyRoleUI() {
   const badge = document.getElementById("role-badge");
   if (badge) badge.textContent = ROLE_LABELS[userRole] || "";
   document.body.setAttribute("data-role", userRole);
+  const rb = document.getElementById("role-action-btn");
+  if (rb) rb.textContent = (userRole === "admin") ? "Вихід" : "Адмін";
+}
+function openAdminLogin() {
+  const pw = document.getElementById("login-pw"); if (pw) pw.value = "";
+  const err = document.getElementById("login-err"); if (err) err.textContent = "";
+  const lb = document.getElementById("login-bg"); if (lb) lb.classList.remove("hidden");
+  if (pw) pw.focus();
+}
+function cancelLogin() {
+  const lb = document.getElementById("login-bg"); if (lb) lb.classList.add("hidden");
+}
+function roleAction() {
+  if (userRole === "admin") logout(); else openAdminLogin();
 }
 
 (function initRole(){
-  if (!AUTH_ENABLED) {
-    userRole = "admin";
-    const lb = document.getElementById("login-bg");
-    if (lb) lb.classList.add("hidden");
-    document.body.setAttribute("data-role", "admin");
-    document.body.classList.add("no-auth");
-    return;
-  }
   let saved = "";
   try { saved = sessionStorage.getItem("rw_role") || ""; } catch(e) {}
-  if (saved && ROLE_LABELS[saved]) {
-    userRole = saved;
-    const lb = document.getElementById("login-bg");
-    if (lb) lb.classList.add("hidden");
-    applyRoleUI();
-  }
+  userRole = (saved === "admin") ? "admin" : "operator";
+  const lb = document.getElementById("login-bg");
+  if (lb) lb.classList.add("hidden");
+  applyRoleUI();
 })();
 
 /* ═══════════════ ТЕМА ═══════════════ */
