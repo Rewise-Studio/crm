@@ -2980,7 +2980,7 @@ function setTopClientsMode(mode) {
   document.getElementById("tc-count-btn").classList.toggle("active", mode === "count");
 }
 
-// Вкладка задач винесено у js/tasks.js (підключено після </script>)
+// Вкладка задач винесено у js/tasks.js (підключено наприкінці, після основного коду)
 
 /* ═══════════════ РЕДАГУВАННЯ ЗАМОВЛЕННЯ ═══════════════ */
 let editState = null;
@@ -3086,7 +3086,7 @@ async function saveEditOrder() {
   } catch(err) { console.error("edit save failed", err); }
 }
 
-// Вкладка прайсу винесено у js/pricelist.js (підключено після </script>)
+// Вкладка прайсу винесено у js/pricelist.js (підключено наприкінці, після основного коду)
 
 /* ═══════════════ ВКЛАДКА НАЛАШТУВАННЯ ═══════════════ */
 let settingsSection = "params"; // params | price
