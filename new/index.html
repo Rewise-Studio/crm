@@ -1199,6 +1199,25 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
   .d-comm-btn { padding: 8px 11px; font-size: 11px; }
   .d-status-btn { padding: 7px 11px; }
 }
+.cr-rail{display:flex;align-items:center;margin:0 0 22px;user-select:none}
+.cr-rstep{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;flex-shrink:0}
+.cr-rdot{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:'Tenor Sans',serif;font-size:14px;color:var(--txt-3);transition:.18s}
+.cr-rlbl{font-size:11px;letter-spacing:.05em;color:var(--txt-3);white-space:nowrap;transition:.18s}
+.cr-rstep.active .cr-rdot{border-color:var(--cognac);background:var(--cognac);color:#fff}
+.cr-rstep.active .cr-rlbl{color:var(--txt);font-weight:400}
+.cr-rstep.done .cr-rdot{border-color:#639922;color:#639922}
+.cr-rstep.done .cr-rlbl{color:var(--txt-2)}
+.cr-rline{flex:1;height:1.5px;background:var(--line);margin:0 8px 18px;min-width:12px}
+.cr-rline.done{background:#639922}
+.cr-step{display:none}
+.cr-step.on{display:block}
+.cr-nav{display:flex;align-items:center;gap:10px;margin-top:18px}
+.cr-nav-next{background:var(--leather);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-family:'Commissioner',sans-serif;cursor:pointer}
+.cr-confirm{display:flex;flex-direction:column}
+.cr-cf{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.cr-cf .k{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--txt-3)}
+.cr-cf .v{font-size:14px;color:var(--txt);text-align:right}
+.cr-confirm-note{font-size:12px;color:var(--txt-2);margin-top:14px}
 </style>
 </head>
 <body data-theme="light">
@@ -1986,6 +2005,8 @@ function pickColor(id, c) {
   const dd = document.getElementById("ic-cdd-" + id); if (dd) dd.classList.remove("open");
 }
 
+let createStep = 1;
+function setCreateStep(n){ if(n<1)n=1; if(n>4)n=4; createStep = n; renderers.create(); }
 renderers.create = function() {
   const page = document.getElementById("page-create");
 
@@ -1997,12 +2018,48 @@ renderers.create = function() {
       "<span><button onclick='restoreDraft()'>Відновити</button><button onclick='discardDraft()'>Видалити</button></span></div>";
   } catch(e) {}
 
+  const _sm = [
+    ["Клієнт", !!(NO.phone && NO.phone.trim().length>4 && NO.client && NO.client.trim())],
+    ["Речі", !!(NO.items && NO.items.length>0)],
+    ["Оплата", !!NO.payment],
+    ["Підтвердження", false]
+  ];
+  var crRail = "<div class='cr-rail'>";
+  for (var _i=0; _i<_sm.length; _i++){
+    var _n=_i+1, _done=_sm[_i][1] && _n!==createStep;
+    var _cls=(_n===createStep?"active ":"")+(_done?"done":"");
+    crRail += "<div class='cr-rstep "+_cls+"' onclick='setCreateStep("+_n+")'><div class='cr-rdot'>"+(_done?"✓":_n)+"</div><div class='cr-rlbl'>"+_sm[_i][0]+"</div></div>";
+    if (_n<_sm.length) crRail += "<div class='cr-rline "+(_sm[_i][1]?"done":"")+"'></div>";
+  }
+  crRail += "</div>";
+
+  var crNav = "<div class='cr-nav'>" +
+    (createStep>1 ? "<button class='cr-head-btn' onclick='setCreateStep("+(createStep-1)+")'>← Назад</button>" : "") +
+    "<div style='flex:1'></div>" +
+    (createStep<4 ? "<button class='cr-nav-next' onclick='setCreateStep("+(createStep+1)+")'>Далі →</button>" : "") +
+    "</div>";
+
+  var crConfirm = "<div class='cr-box'>" +
+    "<div class='cr-block-label first'>Перевірте замовлення</div>" +
+    "<div class='cr-confirm'>" +
+      "<div class='cr-cf'><span class='k'>Клієнт</span><span class='v'>" + ((NO.client||"—")) + " · " + (NO.phone||"") + "</span></div>" +
+      "<div class='cr-cf'><span class='k'>Приймає</span><span class='v'>" + (NO.manager||"—") + "</span></div>" +
+      "<div class='cr-cf'><span class='k'>Речей</span><span class='v'>" + ((NO.items&&NO.items.length)||0) + " шт</span></div>" +
+      "<div class='cr-cf'><span class='k'>Оплата</span><span class='v'>" + (NO.payment||"—") + "</span></div>" +
+      "<div class='cr-cf'><span class='k'>Термін</span><span class='v'>" + (NO.deadline||"—") + "</span></div>" +
+      "<div class='cr-cf'><span class='k'>Отримання</span><span class='v'>" + (NO.delivery||"—") + "</span></div>" +
+    "</div>" +
+    "<div class='cr-confirm-note'>Чек — праворуч. Якщо все вірно, тисніть «Створити замовлення».</div>" +
+  "</div>";
+
   page.innerHTML =
     "<div class='page-header'><div class='page-title'>Нове замовлення</div></div>" +
     draftBar +
     "<div class='create-wrap'>" +
       "<div class='create-left'>" +
-        "<div class='cr-grid'>" +
+        crRail +
+        "<div class='cr-steps'>" +
+          "<div class='cr-step" + (createStep===1?" on":"") + "' data-cstep='1'>" +
           "<div class='cr-box'>" +
             "<div class='cr-block-label first'>Хто приймає</div>" +
             "<div class='cr-pills' id='cr-mgr'></div>" +
@@ -2016,11 +2073,15 @@ renderers.create = function() {
               "<div class='cr-msg-pick' id='cr-msg' style='flex-shrink:0'></div>" +
             "</div>" +
           "</div>" +
+          "</div>" +
+          "<div class='cr-step" + (createStep===2?" on":"") + "' data-cstep='2'>" +
           "<div class='cr-box cr-box-full'>" +
             "<div class='cr-block-label first'>Речі та послуги</div>" +
             "<div id='cr-items'></div>" +
             "<button class='add-item-btn' onclick='addItem()'>+ Додати ще одну річ</button>" +
           "</div>" +
+          "</div>" +
+          "<div class='cr-step" + (createStep===3?" on":"") + "' data-cstep='3'>" +
           "<div class='cr-box'>" +
             "<div class='cr-bottom3'>" +
               "<div class='cr-col'>" +
@@ -2051,7 +2112,10 @@ renderers.create = function() {
               "</div>" +
             "</div>" +
           "</div>" +
+          "</div>" +
+          "<div class='cr-step" + (createStep===4?" on":"") + "' data-cstep='4'>" + crConfirm + "</div>" +
         "</div>" +
+        crNav +
       "</div>" +
       "<div class='create-right'><div class='create-right-sticky'>" +
         "<div class='cr-right-actions'>" +
@@ -2438,6 +2502,7 @@ function cancelCreate() {
   if (has && !confirm("Скасувати оформлення? Введені дані зникнуть.")) return;
   NO = { manager: NO.manager, client:"", phone:"", messenger:"", items:[], payment:"", prepay:"", prepayMethod:"", deadline:"", delivery:"Самовивіз" };
   itemCounter = 0;
+  createStep = 1;
   showPage("orders");
 }
 function saveDraft() {
