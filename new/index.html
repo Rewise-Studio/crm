@@ -1219,6 +1219,46 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .cr-cf .v{font-size:14px;color:var(--txt);text-align:right}
 .cr-confirm-note{font-size:12px;color:var(--txt-2);margin-top:14px}
 </style>
+<style>
+  /* ── Компактні рядки речей (крок ②) ── */
+  #cr-items{display:flex;flex-direction:column;gap:8px;}
+  .irow{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--field-border);
+        border-radius:10px;padding:13px 14px;cursor:pointer;transition:all .15s;}
+  .irow:hover{border-color:var(--cognac-border);background:var(--hover);}
+  .irow-num{font-family:'Tenor Sans',serif;font-size:11px;color:var(--cognac);letter-spacing:.12em;flex:none;}
+  .irow-main{flex:1;min-width:0;}
+  .irow-name{font-size:14px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .irow-sub{font-size:11px;color:var(--txt-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .irow-sum{font-size:14px;color:var(--txt);font-weight:400;flex:none;white-space:nowrap;}
+  .irow-edit{flex:none;width:30px;height:30px;border-radius:7px;border:1px solid var(--field-border);
+        background:transparent;color:var(--txt-2);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .irow-edit:hover{border-color:var(--cognac);color:var(--cognac);}
+
+  /* ── Вікно речі (модалка) ── */
+  .iw-ovl{position:fixed;inset:0;background:rgba(30,26,22,0.45);display:none;align-items:flex-start;justify-content:center;
+       padding:28px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:200;backdrop-filter:blur(2px);
+       padding-top:calc(28px + env(safe-area-inset-top));padding-bottom:calc(28px + env(safe-area-inset-bottom));}
+  .iw-ovl.on{display:flex;}
+  .iwin{width:100%;max-width:560px;background:var(--surface);border:1px solid var(--field-border);border-radius:16px;
+        box-shadow:var(--receipt-shadow);overflow:hidden;animation:iwpop .16s ease;margin:auto 0;}
+  @keyframes iwpop{from{opacity:0;transform:translateY(8px) scale(.99)}to{opacity:1;transform:none}}
+  .iw-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line-soft);}
+  .iw-title{font-family:'Tenor Sans',serif;font-size:15px;color:var(--txt);letter-spacing:.02em;}
+  .iw-title span{color:var(--cognac);}
+  .iw-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--field-border);background:transparent;
+        color:var(--txt-2);font-size:17px;cursor:pointer;line-height:1;}
+  .iw-close:hover{border-color:var(--cognac);color:var(--cognac);}
+  .iw-body{padding:18px;}
+  .iw-foot{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-top:1px solid var(--line-soft);
+       background:var(--surface-2);}
+  .iw-del{background:transparent;border:1px solid rgba(163,45,45,0.3);color:var(--st-postponed-fg);border-radius:8px;padding:10px 16px;
+       font-family:'Commissioner',sans-serif;font-size:13px;cursor:pointer;}
+  .iw-del:hover{background:rgba(163,45,45,0.08);}
+  .iw-sum{font-family:'Tenor Sans',serif;font-size:16px;color:var(--txt);margin-right:auto;margin-left:14px;}
+  .iw-done{background:var(--cognac);border:none;color:#fff;border-radius:8px;padding:11px 26px;
+       font-family:'Commissioner',sans-serif;font-size:13px;letter-spacing:.03em;cursor:pointer;}
+  .iw-done:hover{background:#8f7550;}
+</style>
 </head>
 <body data-theme="light">
 
@@ -2078,7 +2118,7 @@ renderers.create = function() {
           "<div class='cr-box cr-box-full'>" +
             "<div class='cr-block-label first'>Речі та послуги</div>" +
             "<div id='cr-items'></div>" +
-            "<button class='add-item-btn' onclick='addItem()'>+ Додати ще одну річ</button>" +
+            "<button class='add-item-btn' onclick='addItemAndOpen()'>+ Додати ще одну річ</button>" +
           "</div>" +
           "</div>" +
           "<div class='cr-step" + (createStep===3?" on":"") + "' data-cstep='3'>" +
@@ -2381,12 +2421,8 @@ function addManualSvc(id) {
   addSvc(id, "📝 " + n, p);
 }
 
-function renderItems() {
-  const box = document.getElementById("cr-items");
-  if (!box) return;
-  box.innerHTML = "";
-  NO.items.forEach((item, idx) => {
-    const catData = PRICE[item.category]; if (!catData) return;
+function buildItemBody(item, idx) {
+    const catData = PRICE[item.category]; if (!catData) return "";
     const catOpts = Object.keys(PRICE).map(k => "<option value='"+k+"'"+(k===item.category?" selected":"")+">"+PRICE[k].label+"</option>").join("");
     const deptOpts = Object.keys(catData.departments).map(d => "<option value=\""+d.replace(/"/g,"&quot;")+"\""+(d===item.department?" selected":"")+">"+d+"</option>").join("");
     const svcRows = item.services.map((s,si) => "<div class='ic-svcrow'><span class='ic-svcname'>"+s.name+"</span><span class='ic-svcprice' onclick='editSvcPrice("+item.id+","+si+",this)'>"+s.price+" ₴</span><button class='ic-svcdel' onclick='removeSvc("+item.id+","+si+")'>×</button></div>").join("");
@@ -2454,10 +2490,7 @@ function renderItems() {
       ? "Інші послуги (ремонт, торцювання, швейні…)"
       : "Послуги (ремонт, набійки, торцювання, швейні…)";
 
-    const div = document.createElement("div");
-    div.className = "itemcard";
-    div.innerHTML =
-      "<div class='itemcard-head'><span class='itemcard-num'>№"+(idx+1)+"</span><button class='itemcard-rm' onclick='removeItem("+item.id+")'>×</button></div>" +
+    return (
       modeRow +
       modelRow +
       careBlock +
@@ -2488,9 +2521,105 @@ function renderItems() {
           "<div class='ic-row' style='margin-bottom:8px'><div class='ic-field'><label>ВІДДІЛ</label><select class='ic-select' onchange='changeDept("+item.id+",this.value)'>"+deptOpts+"</select></div></div>" +
           "<div class='ic-search-wrap'><input type='text' class='ic-search' id='ic-search-"+item.id+"' placeholder='Пошук послуги у відділі…' autocomplete='off' oninput='filterSvc("+item.id+")' onfocus='openSvcDD("+item.id+")'><div class='ic-dd' id='ic-dd-"+item.id+"'></div></div>" +
           "<div class='ic-manual'><input class='ic-mini' id='ic-man-name-"+item.id+"' placeholder='Своя послуга...'><input class='ic-mini' style='width:88px;flex:none' type='number' id='ic-man-price-"+item.id+"' placeholder='₴'><button class='ic-manual-add' onclick='addManualSvc("+item.id+")'>+</button></div>" +
-        "</div>" : "");
+        "</div>" : "")
+    );
+}
+
+/* ── Компактний список речей + вікно речі (крок ②) ── */
+let MODAL_ITEM = null;
+
+function itemTitle(item){
+  var nm = (item.model && item.model.trim()) ? item.model.trim()
+         : (PRICE[item.category] ? PRICE[item.category].label : "Річ");
+  if (item.brand && item.brand.trim()) nm += " · " + item.brand.trim();
+  return nm;
+}
+function itemSum(item){
+  return (item.services||[]).reduce(function(s,x){ return s + (parseInt(x.price)||0); }, 0);
+}
+function fmtUAH(n){ return (parseInt(n)||0).toLocaleString("uk-UA") + " ₴"; }
+
+function renderItemList(){
+  const box = document.getElementById("cr-items");
+  if (!box) return;
+  box.innerHTML = "";
+  NO.items.forEach(function(item, idx){
+    const sum = itemSum(item);
+    const svcNames = (item.services||[]).map(function(s){ return s.name; }).join(" · ");
+    const sub = svcNames || "без послуг";
+    const div = document.createElement("div");
+    div.className = "irow";
+    div.setAttribute("onclick", "openItemModal(" + item.id + ")");
+    div.innerHTML =
+      "<span class='irow-num'>№" + (idx+1) + "</span>" +
+      "<div class='irow-main'>" +
+        "<div class='irow-name'>" + itemTitle(item) + "</div>" +
+        "<div class='irow-sub'>" + sub + "</div>" +
+      "</div>" +
+      "<span class='irow-sum'>" + (sum ? fmtUAH(sum) : "—") + "</span>" +
+      "<button class='irow-edit' onclick='event.stopPropagation();openItemModal(" + item.id + ")'>✎</button>";
     box.appendChild(div);
   });
+}
+
+function ensureItemModal(){
+  if (document.getElementById("iw-ovl")) return;
+  const ovl = document.createElement("div");
+  ovl.id = "iw-ovl";
+  ovl.className = "iw-ovl";
+  ovl.setAttribute("onclick", "if(event.target===this)closeItemModal()");
+  ovl.innerHTML =
+    "<div class='iwin'>" +
+      "<div class='iw-head'>" +
+        "<div class='iw-title' id='iw-title'>Річ</div>" +
+        "<button class='iw-close' onclick='closeItemModal()'>×</button>" +
+      "</div>" +
+      "<div class='iw-body' id='iw-body'></div>" +
+      "<div class='iw-foot'>" +
+        "<button class='iw-del' id='iw-del'>Видалити річ</button>" +
+        "<span class='iw-sum' id='iw-sum'>0 ₴</span>" +
+        "<button class='iw-done' onclick='closeItemModal()'>Готово</button>" +
+      "</div>" +
+    "</div>";
+  document.body.appendChild(ovl);
+}
+
+function renderItemEditor(id){
+  const item = NO.items.find(function(i){ return i.id === id; });
+  if (!item) { closeItemModal(); return; }
+  const idx = NO.items.indexOf(item);
+  ensureItemModal();
+  const title = document.getElementById("iw-title");
+  const body  = document.getElementById("iw-body");
+  const sumEl = document.getElementById("iw-sum");
+  const delBtn= document.getElementById("iw-del");
+  if (title) title.innerHTML = "Річ <span>№" + (idx+1) + "</span>";
+  if (body)  body.innerHTML  = buildItemBody(item, idx);
+  if (sumEl) sumEl.textContent = fmtUAH(itemSum(item));
+  if (delBtn) delBtn.setAttribute("onclick", "removeItem(" + item.id + "); closeItemModal();");
+}
+
+function openItemModal(id){
+  MODAL_ITEM = id;
+  ensureItemModal();
+  renderItemEditor(id);
+  document.getElementById("iw-ovl").classList.add("on");
+}
+function closeItemModal(){
+  MODAL_ITEM = null;
+  const ovl = document.getElementById("iw-ovl");
+  if (ovl) ovl.classList.remove("on");
+  renderItemList();
+  updateReceipt();
+}
+
+/* «+ Додати» — додає річ і одразу відкриває вікно (кнопка, не авто-сід) */
+function addItemAndOpen(){ addItem(); openItemModal(itemCounter); }
+
+/* Диспетчер: список + (якщо відкрито) вміст вікна. Усі старі виклики renderItems() працюють без змін. */
+function renderItems(){
+  renderItemList();
+  if (MODAL_ITEM != null) renderItemEditor(MODAL_ITEM);
 }
 function toggleAddSvc(id) { const it = NO.items.find(i=>i.id===id); if (it) { it.addSvcOpen = !it.addSvcOpen; renderItems(); } }
 
