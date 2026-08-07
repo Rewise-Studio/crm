@@ -1766,6 +1766,9 @@ function findCorePrice(category, op, tokens) {
 function opPriceFor(item, op) {
   if (!item.model) return null;
   if (item.category === "bags") {
+    if (item.model === "Поясний ремінь") {
+      return findCorePrice("bags", op, ["поясний ремінь"]);
+    }
     const size = item.size || "M";
     const mat = (op === "Чистка") ? (item.material || "шкіряна") : "шкіряна";
     return findCorePrice("bags", op, ["сумка " + size, mat]);
@@ -2343,7 +2346,7 @@ function renderModelDD(id, query) {
   list.forEach(v => {
     const t = v["Тип"];
     if (q && t.toLowerCase().indexOf(q) === -1) return;
-    const sub = it.category === "bags" ? ("розмір " + (v["Розмір"]||"?")) : (v["Розмір"]||"");
+    const sub = (it.category === "bags" && t !== "Поясний ремінь") ? ("розмір " + (v["Розмір"]||"?")) : (v["Розмір"]||"");
     html += "<div class='ic-opt' onclick=\"pickModel(" + id + ",'" + t.replace(/'/g,"\\'") + "')\"><span class='o-name'>" + t +
       (sub ? "<span class='o-hint'>" + sub + "</span>" : "") + "</span></div>";
   });
@@ -2353,7 +2356,8 @@ function pickModel(id, type) {
   const it = NO.items.find(i=>i.id===id); if (!it) return;
   it.model = type;
   const info = modelInfo(it.category, type);
-  if (info) it.size = info["Розмір"] || (it.category === "bags" ? "M" : "");
+  const isBelt = it.category === "bags" && type === "Поясний ремінь";
+  if (info) it.size = info["Розмір"] || (it.category === "bags" && !isBelt ? "M" : "");
   recomputeCore(it);
   const dd = document.getElementById("ic-mdd-"+id); if (dd) dd.classList.remove("open");
   renderItems(); updateReceipt();
@@ -2441,7 +2445,7 @@ function buildItemBody(item, idx) {
 
     // Розмір + матеріал (тільки сумки, режим догляду)
     let sizeMatRow = "";
-    if (isBag && isCare) {
+    if (isBag && isCare && item.model !== "Поясний ремінь") {
       const sizeHTML = ["S","M","L"].map(sz => "<button class='ic-seg" + (item.size===sz?" on":"") + "' onclick='setItemSize("+item.id+",\""+sz+"\")'>"+sz+"</button>").join("");
       const matHTML = [["шкіряна","Шкіра"],["текстильна","Текстиль"]].map(m => "<button class='ic-seg" + (item.material===m[0]?" on":"") + "' onclick='setItemMaterial("+item.id+",\""+m[0]+"\")'>"+m[1]+"</button>").join("");
       sizeMatRow =
