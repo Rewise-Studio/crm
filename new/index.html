@@ -710,6 +710,13 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
   padding: 60px 20px; text-align: center;
   color: var(--txt-3); font-size: 13px;
 }
+.archive-list { padding: 8px 28px 40px; display: flex; flex-direction: column; gap: 10px; }
+.archive-row { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 14px 16px; }
+.archive-row-main { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.archive-num { font-family: 'Tenor Sans', serif; font-size: 13px; color: var(--cognac); letter-spacing: 0.04em; }
+.archive-client { font-size: 13px; color: var(--txt); flex: 1; }
+.archive-total { font-size: 13px; color: var(--txt-2); font-weight: 500; }
+.archive-note { font-size: 12px; color: var(--txt-3); margin-top: 6px; font-style: italic; }
 
 /* ═══════════════ ВКЛАДКИ КЛІЄНТИ / ФІНАНСИ / СТАТИСТИКА ═══════════════ */
 .tab-scroll { flex: 1; overflow-y: auto; padding: 8px 28px 40px; }
@@ -1314,6 +1321,10 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
     Планування
   </button>
   <div class="nav-div"></div>
+  <button class="nav-item admin-only" data-page="archive" onclick="showPage('archive')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+    Архів
+  </button>
   <button class="nav-item admin-only" data-page="settings" onclick="showPage('settings')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     Налаштування
@@ -1353,6 +1364,7 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
   <div class="page" id="page-tailor"></div>
   <div class="page" id="page-settings"></div>
   <div class="page" id="page-pricelist"></div>
+  <div class="page" id="page-archive"></div>
 
 </div>
 
@@ -2933,9 +2945,15 @@ function orderDate(o) {
   if (!m) return null;
   return new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]));
 }
+const DELETED_MARKER = "[ВИДАЛЕНО] ";
+function isOrderDeleted(o) { return gv(o,"Примітка").indexOf(DELETED_MARKER) === 0; }
+function orderNoteClean(o) {
+  const n = gv(o,"Примітка");
+  return isOrderDeleted(o) ? n.slice(DELETED_MARKER.length) : n;
+}
 function ordersInPeriod(key) {
   const from = periodStart(key);
-  const base = ORDERS.filter(o => gv(o,"Статус") !== "🗑 Видалено");
+  const base = ORDERS.filter(o => !isOrderDeleted(o));
   if (!from) return base;
   return base.filter(o => { const d = orderDate(o); return d && d >= from; });
 }
@@ -2963,6 +2981,52 @@ function isOrderPaid(num) {
   const prepayAmt = extractAmt(payStr);
   const settleAmt = extractAmt(gv(o,"Сума доплати"));
   return computePayStatus(total, payStr, prepayAmt, settleAmt).isPaid;
+}
+
+/* ═══════════════ АРХІВ (видалені замовлення) ═══════════════ */
+renderers.archive = function() {
+  const page = document.getElementById("page-archive");
+  const deleted = ORDERS.filter(isOrderDeleted).reverse();
+
+  const rows = deleted.map(o => {
+    const num = gv(o,"Номер замовлення");
+    const name = gv(o,"Ім'я клієнта") || "—";
+    const phone = gv(o,"Телефон");
+    const total = orderTotal(num);
+    const note = orderNoteClean(o);
+    return "<div class='archive-row'>" +
+      "<div class='archive-row-main'>" +
+        "<span class='archive-num'>" + num + "</span>" +
+        "<span class='archive-client'>" + name + (phone ? " · " + phone : "") + "</span>" +
+        (total ? "<span class='archive-total'>" + total.toLocaleString("uk-UA") + " ₴</span>" : "") +
+      "</div>" +
+      (note ? "<div class='archive-note'>" + note.replace(/&/g,"&amp;").replace(/</g,"&lt;") + "</div>" : "") +
+      "<button class='btn-primary' style='margin-top:8px' onclick=\"restoreOrder('" + num + "')\">Відновити</button>" +
+    "</div>";
+  }).join("");
+
+  page.innerHTML =
+    "<div class='page-header'><div class='page-title'>Архів видалених замовлень</div></div>" +
+    (deleted.length
+      ? "<div class='archive-list'>" + rows + "</div>"
+      : "<div class='orders-empty'>Архів порожній</div>");
+};
+
+async function restoreOrder(num) {
+  try {
+    const res = await fetch(API_URL.replace("/order","/order/restore"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ order_num: num })
+    });
+    const r = await res.json();
+    if (r.status !== "ok") throw new Error(r.message || "error");
+  } catch(e) {
+    toast("Не вдалося відновити замовлення");
+    return;
+  }
+  await loadData();
+  renderers.archive();
+  toast("Замовлення " + num + " відновлено");
 }
 function periodTabsHTML(tabKey) {
   return "<div class='period-tabs'>" + PERIODS.map(([k,label]) =>
