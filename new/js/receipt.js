@@ -1,6 +1,60 @@
 /* ═══════ ЧЕК (receipt.js) ═══════
-   Винесено з index.html. Залежить від глобальних: NO, ORDERS, ITEMS,
-   gv, extractAmt, html2canvas — вони лишаються в основному коді. */
+Винесено з index.html. Залежить від глобальних: NO, ORDERS, ITEMS,
+gv, extractAmt, html2canvas — вони лишаються в основному коді. */
+
+function escHtml(s) {
+  return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;");
+}
+
+/* Розраховує статус оплати за сумою замовлення та рядком "Оплата".
+   Повертає { isPrepay, prepayAmt, toPay, isPaid } — використовується
+   і у формі створення (NO), і в готових замовленнях (ORDERS). */
+function computePayStatus(total, paymentStr, prepayAmt, settleAmt) {
+  const isPrepay = (paymentStr || "").includes("Передоплата");
+  const paidTotal = (isPrepay ? (prepayAmt || 0) : 0) + (settleAmt || 0);
+  const toPay = Math.max(0, total - paidTotal);
+  return { isPrepay, prepayAmt: prepayAmt || 0, toPay, isPaid: total > 0 && toPay <= 0 };
+}
+
+function payBlockHTML(total, status) {
+  if (total <= 0) return "";
+  if (status.isPaid) {
+    return "<div class='r-payblock'><div class='r-payrow'><span class='pr-label'>Оплачено</span><span class='pr-value'>" + total.toLocaleString("uk-UA") + " ₴</span></div></div>";
+  }
+  if (status.isPrepay && status.prepayAmt) {
+    return "<div class='r-payblock'>" +
+      "<div class='r-payrow'><span class='pr-label'>Передоплата</span><span class='pr-value'>" + status.prepayAmt.toLocaleString("uk-UA") + " ₴</span></div>" +
+      "<div class='r-payrow'><span class='pr-label'>Залишок</span><span class='pr-value pr-due'>" + status.toPay.toLocaleString("uk-UA") + " ₴</span></div>" +
+      "</div>";
+  }
+  return "";
+}
+
+function footerText(status) {
+  if (status.isPaid) return "Дякуємо за довіру.<br>Носіть із задоволенням";
+  if (status.isPrepay) return "Дякуємо за довіру до нашої роботи.";
+  return "Дякуємо за довіру.";
+}
+
+function receiptHeaderHTML(num, dateStr) {
+  return "<div class='r-header'><div class='r-logo'>Rewise Studio</div><div class='r-subtag'>Ремонт · Реставрація · Чищення</div></div>" +
+    "<div class='r-meta'><span class='r-meta-num'>" + escHtml(num || "") + "</span><span>" + dateStr + "</span></div>";
+}
+
+function receiptClientHTML(client, phone, term, delivery) {
+  const hasLeft = client || phone;
+  const hasRight = term || delivery;
+  if (!hasLeft && !hasRight) return "";
+  const left = "<div class='r-ccol'>" +
+    (client ? "<div class='r-crow'><span class='rc-label'>Клієнт</span></div><div class='rc-value-2col'>" + escHtml(client) + "</div>" : "") +
+    (phone ? "<div class='r-crow'><span class='rc-label'>Телефон</span></div><div class='rc-value-2col'>" + escHtml(phone) + "</div>" : "") +
+    "</div>";
+  const right = "<div class='r-ccol'>" +
+    (term ? "<div class='r-crow'><span class='rc-label'>Термін</span></div><div class='rc-value-2col'>" + escHtml(term) + "</div>" : "") +
+    (delivery ? "<div class='r-crow'><span class='rc-label'>Отримання</span></div><div class='rc-value-2col'>" + escHtml(delivery) + "</div>" : "") +
+    "</div>";
+  return "<div class='r-client r-client-2col'>" + left + right + "</div>";
+}
 
 function updateReceipt() {
   const receipt = document.getElementById("receipt");
@@ -10,31 +64,35 @@ function updateReceipt() {
     receipt.innerHTML = "<div class='r-empty'><div class='icon'>🧾</div>Додайте річ та послуги — тут з'явиться кошторис</div>";
     return;
   }
+
   const now = new Date();
-  const dateStr = now.toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit",year:"numeric"});
-  const timeStr = now.toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
+  const dateStr = now.toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit",year:"numeric"}) + " · " + now.toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
+
   let total = 0, itemsHTML = "";
   NO.items.forEach((item, idx) => {
     if (!item.services.length) return;
     item.services.forEach(s => total += s.price);
-    const svcs = item.services.map(s => "<div class='r-svcrow'><span>"+s.name+"</span><span class='rs-price'>"+s.price+" ₴</span></div>").join("");
+    const svcs = item.services.map(s => "<div class='r-svcrow'><span>"+escHtml(s.name)+"</span><span class='rs-price'>"+s.price+" ₴</span></div>").join("");
     const label = [item.model, item.brand].filter(Boolean).join(" · ");
-    const noteHTML = item.note ? "<div class='r-item-note'>Прим.: "+item.note.replace(/&/g,"&amp;").replace(/</g,"&lt;")+"</div>" : "";
-    itemsHTML += "<div class='r-item'><div class='r-item-title'><span class='ri-num'>№"+(idx+1)+"</span>"+(label?"<span class='ri-name'>"+label+"</span>":"")+"</div>"+svcs+noteHTML+"</div>";
+    const noteHTML = item.note ? "<div class='r-item-note'>Прим.: "+escHtml(item.note)+"</div>" : "";
+    itemsHTML += "<div class='r-item'><div class='r-item-title'><span class='ri-num'>№"+(idx+1)+"</span>"+(label?"<span class='ri-name'>"+escHtml(label)+"</span>":"")+"</div>"+svcs+noteHTML+"</div>";
   });
-  let clientHTML = "";
-  if (NO.client || NO.phone) {
-    clientHTML = "<div class='r-client'>";
-    if (NO.client) clientHTML += "<div class='r-crow'><span class='rc-label'>Клієнт</span><span class='rc-value'>"+NO.client+"</span></div>";
-    if (NO.phone) clientHTML += "<div class='r-crow'><span class='rc-label'>Телефон</span><span class='rc-value'>"+NO.phone+"</span></div>";
-    clientHTML += "</div>";
-  }
+
+  const term = NO.deadline || "";
+  const delivery = NO.delivery || "";
+  const clientHTML = receiptClientHTML(NO.client, NO.phone, term, delivery);
+
+  const status = computePayStatus(total,
+    NO.payment === "Передоплата" ? "Передоплата" : "",
+    NO.payment === "Передоплата" ? parseInt(NO.prepay) || 0 : 0,
+    0);
+
   receipt.innerHTML =
-    "<div class='r-header'><div class='r-logo'>REWISE · STUDIO</div><div class='r-tag'>Чек</div></div>" +
-    "<div class='r-meta'><span>"+dateStr+", "+timeStr+"</span></div>" + clientHTML +
+    receiptHeaderHTML("", dateStr) +
+    clientHTML +
     "<div class='r-items'>"+itemsHTML+"</div>" +
-    (total>0 ? "<hr class='r-divider'><div class='r-total'><span class='rt-label'>Разом</span><span class='rt-amount'>"+total+" ₴</span></div><p class='r-note'>Остаточна вартість узгоджується після огляду речі.</p>" : "") +
-    "<div class='r-footer'>rewise-studio · ukraine</div>";
+    (total>0 ? "<hr class='r-divider'><div class='r-total'><span class='rt-label'>Разом</span><span class='rt-amount'>"+total+" ₴</span></div>" + payBlockHTML(total, status) : "") +
+    (total>0 ? "<div class='r-footer'>"+footerText(status)+"</div><div class='r-disclaimer'>Документ не є фіскальним чеком</div>" : "");
 }
 
 function shareReceipt() {
@@ -43,7 +101,7 @@ function shareReceipt() {
   const btn = document.querySelector("button[onclick=\"shareReceipt()\"]");
   const orig = btn ? btn.innerHTML : "";
   if (btn) btn.textContent = "Готую...";
-  html2canvas(el, { backgroundColor: "#F0EBE3", scale: 2, useCORS: true }).then(canvas => {
+  html2canvas(el, { backgroundColor: "#FFFFFF", scale: 2, useCORS: true }).then(canvas => {
     canvas.toBlob(blob => {
       const file = new File([blob], "rewise-koshtorys.png", { type: "image/png" });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -64,36 +122,40 @@ function orderReceiptHTML(num) {
   const client = o ? gv(o,"Ім'я клієнта") : "";
   const phone = o ? gv(o,"Телефон") : "";
   const created = o ? gv(o,"Дата створення") : "";
+  const term = o ? gv(o,"Термін") : "";
+  const delivery = its.length ? gv(its[0],"Доставка") : "";
+
   let total = 0, itemsHTML = "";
   its.forEach((it, idx) => {
     const amt = extractAmt(gv(it,"Сума")); total += amt;
     const name = [gv(it,"Тип"), gv(it,"Бренд")].filter(Boolean).join(" · ") || "Виріб";
     const svcs = gv(it,"Послуги");
     const note = gv(it,"Коментар");
-    const svcRow = "<div class='r-svcrow'><span>" + (svcs || "Послуги") + "</span><span class='rs-price'>" + amt.toLocaleString("uk-UA") + " ₴</span></div>";
-    const noteHTML = note ? "<div class='r-item-note'>Прим.: " + note.replace(/&/g,"&amp;").replace(/</g,"&lt;") + "</div>" : "";
-    itemsHTML += "<div class='r-item'><div class='r-item-title'><span class='ri-num'>№" + (idx+1) + "</span><span class='ri-name'>" + name + "</span></div>" + svcRow + noteHTML + "</div>";
+    const svcRow = "<div class='r-svcrow'><span>" + escHtml(svcs || "Послуги") + "</span><span class='rs-price'>" + amt.toLocaleString("uk-UA") + " ₴</span></div>";
+    const noteHTML = note ? "<div class='r-item-note'>Прим.: " + escHtml(note) + "</div>" : "";
+    itemsHTML += "<div class='r-item'><div class='r-item-title'><span class='ri-num'>№" + (idx+1) + "</span><span class='ri-name'>" + escHtml(name) + "</span></div>" + svcRow + noteHTML + "</div>";
   });
-  let clientHTML = "";
-  if (client || phone) {
-    clientHTML = "<div class='r-client'>";
-    if (client) clientHTML += "<div class='r-crow'><span class='rc-label'>Клієнт</span><span class='rc-value'>" + client + "</span></div>";
-    if (phone) clientHTML += "<div class='r-crow'><span class='rc-label'>Телефон</span><span class='rc-value'>" + phone + "</span></div>";
-    clientHTML += "</div>";
-  }
+
+  const payStr = o ? gv(o,"Оплата") : "";
+  const prepayAmt = extractAmt(payStr);
+  const settleAmt = o ? extractAmt(gv(o,"Сума доплати")) : 0;
+  const status = computePayStatus(total, payStr, prepayAmt, settleAmt);
+
+  const clientHTML = receiptClientHTML(client, phone, term, delivery);
+
   return "<div id='order-receipt'>" +
-    "<div class='r-header'><div class='r-logo'>REWISE · STUDIO</div><div class='r-tag'>Чек · " + num + "</div></div>" +
-    "<div class='r-meta'><span>" + created + "</span></div>" + clientHTML +
+    receiptHeaderHTML(num, created) +
+    clientHTML +
     "<div class='r-items'>" + itemsHTML + "</div>" +
-    (total > 0 ? "<hr class='r-divider'><div class='r-total'><span class='rt-label'>Разом</span><span class='rt-amount'>" + total.toLocaleString("uk-UA") + " ₴</span></div>" : "") +
-    "<div class='r-footer'>rewise-studio · ukraine</div>" +
-  "</div>";
+    (total > 0 ? "<hr class='r-divider'><div class='r-total'><span class='rt-label'>Разом</span><span class='rt-amount'>" + total.toLocaleString("uk-UA") + " ₴</span></div>" + payBlockHTML(total, status) : "") +
+    (total > 0 ? "<div class='r-footer'>" + footerText(status) + "</div><div class='r-disclaimer'>Документ не є фіскальним чеком</div>" : "") +
+    "</div>";
 }
 
 function shareOrderReceipt(num) {
   const el = document.getElementById("order-receipt");
   if (!el) return;
-  html2canvas(el, { backgroundColor: "#FBF8F3", scale: 2, useCORS: true }).then(canvas => {
+  html2canvas(el, { backgroundColor: "#FFFFFF", scale: 2, useCORS: true }).then(canvas => {
     canvas.toBlob(blob => {
       const file = new File([blob], "rewise-chek-" + num + ".png", { type: "image/png" });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
