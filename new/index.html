@@ -233,8 +233,8 @@ body {
 .cr-msg-ico-btn .msg-ico { margin: 0; }
 .cr-payterm { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: stretch; }
 @media (max-width: 620px) { .cr-payterm { grid-template-columns: 1fr; } }
-.cr-right-actions { display: flex; gap: 8px; margin-bottom: 12px; }
-.cr-right-actions .cr-head-btn { flex: 1; text-align: center; padding: 9px 8px; }
+.cr-right-actions { display: flex; gap: 8px; margin-bottom: 12px; justify-content: flex-end; }
+.cr-right-actions .cr-head-btn { flex: 0 0 auto; text-align: center; padding: 7px 12px; font-size: 11px; }
 .cr-create-under { width: 100%; margin-top: 12px; }
 .cr-box .cr-block-label { margin-top: 16px; }
 .cr-box .cr-block-label.first { margin-top: 0; }
@@ -4409,14 +4409,8 @@ function openOrder(num) {
   const phoneClean = phone.replace(/[^\d]/g,"");
   const activeMsg = gv(o,"Месенджер");
 
-  // Рейтинг та історія клієнта
-  const clientOrders = ORDERS.filter(x => gv(x,"Телефон") === phone);
+  // Рейтинг клієнта (без загальної історії/суми — це для картки клієнта, не замовлення)
   const rating = clientRating(phone);
-  let clientTotal = 0;
-  clientOrders.forEach(co => {
-    ITEMS.filter(i => gv(i,"Номер замовлення") === gv(co,"Номер замовлення"))
-      .forEach(it => clientTotal += extractAmt(gv(it,"Сума")));
-  });
 
   // Клієнт-блок
   const commLinks = {
@@ -4431,11 +4425,6 @@ function openOrder(num) {
       MSG_ICONS[m] + MSG_LABELS[m] + "</a>";
   }).join("");
 
-  const historyHTML =
-    "<div class='d-client-history'><span>Загалом замовлень</span><span class='h-val'>" + clientOrders.length + "</span></div>" +
-    "<div class='d-client-history'><span>Загальна сума</span><span class='h-val'>" + clientTotal.toLocaleString("uk-UA") + " ₴</span></div>" +
-    (clientOrders.length > 1 ? "<div class='d-client-history hist-link' onclick=\"openClientHistory('" + phone.replace(/'/g,"") + "','" + num + "')\"><span>Історія замовлень</span><span class='h-val'>" + clientOrders.length + " →</span></div>" : "");
-
   const delivery = its.length ? gv(its[0],"Доставка") : "";
   const clientBlock =
     "<div class='dblock'><div class='dblock-label'>Клієнт · <span class='rating-pick' onclick=\"openRatingPick('" + phone.replace(/'/g,"") + "')\">" + rating.label + " " + rating.dot + (rating.debt ? " " + rating.debt.toLocaleString("uk-UA") + " ₴" : "") + (rating.manual ? " ✎" : "") + "</span></div>" +
@@ -4446,7 +4435,6 @@ function openOrder(num) {
     "</div>" +
     "<div class='d-comm'>" + commHTML + "</div>" +
     (delivery ? "<div class='d-exec-row' style='margin-top:10px'><span class='pl'>Доставка</span><span class='pv'>" + delivery + "</span></div>" : "") +
-    historyHTML +
     "</div>";
 
   // Вироби зі статусами
