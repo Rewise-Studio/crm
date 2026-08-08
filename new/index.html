@@ -431,31 +431,40 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .btn-share:hover { background: var(--cognac); color: #fff; }
 .btn-share svg { width: 13px; height: 13px; stroke-width: 1.8; }
 
-#receipt, #order-receipt { background: #FBF8F3; color: #1E1E1E; border-radius: 8px; padding: 28px 24px; font-family: 'Commissioner', sans-serif; font-weight: 500; box-shadow: var(--receipt-shadow); }
-[data-theme="dark"] #receipt { background: var(--linen); }
-.r-header { text-align: center; padding-bottom: 16px; border-bottom: 1px solid rgba(58,50,40,0.15); margin-bottom: 16px; }
-.r-logo { font-family: 'Tenor Sans', serif; font-size: 12px; letter-spacing: 0.25em; color: var(--brown); text-transform: uppercase; margin-bottom: 3px; }
-.r-tag { font-size: 9px; color: #3A3228; letter-spacing: 0.15em; text-transform: uppercase; }
-.r-meta { display: flex; justify-content: space-between; font-size: 10px; color: #1E1E1E; margin-bottom: 16px; }
-.r-client { background: rgba(160,132,92,0.1); border-radius: 5px; padding: 10px 14px; margin-bottom: 16px; font-size: 11px; }
-.r-crow { display: flex; justify-content: space-between; padding: 3px 0; }
-.rc-label { color: #3A3228; }
-.rc-value { color: var(--brown); font-weight: 600; }
-.r-item { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(58,50,40,0.1); }
-.r-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.r-item-title { display: flex; align-items: baseline; margin-bottom: 5px; }
-.ri-num { font-family: 'Tenor Sans', serif; font-size: 10px; color: var(--cognac); letter-spacing: 0.15em; white-space: nowrap; }
-.ri-name { font-size: 12px; font-weight: 600; color: #1E1E1E; margin-left: 9px; }
-.r-svcrow { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12px; color: #1E1E1E; padding: 3px 0; font-weight: 500; }
+#receipt, #order-receipt { background: #FFFFFF; color: #2A2621; border: 1px solid rgba(58,50,40,0.12); border-radius: 10px; padding: 24px 22px; font-family: 'Commissioner', sans-serif; font-weight: 400; box-shadow: 0 2px 14px rgba(58,50,40,0.06); }
+[data-theme="dark"] #receipt, [data-theme="dark"] #order-receipt { background: #FFFFFF; color: #2A2621; }
+.r-header { text-align: center; padding-bottom: 14px; border-bottom: 1px solid rgba(58,50,40,0.12); margin-bottom: 12px; }
+.r-logo { font-family: 'Tenor Sans', serif; font-size: 14px; letter-spacing: 0.18em; color: #2A2621; text-transform: uppercase; }
+.r-subtag { font-family: 'Commissioner', sans-serif; font-size: 10.5px; letter-spacing: 0.02em; color: rgba(42,38,33,0.55); margin-top: 5px; }
+.r-meta { display: flex; justify-content: space-between; align-items: baseline; font-size: 10.5px; color: rgba(42,38,33,0.5); margin-bottom: 16px; }
+.r-meta-num { color: var(--cognac); letter-spacing: 0.04em; }
+.r-client { margin-bottom: 16px; }
+.r-client-2col { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; margin-bottom: 16px; }
+.r-ccol:last-child { text-align: right; }
+.r-crow { display: flex; align-items: center; padding: 5px 0 0; font-size: 12px; }
+.rc-label { color: rgba(42,38,33,0.5); }
+.rc-value-2col { font-size: 12.5px; font-weight: 500; color: #2A2621; margin-bottom: 6px; }
+.r-item { padding: 10px 0; border-bottom: 1px solid rgba(58,50,40,0.08); }
+.r-item:first-child { padding-top: 0; }
+.r-item:last-child { border-bottom: none; padding-bottom: 0; }
+.r-item-title { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; }
+.ri-num { font-family: 'Tenor Sans', serif; font-size: 10px; color: var(--cognac); letter-spacing: 0.1em; white-space: nowrap; }
+.ri-name { font-size: 12.5px; font-weight: 500; color: #2A2621; }
+.r-svcrow { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12px; color: rgba(42,38,33,0.75); padding: 2px 0; }
 .r-svcrow > span:first-child { flex: 1; min-width: 0; }
-.r-item-note { font-size: 11px; font-style: italic; color: #6B4F3A; margin-top: 4px; }
-.rs-price { color: var(--brown); font-weight: 600; white-space: nowrap; flex-shrink: 0; }
-.r-divider { border: none; border-top: 1px solid rgba(58,50,40,0.2); margin: 16px 0; }
+.r-item-note { font-size: 10.5px; font-style: italic; color: rgba(42,38,33,0.55); margin-top: 3px; }
+.rs-price { color: var(--cognac); font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+.r-divider { border: none; border-top: 1px solid rgba(58,50,40,0.12); margin: 14px 0; }
 .r-total { display: flex; justify-content: space-between; align-items: baseline; }
-.rt-label { font-size: 10px; color: #1E1E1E; text-transform: uppercase; letter-spacing: 0.1em; }
-.rt-amount { font-family: 'Tenor Sans', serif; font-size: 20px; color: #1E1E1E; }
-.r-note { font-size: 9px; color: rgba(58,50,40,0.75); text-align: center; margin-top: 16px; line-height: 1.6; font-style: italic; }
-.r-footer { text-align: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(58,50,40,0.1); font-size: 9px; color: rgba(58,50,40,0.65); letter-spacing: 0.2em; text-transform: uppercase; }
+.rt-label { font-size: 10px; color: rgba(42,38,33,0.55); text-transform: uppercase; letter-spacing: 0.12em; }
+.rt-amount { font-family: 'Tenor Sans', serif; font-size: 22px; color: #2A2621; }
+.r-payblock { margin-top: 10px; }
+.r-payrow { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; padding: 2px 0; }
+.pr-label { color: rgba(42,38,33,0.5); text-transform: uppercase; letter-spacing: 0.08em; font-size: 10px; }
+.pr-value { color: #2A2621; font-weight: 500; }
+.pr-due { color: var(--cognac); font-weight: 600; }
+.r-footer { text-align: center; margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(58,50,40,0.08); font-family: 'Tenor Sans', serif; font-size: 11px; color: rgba(58,50,40,0.6); letter-spacing: 0.03em; line-height: 1.6; }
+.r-disclaimer { text-align: center; margin-top: 10px; font-family: 'Commissioner', sans-serif; font-size: 8px; color: rgba(58,50,40,0.32); letter-spacing: 0.04em; }
 .r-empty { text-align: center; padding: 50px 0; color: rgba(58,50,40,0.3); font-size: 12px; }
 .r-empty .icon { font-size: 30px; margin-bottom: 10px; }
 
@@ -597,6 +606,7 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
   scrollbar-width: none;
 }
 .filters::-webkit-scrollbar { display: none; }
+.filters-secondary { padding-top: 14px; border-bottom: 1px solid var(--line); }
 .ftab {
   font-size: 12px; color: var(--txt-2); cursor: pointer;
   padding-bottom: 12px; white-space: nowrap;
@@ -1520,7 +1530,7 @@ const DEFAULT_COLORS = ["Чорний","Коричневий","Коньяк","Б
 const MATERIALS = ["Шкіра","Замша","Нубук","Текстиль","Лак","Комбінований"];
 const CONDITIONS = ["Новий стан","Гарний стан","Незначні потертості","Потертості","Пошкодження","Сильний знос"];
 const DELIVERY_OPTS = ["Самовивіз","Нова пошта","Кур'єр"];
-let ordersFilter = "all", ordersSearch = "";
+let ordersFilter = "all", ordersSearch = "", ordersPayFilter = "all";
 let dataLoaded = false;
 
 function gv(obj, ...keys) {
@@ -1747,7 +1757,7 @@ function modelsFor(category) {
 }
 
 /* Три «модельні» операції — ціна тягнеться з прайсу за тарифом/розміром */
-const CORE_OPS = ["Чистка", "Фарбування", "Реставрація"];
+const CORE_OPS = ["Чищення", "Фарбування", "Реставрація"];
 /* Знайти рядок прайсу: назва містить операцію + усі токени (тариф / розмір+матеріал) */
 function findCorePrice(category, op, tokens) {
   const cat = PRICE[category]; if (!cat) return null;
@@ -1770,7 +1780,7 @@ function opPriceFor(item, op) {
       return findCorePrice("bags", op, ["поясний ремінь"]);
     }
     const size = item.size || "M";
-    const mat = (op === "Чистка") ? (item.material || "шкіряна") : "шкіряна";
+    const mat = (op === "Чищення") ? (item.material || "шкіряна") : "шкіряна";
     return findCorePrice("bags", op, ["сумка " + size, mat]);
   }
   if (!item.size) return null; // для взуття size = тарифна група
@@ -2760,6 +2770,9 @@ document.addEventListener("click", function(e) {
 const FILTER_DEFS = [
   ["all","Всі"], ["new","Нові"], ["work","В роботі"], ["ready","Готові"], ["issued","Видані"]
 ];
+const PAY_FILTER_DEFS = [
+  ["all","Всі"], ["paid","Оплачені"], ["unpaid","Не оплачені"]
+];
 
 renderers.orders = function() {
   const page = document.getElementById("page-orders");
@@ -2777,6 +2790,16 @@ renderers.orders = function() {
   const tabs = FILTER_DEFS.map(([k,label]) =>
     "<button class='ftab" + (ordersFilter === k ? " active" : "") + "' onclick=\"setOrdersFilter('" + k + "')\">" +
     label + "<b>" + (counts[k] || 0) + "</b></button>"
+  ).join("");
+
+  const payCounts = { all: periodOrders.length, paid: 0, unpaid: 0 };
+  periodOrders.forEach(o => {
+    const num = gv(o,"Номер замовлення");
+    if (isOrderPaid(num)) payCounts.paid++; else payCounts.unpaid++;
+  });
+  const payTabs = PAY_FILTER_DEFS.map(([k,label]) =>
+    "<button class='ftab" + (ordersPayFilter === k ? " active" : "") + "' onclick=\"setOrdersPayFilter('" + k + "')\">" +
+    label + "<b>" + (payCounts[k] || 0) + "</b></button>"
   ).join("");
 
   page.innerHTML =
@@ -2797,12 +2820,14 @@ renderers.orders = function() {
         "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>" +
         "<input type='text' placeholder='Пошук...' value=\"" + ordersSearch.replace(/"/g,"&quot;") + "\" oninput='onOrdersSearch(this.value)'></div></div>" +
     "</div>" +
+    "<div class='filters filters-secondary'>" + payTabs + "</div>" +
     "<div class='orders-scroll' id='orders-scroll'></div>";
 
   renderOrdersList();
 };
 
 function setOrdersFilter(k) { ordersFilter = k; renderers.orders(); }
+function setOrdersPayFilter(k) { ordersPayFilter = k; renderers.orders(); }
 function onOrdersSearch(v) { ordersSearch = v; renderOrdersList(); }
 
 function renderOrdersList() {
@@ -2815,11 +2840,13 @@ function renderOrdersList() {
   const filtered = ordersInPeriod(periodSel.orders).filter(o => {
     const num = gv(o,"Номер замовлення");
     const stOk = ordersFilter === "all" || getStatus(num) === ordersFilter;
+    const payOk = ordersPayFilter === "all" ||
+      (ordersPayFilter === "paid" ? isOrderPaid(num) : !isOrderPaid(num));
     const qOk = !q ||
       gv(o,"Ім'я клієнта").toLowerCase().includes(q) ||
       num.toLowerCase().includes(q) ||
       gv(o,"Телефон").includes(q);
-    return stOk && qOk;
+    return stOk && payOk && qOk;
   }).reverse();
 
   if (!filtered.length) {
@@ -2926,6 +2953,15 @@ function tailorInPeriod(key) {
 function orderTotal(num) {
   return ITEMS.filter(i => gv(i,"Номер замовлення") === num)
     .reduce((s,it) => s + extractAmt(gv(it,"Сума")), 0);
+}
+function isOrderPaid(num) {
+  const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
+  if (!o) return false;
+  const total = orderTotal(num);
+  const payStr = gv(o,"Оплата");
+  const prepayAmt = extractAmt(payStr);
+  const settleAmt = extractAmt(gv(o,"Сума доплати"));
+  return computePayStatus(total, payStr, prepayAmt, settleAmt).isPaid;
 }
 function periodTabsHTML(tabKey) {
   return "<div class='period-tabs'>" + PERIODS.map(([k,label]) =>
