@@ -74,7 +74,7 @@ function updateReceipt() {
     item.services.forEach(s => total += s.price);
     const svcs = item.services.map(s => "<div class='r-svcrow'><span>"+escHtml(s.name)+"</span><span class='rs-price'>"+s.price+" ₴</span></div>").join("");
     const label = [item.model, item.brand].filter(Boolean).join(" · ");
-    const noteHTML = item.note ? "<div class='r-item-note'>Прим.: "+escHtml(item.note)+"</div>" : "";
+    const noteHTML = item.note ? "<div class='r-item-note'>Коментар: "+escHtml(item.note)+"</div>" : "";
     itemsHTML += "<div class='r-item'><div class='r-item-title'><span class='ri-num'>№"+(idx+1)+"</span>"+(label?"<span class='ri-name'>"+escHtml(label)+"</span>":"")+"</div>"+svcs+noteHTML+"</div>";
   });
 
@@ -132,7 +132,7 @@ function orderReceiptHTML(num) {
     const svcs = gv(it,"Послуги");
     const note = gv(it,"Коментар");
     const svcRow = "<div class='r-svcrow'><span>" + escHtml(svcs || "Послуги") + "</span><span class='rs-price'>" + amt.toLocaleString("uk-UA") + " ₴</span></div>";
-    const noteHTML = note ? "<div class='r-item-note'>Прим.: " + escHtml(note) + "</div>" : "";
+    const noteHTML = note ? "<div class='r-item-note'>Коментар: " + escHtml(note) + "</div>" : "";
     itemsHTML += "<div class='r-item'><div class='r-item-title'><span class='ri-num'>№" + (idx+1) + "</span><span class='ri-name'>" + escHtml(name) + "</span></div>" + svcRow + noteHTML + "</div>";
   });
 
@@ -166,5 +166,15 @@ function shareOrderReceipt(num) {
         link.href = canvas.toDataURL("image/png"); link.click();
       }
     }, "image/png");
+  }).catch(()=>{});
+}
+
+function saveOrderReceiptImage(num) {
+  const el = document.getElementById("order-receipt");
+  if (!el) return;
+  html2canvas(el, { backgroundColor: "#FFFFFF", scale: 2, useCORS: true }).then(canvas => {
+    const link = document.createElement("a");
+    link.download = "rewise-chek-" + num + ".png";
+    link.href = canvas.toDataURL("image/png"); link.click();
   }).catch(()=>{});
 }
