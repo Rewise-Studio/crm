@@ -637,6 +637,8 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .cr-head-btn:hover { border-color: var(--cognac); color: var(--txt); }
 .cr-head-btn.primary { background: var(--btn-primary-bg, #3A3228); border-color: transparent; color: #fff; }
 .cr-head-btn.primary:hover { background: var(--leather); color: #fff; }
+.cr-head-btn-danger { border-color: rgba(226,75,74,0.35); color: #E24B4A; }
+.cr-head-btn-danger:hover { background: rgba(226,75,74,0.08); border-color: #E24B4A; color: #E24B4A; }
 .cr-draft-bar { max-width: 1200px; width: 100%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--accent-soft); border: 1px solid var(--cognac-border); border-radius: 8px; padding: 9px 16px; font-size: 12px; color: var(--txt); }
 .cr-draft-bar span { display: flex; gap: 8px; }
 .cr-draft-bar button { background: none; border: 1px solid var(--cognac-border); border-radius: 6px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 11px; padding: 5px 11px; cursor: pointer; }
@@ -717,6 +719,27 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .archive-client { font-size: 13px; color: var(--txt); flex: 1; }
 .archive-total { font-size: 13px; color: var(--txt-2); font-weight: 500; }
 .archive-note { font-size: 12px; color: var(--txt-3); margin-top: 6px; font-style: italic; }
+
+.hist-link { cursor: pointer; }
+.hist-link:hover { opacity: 0.75; }
+.hist-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.hist-row { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: border-color 0.15s; }
+.hist-row:hover { border-color: var(--cognac-border); }
+.hist-row-top { display: flex; justify-content: space-between; align-items: center; }
+.hist-num { font-family: 'Tenor Sans', serif; font-size: 12.5px; color: var(--cognac); letter-spacing: 0.03em; }
+.hist-row-bottom { display: flex; justify-content: space-between; align-items: baseline; margin-top: 6px; }
+.hist-date { font-size: 12px; color: var(--txt-3); }
+.hist-total { font-size: 12.5px; color: var(--txt); font-weight: 500; }
+.hist-current { border-color: var(--cognac-border); background: var(--accent-soft); }
+
+.svc-tech-list { display: flex; flex-direction: column; }
+.svc-tech-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12.5px; color: var(--txt); padding: 6px 0; border-bottom: 1px solid var(--line-soft); }
+.svc-tech-row:last-of-type { border-bottom: none; }
+.svc-tech-label { flex: 1; min-width: 0; }
+.svc-tech-price { color: var(--cognac); font-weight: 500; white-space: nowrap; }
+.svc-tech-total { border-top: 1px solid var(--line); margin-top: 4px; padding-top: 10px; font-weight: 600; }
+.svc-tech-total span:first-child { text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em; color: var(--txt-2); }
+.svc-tech-total span:last-child { font-family: 'Tenor Sans', serif; font-size: 15px; color: var(--txt); }
 
 /* ═══════════════ ВКЛАДКИ КЛІЄНТИ / ФІНАНСИ / СТАТИСТИКА ═══════════════ */
 .tab-scroll { flex: 1; overflow-y: auto; padding: 8px 28px 40px; }
@@ -2184,9 +2207,8 @@ renderers.create = function() {
       "</div>" +
       "<div class='create-right'><div class='create-right-sticky'>" +
         "<div class='cr-right-actions'>" +
-          "<button class='cr-head-btn' onclick='cancelCreate()'>Скасувати</button>" +
           "<button class='cr-head-btn' onclick='saveDraft()'>Зберегти чернетку</button>" +
-          "<button class='cr-head-btn' onclick='shareReceipt()'>Поділитися</button>" +
+          "<button class='cr-head-btn cr-head-btn-danger' onclick='cancelCreate()'>Скасувати</button>" +
         "</div>" +
         "<div id='receipt'></div>" +
         "<button class='cr-create-btn cr-create-under' onclick='submitOrder()'>Створити замовлення</button>" +
@@ -3650,6 +3672,79 @@ async function confirmDeleteOrder() {
   toast("Замовлення " + num + " видалено");
 }
 
+/* ═══════════════ ІСТОРІЯ ЗАМОВЛЕНЬ КЛІЄНТА ═══════════════ */
+function openClientHistory(phone, currentNum) {
+  const orders = ORDERS.filter(x => gv(x,"Телефон") === phone && !isOrderDeleted(x));
+  const sorted = [...orders].sort((a,b) => {
+    const da = orderDate(a), db = orderDate(b);
+    if (da && db) return db - da;
+    if (da) return -1;
+    if (db) return 1;
+    return 0;
+  });
+
+  const rows = sorted.map(o => {
+    const num = gv(o,"Номер замовлення");
+    const st = getStatus(num);
+    const meta = STATUS_META[st];
+    const total = orderTotal(num);
+    const date = gv(o,"Дата створення").split(" ")[0];
+    const isCurrent = num === currentNum;
+    return "<div class='hist-row" + (isCurrent ? " hist-current" : "") + "' onclick=\"closeClientHistory();openOrder('" + num + "')\">" +
+      "<div class='hist-row-top'><span class='hist-num'>" + num + (isCurrent ? " · поточне" : "") + "</span><span class='badge " + meta[1] + "'>" + meta[0] + "</span></div>" +
+      "<div class='hist-row-bottom'><span class='hist-date'>" + date + "</span><span class='hist-total'>" + total.toLocaleString("uk-UA") + " ₴</span></div>" +
+    "</div>";
+  }).join("");
+
+  let ov = document.getElementById("client-history-modal");
+  if (!ov) {
+    ov = document.createElement("div");
+    ov.id = "client-history-modal";
+    ov.className = "odm-bg";
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML =
+    "<div class='odm' style='width:420px'>" +
+      "<div class='odm-close' onclick='closeClientHistory()'>×</div>" +
+      "<div class='odm-scroll'>" +
+        "<div class='detail-top'><span class='detail-title'>Історія замовлень</span></div>" +
+        "<div class='hist-list'>" + (rows || "<div class='orders-empty'>Немає замовлень</div>") + "</div>" +
+      "</div>" +
+    "</div>";
+  ov.classList.add("open");
+}
+function closeClientHistory() {
+  const ov = document.getElementById("client-history-modal");
+  if (ov) ov.classList.remove("open");
+}
+
+/* ═══════════════ ПОВНИЙ ЧЕК (модалка за кнопкою) ═══════════════ */
+function openReceiptModal(num) {
+  let ov = document.getElementById("receipt-modal");
+  if (!ov) {
+    ov = document.createElement("div");
+    ov.id = "receipt-modal";
+    ov.className = "odm-bg";
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML =
+    "<div class='odm' style='width:420px'>" +
+      "<div class='odm-close' onclick='closeReceiptModal()'>×</div>" +
+      "<div class='odm-scroll'>" +
+        orderReceiptHTML(num) +
+        "<div style='display:flex;gap:10px;margin-top:12px'>" +
+          "<button class='btn-primary' style='flex:1' onclick=\"shareOrderReceipt('" + num + "')\">Поділитися</button>" +
+          "<button class='cr-head-btn' style='flex:1' onclick=\"saveOrderReceiptImage('" + num + "')\">Зберегти зображення</button>" +
+        "</div>" +
+      "</div>" +
+    "</div>";
+  ov.classList.add("open");
+}
+function closeReceiptModal() {
+  const ov = document.getElementById("receipt-modal");
+  if (ov) ov.classList.remove("open");
+}
+
 async function priceApi(path, payload) {
   try {
     const res = await fetch(API_URL.replace("/order", path), {
@@ -4322,8 +4417,6 @@ function openOrder(num) {
     ITEMS.filter(i => gv(i,"Номер замовлення") === gv(co,"Номер замовлення"))
       .forEach(it => clientTotal += extractAmt(gv(it,"Сума")));
   });
-  const sortedClientOrders = [...clientOrders].sort((a,b) => (gv(a,"Дата створення") > gv(b,"Дата створення")) ? 1 : -1);
-  const prevOrder = sortedClientOrders.filter(x => gv(x,"Номер замовлення") !== num).slice(-1)[0];
 
   // Клієнт-блок
   const commLinks = {
@@ -4341,7 +4434,7 @@ function openOrder(num) {
   const historyHTML =
     "<div class='d-client-history'><span>Загалом замовлень</span><span class='h-val'>" + clientOrders.length + "</span></div>" +
     "<div class='d-client-history'><span>Загальна сума</span><span class='h-val'>" + clientTotal.toLocaleString("uk-UA") + " ₴</span></div>" +
-    (prevOrder ? "<div class='d-client-history'><span>Попереднє замовлення</span><span class='h-val'>" + gv(prevOrder,"Дата створення").split(" ")[0] + "</span></div>" : "");
+    (clientOrders.length > 1 ? "<div class='d-client-history hist-link' onclick=\"openClientHistory('" + phone.replace(/'/g,"") + "','" + num + "')\"><span>Історія замовлень</span><span class='h-val'>" + clientOrders.length + " →</span></div>" : "");
 
   const delivery = its.length ? gv(its[0],"Доставка") : "";
   const clientBlock =
@@ -4484,7 +4577,21 @@ function openOrder(num) {
       "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','accepted')\">" + copyIcon() + "Прийнято</button>" +
     "</div></div>";
 
-  const receiptBlock = "<div class='dblock'><div class='dblock-label'>Чек</div>" + orderReceiptHTML(num) + "<button class='btn-primary' style='width:100%;margin-top:12px' onclick=\"shareOrderReceipt('" + num + "')\">Поділитися чеком</button></div>";
+  // Компактний технічний список послуг (замість завжди відкритого дизайнерського чека —
+  // дублював itemsBlock, займав багато місця)
+  let svcTechTotal = 0;
+  const svcTechRows = its.map((it, idx) => {
+    const amt = extractAmt(gv(it,"Сума")); svcTechTotal += amt;
+    const name = [gv(it,"Тип"), gv(it,"Бренд")].filter(Boolean).join(" · ") || "Виріб";
+    const svcs = gv(it,"Послуги") || "Послуги";
+    return "<div class='svc-tech-row'><span class='svc-tech-label'>№" + (idx+1) + " " + name + " — " + svcs + "</span><span class='svc-tech-price'>" + amt.toLocaleString("uk-UA") + " ₴</span></div>";
+  }).join("");
+  const receiptBlock = "<div class='dblock'>" +
+    "<div class='dblock-label'>Послуги</div>" +
+    "<div class='svc-tech-list'>" + svcTechRows + "</div>" +
+    "<div class='svc-tech-row svc-tech-total'><span>Разом</span><span>" + svcTechTotal.toLocaleString("uk-UA") + " ₴</span></div>" +
+    "<button class='d-settle-btn' style='background:none;border:1px solid var(--cognac-border);color:var(--cognac);margin-top:10px' onclick=\"openReceiptModal('" + num + "')\">Переглянути чек</button>" +
+    "</div>";
 
   modalBody.innerHTML =
     "<div class='detail-top'>" +
