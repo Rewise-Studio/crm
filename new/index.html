@@ -2935,8 +2935,9 @@ function orderDate(o) {
 }
 function ordersInPeriod(key) {
   const from = periodStart(key);
-  if (!from) return ORDERS.slice();
-  return ORDERS.filter(o => { const d = orderDate(o); return d && d >= from; });
+  const base = ORDERS.filter(o => gv(o,"Статус") !== "🗑 Видалено");
+  if (!from) return base;
+  return base.filter(o => { const d = orderDate(o); return d && d >= from; });
 }
 function tailorInPeriod(key) {
   const from = periodStart(key);
@@ -3508,6 +3509,81 @@ function openPriceConfirm() {
 function closePriceConfirm() {
   const ov = document.getElementById("price-confirm");
   if (ov) ov.classList.remove("open");
+}
+
+/* ═══════════════ ВИДАЛЕННЯ ЗАМОВЛЕННЯ (адмін, підтвердження паролем) ═══════════════ */
+let pendingDeleteOrder = null;
+
+function openDeleteOrderConfirm(num) {
+  if (!isAdmin()) { toast("Видалення доступне лише адміністратору"); return; }
+  pendingDeleteOrder = num;
+
+  let ov = document.getElementById("delete-order-confirm");
+  if (!ov) {
+    ov = document.createElement("div");
+    ov.id = "delete-order-confirm";
+    ov.className = "odm-bg";
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML =
+    "<div class='odm' style='width:420px'>" +
+      "<div class='odm-close' onclick='closeDeleteOrderConfirm()'>×</div>" +
+      "<div class='odm-scroll'>" +
+        "<div class='detail-top'><span class='detail-title'>Видалити замовлення " + num + "?</span></div>" +
+        "<p style='font-size:13px;color:var(--txt-2);line-height:1.5;margin:10px 0 0'>" +
+          "Замовлення зникне зі списків і статистики. Дані не стираються остаточно — " +
+          "їх можна відновити вручну через Google Таблицю, змінивши статус." +
+        "</p>" +
+        "<div class='cr-block-label' style='margin-top:18px'>Пароль адміністратора</div>" +
+        "<input class='cr-input' id='delete-order-pw' type='password' placeholder='Пароль' " +
+          "onkeydown=\"if(event.key==='Enter')confirmDeleteOrder()\">" +
+        "<div class='login-err' id='delete-order-err'></div>" +
+        "<div style='display:flex;gap:10px;margin-top:6px'>" +
+          "<button onclick='closeDeleteOrderConfirm()' style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:13px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:13px'>Скасувати</button>" +
+          "<button class='cr-create-btn' style='flex:2;margin-top:0;background:#E24B4A' id='delete-order-btn' onclick='confirmDeleteOrder()'>Видалити</button>" +
+        "</div>" +
+      "</div>" +
+    "</div>";
+  ov.classList.add("open");
+  setTimeout(() => { const el = document.getElementById("delete-order-pw"); if (el) el.focus(); }, 50);
+}
+function closeDeleteOrderConfirm() {
+  const ov = document.getElementById("delete-order-confirm");
+  if (ov) ov.classList.remove("open");
+  pendingDeleteOrder = null;
+}
+async function confirmDeleteOrder() {
+  if (!pendingDeleteOrder) return;
+  const err = document.getElementById("delete-order-err");
+  const pw = document.getElementById("delete-order-pw").value;
+  if (!pw) { err.textContent = "Введіть пароль"; return; }
+  let hash;
+  try { hash = await sha256(pw); } catch(e) { err.textContent = "Помилка перевірки"; return; }
+  if (hash !== ROLE_HASHES.admin) { err.textContent = "Невірний пароль"; return; }
+
+  const btn = document.getElementById("delete-order-btn");
+  btn.textContent = "Видалення..."; btn.disabled = true;
+  err.textContent = "";
+
+  const num = pendingDeleteOrder;
+  try {
+    const res = await fetch(API_URL.replace("/order","/order/delete"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ order_num: num })
+    });
+    const r = await res.json();
+    if (r.status !== "ok") throw new Error(r.message || "error");
+  } catch(e) {
+    err.textContent = "Не вдалося видалити. Спробуйте ще раз.";
+    btn.textContent = "Видалити"; btn.disabled = false;
+    return;
+  }
+
+  closeDeleteOrderConfirm();
+  backToOrders();
+  await loadData();
+  renderers[currentPage] && renderers[currentPage]();
+  toast("Замовлення " + num + " видалено");
 }
 
 async function priceApi(path, payload) {
@@ -4351,6 +4427,7 @@ function openOrder(num) {
       "<span class='detail-title'>Замовлення " + num + "</span>" +
       "<span class='badge " + stMeta[1] + "'>" + stMeta[0] + "</span>" +
       "<button class='detail-edit' onclick=\"openEditOrder('" + num + "')\">Редагувати</button>" +
+      "<button class='detail-edit admin-only' style='color:#E24B4A;border-color:rgba(226,75,74,0.3)' onclick=\"openDeleteOrderConfirm('" + num + "')\">Видалити</button>" +
     "</div>" +
     "<div class='detail-grid'>" +
       "<div class='detail-col'>" + clientBlock + payBlock + bonusBlock + timelineBlock + "</div>" +
