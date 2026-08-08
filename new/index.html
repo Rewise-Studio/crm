@@ -402,13 +402,13 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 #page-create .ic-oplabel { margin: 10px 0 6px; }
 #page-create .add-item-btn { padding: 11px; margin-top: 8px; }
 #page-create .page-header { padding-top: 8px; padding-bottom: 8px; }
-/* прохід 2: вирівнювання ряду категорія·вид·бренд + щільніше */
-#page-create .ic-row3 { align-items: flex-start; }
-#page-create .ic-row3 .ic-search-wrap { margin-top: 0; }
-#page-create .ic-details-row .ic-search-wrap { margin-top: 0; }
-#page-create .ic-details-row .ic-mini { padding-top: 8px; padding-bottom: 8px; }
-#page-create .ic-row3 .ic-mini { height: 36px; padding-top: 0; padding-bottom: 0; }
-#page-create .ic-catseg .ic-seg { height: 36px; padding-top: 0; padding-bottom: 0; }
+/* прохід 2: вирівнювання ряду категорія·вид·бренд + щільніше (і на сторінці створення, і в модалці речі) */
+#page-create .ic-row3, .iw-body .ic-row3 { align-items: flex-start; }
+#page-create .ic-row3 .ic-search-wrap, .iw-body .ic-row3 .ic-search-wrap { margin-top: 0; }
+#page-create .ic-details-row .ic-search-wrap, .iw-body .ic-details-row .ic-search-wrap { margin-top: 0; }
+#page-create .ic-details-row .ic-mini, .iw-body .ic-details-row .ic-mini { padding-top: 8px; padding-bottom: 8px; }
+#page-create .ic-row3 .ic-mini, .iw-body .ic-row3 .ic-mini { height: 36px; padding-top: 0; padding-bottom: 0; }
+#page-create .ic-catseg .ic-seg, .iw-body .ic-catseg .ic-seg { height: 36px; padding-top: 0; padding-bottom: 0; }
 #page-create .cr-grid { gap: 7px; }
 #page-create .cr-box { padding: 9px 12px; }
 #page-create .itemcard { padding: 11px; margin-bottom: 8px; }
