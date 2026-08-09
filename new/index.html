@@ -622,8 +622,30 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .d-check.on { background: #2FA98C; border-color: #2FA98C; }
 .d-notify-check:hover .d-check { border-color: var(--cognac); }
 
-/* Виріб: вертикальна рейка статусу (ліворуч) + компактна історія (праворуч) */
-.d-item-2col { display: grid; grid-template-columns: 1fr 132px; gap: 16px; align-items: start; }
+/* ── Послуги виробу зі своїм статусом ── */
+.svc-list { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 10px; }
+.svc-card { border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; }
+.svc-card.done { border-color: rgba(99,153,34,0.3); background: rgba(99,153,34,0.04); }
+.svc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.svc-name { font-size: 12.5px; color: var(--txt); font-weight: 500; }
+.svc-price { font-size: 12px; color: var(--txt-2); white-space: nowrap; }
+.svc-rail { display: flex; align-items: center; }
+.svc-step { display: flex; flex-direction: column; align-items: center; flex: 0 0 auto; }
+.svc-dot { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; border: 1.5px solid var(--line); color: var(--txt-3); cursor: pointer; background: var(--surface); }
+.svc-dot.done { background: var(--cognac); color: #fff; border-color: var(--cognac); }
+.svc-dot.active { border-color: var(--cognac); color: var(--cognac); }
+.svc-action { min-width: 62px; height: 20px; padding: 0 8px; border-radius: 10px; background: var(--cognac); color: #fff; font-size: 9.5px; font-weight: 500; display: flex; align-items: center; justify-content: center; white-space: nowrap; cursor: pointer; }
+.svc-lbl { font-size: 8px; color: var(--txt-3); margin-top: 2px; }
+.svc-lbl.active { color: var(--txt); font-weight: 500; }
+.svc-line { height: 1px; background: var(--line); flex: 1; margin: 0 4px 12px; min-width: 14px; }
+.svc-line.done { background: var(--cognac); }
+.svc-meta { font-size: 10px; color: var(--txt-3); margin-top: 6px; }
+.svc-stall { display: flex; align-items: center; gap: 6px; background: rgba(226,138,74,0.12); border-radius: 7px; padding: 7px 10px; margin: 8px 0; font-size: 11px; color: #B5732A; }
+.d-item-hist { display: flex; flex-wrap: wrap; gap: 2px 18px; margin: 6px 0; }
+.d-item-hist .d-hist-label { font-size: 10px; color: var(--txt-3); width: 100%; margin-top: 4px; }
+.d-item-hist .d-hist-value { font-size: 11.5px; color: var(--txt); }
+.d-item-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+.d-item-foot .d-notify-check { margin-top: 0; }
 .d-rail-v { display: flex; align-items: center; }
 .d-rail-v-step { display: flex; flex-direction: column; align-items: center; flex: 1; }
 .d-rail-v-dot { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; border: 1.5px solid var(--line); color: var(--txt-3); cursor: pointer; background: var(--surface); }
@@ -1648,7 +1670,7 @@ function groupSwitcher(group) {
 const renderers = {};
 
 /* ═══════════════ ШАР ДАНИХ ═══════════════ */
-let ORDERS = [], ITEMS = [], PARTNERS = [], TASKS = [], TAILOR = [], SETTINGS = {}, VYDY = [], BRANDS = [], MASTERS = [], COLORS = [];
+let ORDERS = [], ITEMS = [], PARTNERS = [], TASKS = [], TAILOR = [], SETTINGS = {}, VYDY = [], BRANDS = [], MASTERS = [], COLORS = [], SERVICES = [];
 const DEFAULT_COLORS = ["Чорний","Коричневий","Коньяк","Бежевий","Білий","Сірий","Синій","Бордовий","Зелений"];
 const MATERIALS = ["Шкіра","Замша","Нубук","Текстиль","Лак","Комбінований"];
 const CONDITIONS = ["Новий стан","Гарний стан","Незначні потертості","Потертості","Пошкодження","Сильний знос"];
@@ -1712,10 +1734,32 @@ async function parsePartners(res) {
   } catch(e) { return []; }
 }
 
+/* Лист «Послуги»: рядок на кожну послугу кожного виробу.
+   Номер послуги RW-0041-1-2 = замовлення 41, виріб 1, послуга 2. */
+async function parseServices(res) {
+  if (!res) return [];
+  return await parseSheet(res, ["Номер послуги","Номер виробу","Номер замовлення","Назва","Ціна","Статус","Майстер","Дата в роботі","Дата готово","Хто видав","Дата видачі"]);
+}
+/* Послуги конкретного виробу */
+function servicesOfItem(itemNum) {
+  return SERVICES.filter(s => gv(s,"Номер виробу") === itemNum);
+}
+/* Індекс статусу послуги (Новий→В роботі→Готово, без «Видано» — воно на рівні виробу) */
+const SERVICE_STATUSES = [
+  ["🆕 Новий", "Новий"],
+  ["⚙️ В роботі", "В роботі"],
+  ["✅ Готово", "Готово"]
+];
+function serviceStatusIndex(status) {
+  if (status === "✅ Готово") return 2;
+  if (status === "⚙️ В роботі") return 1;
+  return 0;
+}
+
 async function loadData() {
   try {
     const base = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&sheet=";
-    const [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10] = await Promise.all([
+    const [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11] = await Promise.all([
       fetch(base + encodeURIComponent("Замовлення")),
       fetch(base + encodeURIComponent("Вироби")),
       fetch(base + encodeURIComponent("Партнери")),
@@ -1725,10 +1769,11 @@ async function loadData() {
       fetch(base + encodeURIComponent("Види")).catch(() => null),
       fetch(base + encodeURIComponent("Бренди")).catch(() => null),
       fetch(base + encodeURIComponent("Майстри")).catch(() => null),
-      fetch(base + encodeURIComponent("Кольори")).catch(() => null)
+      fetch(base + encodeURIComponent("Кольори")).catch(() => null),
+      fetch(base + encodeURIComponent("Послуги")).catch(() => null)
     ]);
     ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер","Спосіб передоплати","Сума доплати","Спосіб доплати","Сповіщено","Нараховано бонусів","Списано бонусів","Рейтинг вручну","Нотатка майстра","День народження","Пошта"]);
-    ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено","Майстер","Хто видав","Колір","Матеріал","Стан","Доставка","Коментар","Хто сповістив","Хто відмітив готовність"]);
+    ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено","Майстер","Хто видав","Колір","Матеріал","Стан","Доставка","Коментар","Хто сповістив"]);
     PARTNERS = await parsePartners(r3);
     if (!PARTNERS.length) PARTNERS = ["Сергій"];
     if (r4) { try { TASKS = await parseTasks(r4); } catch(e) { TASKS = []; } }
@@ -1738,6 +1783,7 @@ async function loadData() {
     if (r8) { try { BRANDS = await parseBrands(r8); } catch(e) { BRANDS = []; } }
     if (r9) { try { MASTERS = await parseMasters(r9); } catch(e) { MASTERS = []; } }
     if (r10) { try { COLORS = await parseBrands(r10); } catch(e) { COLORS = []; } }
+    if (r11) { try { SERVICES = await parseServices(r11); } catch(e) { SERVICES = []; } }
     dataLoaded = true;
   } catch(e) {
     console.error("loadData error:", e);
@@ -2872,6 +2918,7 @@ async function submitOrder() {  if (!NO.manager) { alert("Оберіть при�
         type: item.model || catLabel,
         brand: item.brand || "",
         services: item.services.map(s=>s.name).join(", "),
+        serviceList: item.services.map(s => ({ name: s.name, price: s.price })),
         total: total.toLocaleString("uk-UA") + " ₴",
         color: item.color || "",
         material: item.matNote || "",
@@ -4731,57 +4778,89 @@ function openOrder(num) {
   const itemsHTML = its.map((it, idx) => {
     const itemTotal = extractAmt(gv(it,"Сума"));
     total += itemTotal;
-    const curIdx = itemStatusIndex(gv(it,"Статус"));
-    const foldReady = curIdx === 1; // «В роботі» → наступний крок «Готово» теж стає кнопкою (фіксуємо, хто відмітив)
-    const foldIssue = curIdx === 2; // «Готово» → останній крок рейки сам стає кнопкою «Видати»
-    let statusRailV = "<div class='d-rail-v'>";
-    ITEM_STATUSES.forEach((s, si) => {
-      const done = si < curIdx, active = si === curIdx;
-      const isFoldedAction = (si === 2 && foldReady) || (si === 3 && foldIssue);
-      const dot = isFoldedAction
-        ? "<div class='d-rail-v-action' onclick=\"openMasterPick('" + num + "'," + idx + ",'" + (si===2?"ready":"issue") + "')\">" + (si===2?"Готово":"Видати") + "</div>"
-        : "<div class='d-rail-v-dot" + (done?" done":"") + (active?" active":"") + "' onclick=\"setItemStatus('" + num + "'," + idx + "," + si + ")\">" + (done ? "✓" : (si+1)) + "</div>";
-      statusRailV += "<div class='d-rail-v-step'>" + dot + "<div class='d-rail-v-lbl" + ((active||isFoldedAction)?" active":"") + "'>" + s[1] + "</div></div>";
-      if (si < ITEM_STATUSES.length - 1) statusRailV += "<div class='d-rail-v-line" + (si < curIdx ? " done" : "") + "'></div>";
-    });
-    statusRailV += "</div>";
-
     const iname = [gv(it,"Тип"), gv(it,"Бренд")].filter(Boolean).join(" · ") || "Виріб";
     const itemNum = gv(it,"Номер виробу") || (num + "-" + (idx+1));
     const notified = gv(it,"Сповіщено");
     const notifiedBy = gv(it,"Хто сповістив");
     const itemNote = gv(it,"Коментар");
+    const issued = gv(it,"Статус") === "📦 Виданий";
+
+    // ── Послуги виробу зі своїми статусами ──
+    const svcs = servicesOfItem(itemNum);
+    let svcHTML = "";
+    if (svcs.length) {
+      svcHTML = svcs.map((sv, sidx) => {
+        const svcNum = gv(sv,"Номер послуги");
+        const svcName = gv(sv,"Назва") || "Послуга";
+        const svcPrice = extractAmt(gv(sv,"Ціна"));
+        const svcCurIdx = serviceStatusIndex(gv(sv,"Статус"));
+        const svcMaster = gv(sv,"Майстер");
+        const svcDone = svcCurIdx === 2;
+        // Рейка послуги: Новий → В роботі → Готово (остання дія вбудована в крок)
+        let svcRail = "<div class='svc-rail'>";
+        SERVICE_STATUSES.forEach((s, si) => {
+          const done = si < svcCurIdx, active = si === svcCurIdx;
+          // крок «В роботі» і «Готово» стають кнопкою, коли вони наступні
+          const foldWork = si === 1 && svcCurIdx === 0;
+          const foldReady = si === 2 && svcCurIdx === 1;
+          const isAction = foldWork || foldReady;
+          const act = foldWork ? "work" : "ready";
+          const dot = isAction
+            ? "<div class='svc-action' onclick=\"svcAction('" + svcNum + "','" + act + "')\">" + (foldWork ? "В роботу" : "Готово") + "</div>"
+            : "<div class='svc-dot" + (done?" done":"") + (active?" active":"") + "' onclick=\"setServiceStatus('" + svcNum + "'," + si + ")\">" + (done ? "✓" : "") + "</div>";
+          svcRail += "<div class='svc-step'>" + dot + "<div class='svc-lbl" + ((active||isAction)?" active":"") + "'>" + s[1] + "</div></div>";
+          if (si < SERVICE_STATUSES.length - 1) svcRail += "<div class='svc-line" + (si < svcCurIdx ? " done" : "") + "'></div>";
+        });
+        svcRail += "</div>";
+        const svcMeta = svcMaster ? "<div class='svc-meta'>" + svcMaster + (gv(sv,"Дата готово") ? " · готово " + gv(sv,"Дата готово") : (gv(sv,"Дата в роботі") ? " · з " + gv(sv,"Дата в роботі") : "")) + "</div>" : "";
+        return "<div class='svc-card" + (svcDone ? " done" : "") + "'>" +
+          "<div class='svc-top'><span class='svc-name'>" + svcName + "</span>" +
+          "<span class='svc-price'>" + (svcPrice ? svcPrice.toLocaleString("uk-UA") + " ₴" : "") + "</span></div>" +
+          svcRail + svcMeta +
+        "</div>";
+      }).join("");
+    } else {
+      // Немає деталізованих послуг (виріб створено до нововведення) — показуємо старий рядок
+      svcHTML = "<div class='d-item-svc'>" + gv(it,"Послуги") + "</div>";
+    }
+
+    // ── Нагадування: послуги розійшлись у статусах (одна готова/в роботі, інша ще не почата) ──
+    let stallBanner = "";
+    if (svcs.length > 1 && !issued) {
+      const idxs = svcs.map(sv => serviceStatusIndex(gv(sv,"Статус")));
+      const maxI = Math.max(...idxs), minI = Math.min(...idxs);
+      if (maxI >= 1 && minI === 0) {
+        const behind = svcs.filter(sv => serviceStatusIndex(gv(sv,"Статус")) === 0).map(sv => gv(sv,"Назва")).join(", ");
+        stallBanner = "<div class='svc-stall'>⚠️ Не почато: " + behind + " — інші послуги вже в роботі</div>";
+      }
+    }
+
+    // ── Видача (вся річ) + сповіщення на рівні виробу ──
+    const allSvcReady = svcs.length ? svcs.every(sv => serviceStatusIndex(gv(sv,"Статус")) === 2) : (itemStatusIndex(gv(it,"Статус")) >= 2);
+    const issueBtn = (!issued && allSvcReady)
+      ? "<button class='d-issue-mini' onclick=\"openMasterPick('" + num + "'," + idx + ",'issue')\">Видати річ →</button>" : "";
+
     const notifyCheck = "<label class='d-notify-check' onclick=\"toggleNotified('" + itemNum + "'," + idx + ",event)\">" +
       "<span class='d-check" + (notified ? " on" : "") + "'>" + (notified ? "✓" : "") + "</span>" +
       (notified ? "Сповіщено " + notified + (notifiedBy ? " · " + notifiedBy : "") : "Позначити, що сповіщено") + "</label>";
 
-    const master = gv(it,"Майстер");
-    const readyBy = gv(it,"Хто відмітив готовність");
-    const dReady = gv(it,"Дата готово");
     const issuedBy = gv(it,"Хто видав");
-    const dWork = gv(it,"Дата в роботі");
     const dIssue = gv(it,"Дата видачі");
-    const issued = gv(it,"Статус") === "📦 Виданий";
-    // «Видати» тепер вбудовано в останній крок рейки (коли foldIssue) — окрема кнопка лишається тільки для «Прийняти»
-    const miniBtn = (!issued && !master) ? "<button class='d-work-mini' onclick=\"openMasterPick('" + num + "'," + idx + ",'work')\">Прийняти</button>" : "";
-
     let historyHTML = "";
-    if (master || dWork) historyHTML += "<div class='d-hist-label'>Прийняв в роботу</div><div class='d-hist-value'>" + (master || "—") + (dWork ? " · " + dWork : "") + "</div>";
-    if (readyBy || dReady) historyHTML += "<div class='d-hist-label'>Готово відмітив</div><div class='d-hist-value'>" + (readyBy || "—") + (dReady ? " · " + dReady : "") + "</div>";
+    const receiver = gv(o,"Приймальник");
+    const dCreated = gv(o,"Дата створення");
+    if (receiver || dCreated) historyHTML += "<div class='d-hist-label'>Прийнято</div><div class='d-hist-value'>" + (receiver || "—") + (dCreated ? " · " + dCreated : "") + "</div>";
     if (notified) historyHTML += "<div class='d-hist-label'>Сповістив</div><div class='d-hist-value'>" + (notifiedBy || "—") + " · " + notified + "</div>";
     if (issuedBy || dIssue) historyHTML += "<div class='d-hist-label'>Видав</div><div class='d-hist-value'>" + (issuedBy || "—") + (dIssue ? " · " + dIssue : "") + "</div>";
-    if (!historyHTML) historyHTML = "<div class='d-hist-empty'>Ще не почато</div>";
 
     return "<div class='d-item'>" +
       "<div class='d-item-head'><span class='d-item-num'>№" + (idx+1) + "</span><span class='d-item-name'>" + iname + "</span>" +
       "<span class='d-item-price'>" + (itemTotal ? itemTotal.toLocaleString("uk-UA") + " ₴" : "—") + "</span></div>" +
-      "<div class='d-item-svc'>" + gv(it,"Послуги") + "</div>" +
       (itemNote ? "<div class='d-item-note'>Коментар: " + itemNote + "</div>" : "") +
-      "<div class='d-item-2col'>" +
-        "<div>" + statusRailV + miniBtn + "</div>" +
-        "<div>" + historyHTML + "</div>" +
-      "</div>" +
-      notifyCheck +
+      stallBanner +
+      "<div class='svc-list'>" + svcHTML + "</div>" +
+      (historyHTML ? "<div class='d-item-hist'>" + historyHTML + "</div>" : "") +
+      "<div class='d-item-foot'>" + notifyCheck + issueBtn + "</div>" +
       "</div>";
   }).join("");
   const itemsBlock = "<div class='dblock dblock-full'><div class='dblock-label'>Вироби та статус</div>" + itemsHTML + "</div>";
@@ -5081,7 +5160,7 @@ function clientRating(phone) {
 /* ─── Виконавці: прийняти в роботу / видати з вибором майстра ─── */
 function openMasterPick(num, itemIdx, action) {
   const body = document.getElementById("odm-body");
-  const title = action === "work" ? "Хто приймає в роботу?" : action === "ready" ? "Хто відмітив готовність?" : "Хто видає?";
+  const title = action === "work" ? "Хто приймає в роботу?" : "Хто видає?";
   const names = masterNames();
   const opts = names.length
     ? names.map(m => "<button class='rating-opt' onclick=\"assignMaster('" + num + "'," + itemIdx + ",'" + action + "','" + m.replace(/'/g,"\\'") + "')\">" + m + "</button>").join("")
@@ -5101,10 +5180,9 @@ async function assignMaster(num, itemIdx, action, master) {
   const it = its[itemIdx];
   if (!it) return;
   const nowVal = new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit",year:"numeric"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
-  const status = action === "work" ? "⚙️ В роботі" : action === "ready" ? "✅ Готово" : "📦 Виданий";
+  const status = action === "work" ? "⚙️ В роботі" : "📦 Виданий";
   it["Статус"] = status;
   if (action === "work") { it["Майстер"] = master; it["Дата в роботі"] = nowVal; }
-  else if (action === "ready") { it["Хто відмітив готовність"] = master; it["Дата готово"] = nowVal; }
   else { it["Хто видав"] = master; it["Дата видачі"] = nowVal; }
   // Видача без попереднього сповіщення — закриваємо "хвіст": клієнт і так забрав річ,
   // нема сенсу далі показувати "не сповіщено" по факту вже виданого замовлення.
@@ -5144,6 +5222,68 @@ async function setItemStatus(num, itemIdx, statusIdx) {
       body: JSON.stringify({ item_num: itemNum, status: newStatus })
     });
   } catch(e) { console.error("status update failed", e); }
+}
+
+/* ═══════════════ СТАТУС ОКРЕМОЇ ПОСЛУГИ ═══════════════ */
+/* Дія «В роботу» — спершу питаємо, хто бере (майстер), потім переводимо статус.
+   «Готово» — без вибору майстра (той, хто взяв, той і завершує). */
+function svcAction(svcNum, action) {
+  if (action === "ready") { confirmServiceStatus(svcNum, "✅ Готово", ""); return; }
+  // action === "work": вибір майстра
+  const names = masterNames();
+  const body = document.getElementById("odm-body");
+  const wrap = document.createElement("div");
+  wrap.className = "settle-overlay";
+  const opts = names.length
+    ? names.map(m => "<button class='rating-opt' onclick=\"confirmServiceStatus('" + svcNum + "','⚙️ В роботі','" + m.replace(/'/g,"\\'") + "')\">" + m + "</button>").join("")
+    : "<div class='d-bonus-hint'>Додайте майстрів у лист «Майстри»</div>";
+  wrap.innerHTML =
+    "<div class='settle-card'>" +
+      "<div class='dblock-label'>Хто бере послугу в роботу?</div>" +
+      "<div class='rating-opts'>" + opts + "</div>" +
+      "<button onclick='closeSettle()' style='width:100%;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:11px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px'>Скасувати</button>" +
+    "</div>";
+  body.appendChild(wrap);
+}
+async function confirmServiceStatus(svcNum, status, master) {
+  closeSettle();
+  const sv = SERVICES.find(s => gv(s,"Номер послуги") === svcNum);
+  if (!sv) return;
+  const nowVal = new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
+  sv["Статус"] = status;
+  if (status === "⚙️ В роботі") { if (master) sv["Майстер"] = master; sv["Дата в роботі"] = nowVal; }
+  else if (status === "✅ Готово") { sv["Дата готово"] = nowVal; }
+  rollUpItemStatus(gv(sv,"Номер виробу"));
+  if (detailOrderNum) openOrder(detailOrderNum);
+  try {
+    await fetch(API_URL.replace("/order","/service/status"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ svc_num: svcNum, status: status, master: master })
+    });
+  } catch(e) { console.error("service status failed", e); }
+}
+/* Прямий клік по кроку рейки послуги (для відкату — лише адмін) */
+async function setServiceStatus(svcNum, statusIdx) {
+  const sv = SERVICES.find(s => gv(s,"Номер послуги") === svcNum);
+  if (!sv) return;
+  const curIdx = serviceStatusIndex(gv(sv,"Статус"));
+  if (statusIdx < curIdx && !isAdmin()) { toast("Скасувати статус може лише адміністратор"); return; }
+  if (statusIdx === curIdx) return;
+  const status = SERVICE_STATUSES[statusIdx][0];
+  if (statusIdx === 1) { svcAction(svcNum, "work"); return; }
+  confirmServiceStatus(svcNum, status, gv(sv,"Майстер"));
+}
+/* Локальний перерахунок статусу виробу зі статусів його послуг (дзеркалить бекенд) */
+function rollUpItemStatus(itemNum) {
+  const svcs = servicesOfItem(itemNum);
+  if (!svcs.length) return;
+  const it = ITEMS.find(i => gv(i,"Номер виробу") === itemNum);
+  if (!it || gv(it,"Статус") === "📦 Виданий") return;
+  const idxs = svcs.map(s => serviceStatusIndex(gv(s,"Статус")));
+  let st = "🆕 Новий";
+  if (idxs.every(i => i === 2)) st = "✅ Готово";
+  else if (idxs.some(i => i >= 1)) st = "⚙️ В роботі";
+  it["Статус"] = st;
 }
 
 async function toggleNotified(itemNum, itemIdx, ev) {
