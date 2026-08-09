@@ -302,7 +302,7 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .ic-note { width: 100%; box-sizing: border-box; background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 6px; padding: 8px 11px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 13px; font-weight: 300; outline: none; resize: vertical; min-height: 40px; }
 .ic-note:focus { border-color: var(--cognac); }
 .ic-note::placeholder { color: var(--txt-3); }
-.d-item-note { margin: 6px 0 2px; padding: 6px 10px; background: var(--accent-soft); border-left: 2px solid var(--cognac); border-radius: 4px; font-size: 12px; color: var(--txt); }
+.d-item-note { margin: 5px 0 2px; font-size: 12px; font-style: italic; color: var(--txt-2); }
 .ic-add-svc { width: 100%; display: block; margin-top: 10px; background: var(--accent-soft); border: 1px solid var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 12px; letter-spacing: 0.04em; padding: 10px; cursor: pointer; transition: all 0.15s; }
 .ic-add-svc:hover { background: var(--cognac); color: #fff; }
 .ic-add-panel { margin-top: 10px; padding: 12px 13px; background: var(--field-bg); border: 1px solid var(--line-soft); border-radius: 8px; }
@@ -500,34 +500,68 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 }
 
 /* ═══════════════ ДЕТАЛЬНА КАРТКА ЗАМОВЛЕННЯ (у модалці) ═══════════════ */
-.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; margin-bottom: 12px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: stretch; margin-bottom: 12px; }
 .detail-col { display: flex; flex-direction: column; gap: 12px; }
 .detail-stack { display: flex; flex-direction: column; gap: 12px; }
-.dblock { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 17px 19px; margin-bottom: 0; }
+.dblock { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 17px 19px; margin-bottom: 0; display: flex; flex-direction: column; }
 .dblock-full { grid-column: 1 / -1; }
-.detail-top { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; padding-right: 26px; }
-.detail-edit { margin-left: auto; background: transparent; border: 1px solid var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 12px; padding: 7px 14px; cursor: pointer; transition: all 0.15s; }
+.detail-top { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.detail-close { margin-left: auto; width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--field-border); background: transparent; color: var(--txt-2); font-size: 16px; cursor: pointer; }
+.detail-edit { background: transparent; border: 1px solid var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 12px; padding: 7px 14px; cursor: pointer; transition: all 0.15s; }
 .detail-edit:hover { background: var(--accent-soft); }
 .edit-form { max-width: 620px; }
 .edit-item { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
 .edit-item-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .detail-title { font-family: 'Tenor Sans', serif; font-size: 19px; color: var(--txt); }
+.detail-created { font-size: 11px; color: var(--txt-3); margin: -12px 0 16px; }
 .dblock-label { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cognac); margin-bottom: 13px; }
-.d-client-history { font-size: 12px; color: var(--txt-2); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; }
-.d-client-history .h-val { color: var(--txt); }
 
-.d-client-head { display: flex; align-items: center; gap: 13px; margin-bottom: 14px; }
-.d-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--accent-soft); display: flex; align-items: center; justify-content: center; font-family: 'Tenor Sans', serif; font-size: 16px; color: var(--cognac); flex-shrink: 0; }
+.d-client-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .d-client-name { display: flex; align-items: center; gap: 8px; }
-.d-client-name span { font-size: 15px; color: var(--txt); }
-.d-client-sub { font-size: 12px; color: var(--txt-2); margin-top: 2px; }
-.d-comm { display: flex; gap: 8px; flex-wrap: wrap; }
-.d-comm-btn { display: flex; align-items: center; gap: 6px; background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 8px 13px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.15s; text-decoration: none; }
-.d-comm-btn svg { width: 17px; height: 17px; }
-.d-comm-btn:hover { border-color: var(--cognac-border); }
-.d-comm-btn.active { border-color: transparent; color: #fff; }
-.d-comm-btn.active svg { fill: #fff; }
-.d-comm-btn:not(.active) svg { fill: var(--txt-2); }
+.d-client-name span { font-size: 14px; color: var(--txt); }
+.d-client-sub { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--txt-2); margin-top: 2px; }
+.d-msg-ico { width: 16px; height: 16px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.d-msg-ico svg { width: 10px; height: 10px; fill: #fff; }
+.d-client-notify { flex-shrink: 0; display: flex; align-items: center; gap: 6px; background: none; border: 1px solid var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 11px; padding: 6px 10px; cursor: pointer; white-space: nowrap; }
+.d-client-notify.on { background: #2FA98C; border-color: #2FA98C; color: #fff; }
+.d-client-notify .d-check { width: 15px; height: 15px; }
+
+.brought-list { margin: 2px 0 8px; }
+.brought-item { padding: 7px 0; border-bottom: 1px solid var(--line-soft); }
+.brought-item:last-child { border-bottom: none; }
+.brought-item-num { font-family: 'Tenor Sans', serif; font-size: 10px; color: var(--cognac); letter-spacing: .1em; margin-right: 6px; }
+.brought-item-name { font-size: 12.5px; color: var(--txt); }
+.brought-item-note { font-size: 11px; font-style: italic; color: var(--txt-3); margin-top: 2px; }
+.brought-more-btn { width: 100%; background: none; border: 1px dashed var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 11.5px; padding: 8px; cursor: pointer; margin-bottom: 8px; }
+
+.d-note-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--txt-3); margin: 4px 0 6px; }
+.d-note-area { width: 100%; resize: none; border: 1px solid var(--field-border); border-radius: 7px; padding: 8px 10px; font-family: 'Commissioner', sans-serif; font-size: 12px; color: var(--txt); background: var(--surface-2); min-height: 46px; }
+.d-note-area::placeholder { color: var(--txt-3); }
+
+.info-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin-bottom: 10px; }
+.info-2col > .info-row:last-child { text-align: right; }
+.info-row .il { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--txt-3); margin-bottom: 3px; }
+.info-row .iv { font-size: 13px; color: var(--txt); font-weight: 500; }
+
+.mini-cal { margin: 0 0 12px; border: 1px solid var(--line-soft); border-radius: 8px; padding: 10px 12px; }
+.mini-cal-head { display: flex; justify-content: space-between; align-items: center; font-family: 'Tenor Sans', serif; font-size: 12px; color: var(--txt); margin-bottom: 8px; }
+.mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.mini-cal-dow { font-size: 8px; text-transform: uppercase; color: var(--txt-3); text-align: center; padding-bottom: 3px; }
+.mini-cal-day { height: 22px; display: flex; align-items: center; justify-content: center; font-size: 10.5px; border-radius: 5px; color: var(--txt-2); }
+.mini-cal-day.mut { opacity: .3; }
+.mini-cal-day.sel { background: var(--cognac); color: #fff; font-weight: 500; }
+
+.pay-status-rows { margin-top: 4px; }
+.pay-status-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; padding: 3px 0; }
+.pay-status-row .pl { color: var(--txt-2); text-transform: uppercase; font-size: 10px; letter-spacing: .05em; }
+.pay-status-row .pv { color: var(--txt); font-weight: 500; }
+.pay-status-row .pv.due { color: var(--cognac); font-weight: 600; }
+
+.d-issue-mini { flex-shrink: 0; background: var(--cognac); border: none; border-radius: 7px; color: #fff; font-family: 'Commissioner', sans-serif; font-size: 11px; padding: 7px 12px; cursor: pointer; white-space: nowrap; }
+.d-work-mini { flex-shrink: 0; background: transparent; border: 1px solid var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 11px; padding: 7px 12px; cursor: pointer; white-space: nowrap; }
+.status-row { display: flex; align-items: center; gap: 12px; margin: 8px 0 4px; }
+.issue-order-btn { width: 100%; background: var(--cognac); border: none; border-radius: 8px; color: #fff; font-family: 'Commissioner', sans-serif; font-size: 12.5px; padding: 13px; cursor: pointer; }
+.issue-order-btn:disabled { background: var(--st-issued-bg); color: var(--txt-3); cursor: not-allowed; }
 
 #rw-toast {
   position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
@@ -551,17 +585,10 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .d-item-price { font-size: 14px; color: var(--txt); white-space: nowrap; flex-shrink: 0; margin-left: 10px; }
 .d-item-detail { font-size: 12px; color: var(--txt-3); margin-bottom: 4px; }
 .d-item-svc { font-size: 12px; color: var(--txt-2); margin-bottom: 11px; }
-.d-status-row { display: flex; gap: 6px; flex-wrap: wrap; }
-.d-status-btn { padding: 7px 13px; border-radius: 16px; font-size: 11px; cursor: pointer; font-family: 'Commissioner', sans-serif; border: 1px solid var(--line); background: transparent; color: var(--txt-2); transition: all 0.15s; }
-.d-status-btn:hover { border-color: var(--cognac-border); }
-.d-status-btn.done { color: var(--txt); }
-.d-status-btn.current { color: #fff; border-color: transparent; }
 .d-notify-check { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 12px; color: var(--txt-2); cursor: pointer; user-select: none; }
 .d-check { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--cognac-border); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; transition: all 0.15s; }
 .d-check.on { background: #2FA98C; border-color: #2FA98C; }
 .d-notify-check:hover .d-check { border-color: var(--cognac); }
-.d-markall { background: transparent; border: 1px solid var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 11px; padding: 6px 12px; cursor: pointer; letter-spacing: 0; text-transform: none; transition: all 0.15s; }
-.d-markall:hover { background: var(--accent-soft); }
 
 .d-pay-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
 .d-pay-row .pl { color: var(--txt-2); }
@@ -571,25 +598,14 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .d-pay-total .pv { font-family: 'Tenor Sans', serif; font-size: 17px; color: var(--txt); }
 .d-settle-btn { width: 100%; margin-top: 14px; background: var(--cognac); border: none; border-radius: 8px; color: #fff; font-family: 'Commissioner', sans-serif; font-size: 12px; padding: 11px; cursor: pointer; transition: background 0.15s; }
 .d-settle-btn:hover { background: var(--leather); }
-.d-exec { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line-soft); }
-.d-exec-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
+.d-exec-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; margin-top: 4px; }
 .d-exec-row .pl { color: var(--txt-2); }
 .d-exec-row .pv { color: var(--txt); }
-.d-exec-btns { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-.d-work-btn { flex: 1; min-width: 140px; background: transparent; border: 1px solid var(--cognac-border); border-radius: 8px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 12px; padding: 10px; cursor: pointer; transition: all 0.15s; }
-.d-work-btn:hover { background: var(--accent-soft); }
-.d-issue-btn { flex: 1; min-width: 140px; background: var(--cognac); border: none; border-radius: 8px; color: #fff; font-family: 'Commissioner', sans-serif; font-size: 12px; padding: 10px; cursor: pointer; transition: background 0.15s; }
-.d-issue-btn:hover { background: var(--leather); }
 .d-bonus-hint { font-size: 11px; color: var(--txt-3); margin-top: 10px; font-style: italic; }
 .settle-methods { display: flex; gap: 8px; margin: 12px 0; }
 .settle-methods .cr-pill { flex: 1; text-align: center; }
 .settle-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 5; border-radius: 14px; }
 .settle-card { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 22px; width: 340px; max-width: 90%; box-shadow: 0 16px 48px rgba(0,0,0,0.3); }
-
-.d-timeline-row { display: flex; gap: 11px; padding: 5px 0; font-size: 12px; }
-.d-timeline-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cognac); margin-top: 5px; flex-shrink: 0; }
-.d-timeline-txt { flex: 1; color: var(--txt-2); }
-.d-timeline-date { color: var(--txt-3); font-size: 11px; }
 
 .d-notify { display: flex; gap: 8px; flex-wrap: wrap; }
 .d-notify-btn { background: transparent; border: 1px solid var(--cognac-border); border-radius: 8px; padding: 9px 14px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
@@ -731,15 +747,6 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .hist-date { font-size: 12px; color: var(--txt-3); }
 .hist-total { font-size: 12.5px; color: var(--txt); font-weight: 500; }
 .hist-current { border-color: var(--cognac-border); background: var(--accent-soft); }
-
-.svc-tech-list { display: flex; flex-direction: column; }
-.svc-tech-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12.5px; color: var(--txt); padding: 6px 0; border-bottom: 1px solid var(--line-soft); }
-.svc-tech-row:last-of-type { border-bottom: none; }
-.svc-tech-label { flex: 1; min-width: 0; }
-.svc-tech-price { color: var(--cognac); font-weight: 500; white-space: nowrap; }
-.svc-tech-total { border-top: 1px solid var(--line); margin-top: 4px; padding-top: 10px; font-weight: 600; }
-.svc-tech-total span:first-child { text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em; color: var(--txt-2); }
-.svc-tech-total span:last-child { font-family: 'Tenor Sans', serif; font-size: 15px; color: var(--txt); }
 
 /* ═══════════════ ВКЛАДКИ КЛІЄНТИ / ФІНАНСИ / СТАТИСТИКА ═══════════════ */
 .tab-scroll { flex: 1; overflow-y: auto; padding: 8px 28px 40px; }
@@ -1235,9 +1242,6 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
   .cal-filters { margin-left: 0; width: 100%; }
   .client-row .client-sum { display: none; }
   .pay-split { flex-direction: column; }
-  .d-comm { gap: 6px; }
-  .d-comm-btn { padding: 8px 11px; font-size: 11px; }
-  .d-status-btn { padding: 7px 11px; }
 }
 .cr-rail{display:flex;align-items:center;margin:0 0 22px;user-select:none}
 .cr-rstep{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;flex-shrink:0}
@@ -1249,6 +1253,10 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .cr-rstep.done .cr-rlbl{color:var(--txt-2)}
 .cr-rline{flex:1;height:1.5px;background:var(--line);margin:0 8px 18px;min-width:12px}
 .cr-rline.done{background:#639922}
+.d-status-rail { margin: 8px 0 10px; }
+.d-status-rail .cr-rdot { width: 24px; height: 24px; font-size: 11px; }
+.d-status-rail .cr-rlbl { font-size: 9.5px; }
+.d-status-rail .cr-rline { margin: 0 6px 12px; }
 .cr-step{display:none}
 .cr-step.on{display:block}
 .cr-nav{display:flex;align-items:center;gap:10px;margin-top:18px}
@@ -1639,7 +1647,7 @@ async function loadData() {
       fetch(base + encodeURIComponent("Майстри")).catch(() => null),
       fetch(base + encodeURIComponent("Кольори")).catch(() => null)
     ]);
-    ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер","Спосіб передоплати","Сума доплати","Спосіб доплати","Сповіщено","Нараховано бонусів","Списано бонусів","Рейтинг вручну"]);
+    ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер","Спосіб передоплати","Сума доплати","Спосіб доплати","Сповіщено","Нараховано бонусів","Списано бонусів","Рейтинг вручну","Нотатка майстра"]);
     ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено","Майстер","Хто видав","Колір","Матеріал","Стан","Доставка","Коментар"]);
     PARTNERS = await parsePartners(r3);
     if (!PARTNERS.length) PARTNERS = ["Сергій"];
@@ -1859,6 +1867,10 @@ function extractAmt(str) {
   const m = str.replace(/\s/g, "").match(/(\d+)/);
   return m ? parseInt(m[1]) : 0;
 }
+
+/* "Передплата" — актуальний правопис (як "Післяплата", без "о").
+   Стару "Передоплата" теж розпізнаємо — так підписані вже наявні замовлення в таблиці. */
+function isPrepayStr(s) { return !!(s && (s.includes("Передплата") || s.includes("Передоплата"))); }
 
 /* ─── СТАТУСИ ─── */
 function getStatus(num) {
@@ -2175,10 +2187,10 @@ renderers.create = function() {
               "<div class='cr-col'>" +
                 "<div class='cr-block-label first'>Оплата</div>" +
                 "<div class='cr-pills'>" +
-                  "<button class='cr-pill cr-pill-wide" + (NO.payment==='Передоплата'?' active':'') + "' onclick=\"setPay('Передоплата',this)\">Передоплата</button>" +
+                  "<button class='cr-pill cr-pill-wide" + (NO.payment==='Передплата'?' active':'') + "' onclick=\"setPay('Передплата',this)\">Передплата</button>" +
                   "<button class='cr-pill cr-pill-wide" + (NO.payment==='Післяплата'?' active':'') + "' onclick=\"setPay('Післяплата',this)\">Післяплата</button>" +
                 "</div>" +
-                (NO.payment==='Передоплата' ?
+                (NO.payment==='Передплата' ?
                   "<input class='cr-input' id='cr-prepay' type='number' placeholder='Сума передоплати, ₴' value=\"" + (NO.prepay||"") + "\" oninput='NO.prepay=this.value'>" +
                   crSelect("paymethod", NO.prepayMethod, ["Готівка","Картка","ФОП"], "setPayMethodVal", {placeholder:"Спосіб передоплати", up:true}) : "") +
               "</div>" +
@@ -2743,7 +2755,7 @@ async function submitOrder() {  if (!NO.manager) { alert("Оберіть при�
   if (!NO.payment) { alert("Оберіть тип оплати"); return; }
   if (!NO.deadline) { alert("Вкажіть термін"); return; }
   let paymentStr = NO.payment;
-  if (NO.payment === "Передоплата" && NO.prepay) paymentStr = "Передоплата: " + parseInt(NO.prepay).toLocaleString("uk-UA") + " ₴";
+  if (NO.payment === "Передплата" && NO.prepay) paymentStr = "Передплата: " + parseInt(NO.prepay).toLocaleString("uk-UA") + " ₴";
 
   const now = new Date();
   const pad = n => String(n).padStart(2,"0");
@@ -2753,8 +2765,8 @@ async function submitOrder() {  if (!NO.manager) { alert("Оберіть при�
     date: dateStr, manager: NO.manager, client: NO.client, phone: NO.phone,
     payment: paymentStr, deadline: NO.deadline, messenger: NO.messenger || "",
     delivery: NO.delivery || "Самовивіз",
-    prepayMethod: NO.payment === "Передоплата" ? (NO.prepayMethod || "") : "",
-    prepay: NO.payment === "Передоплата" && NO.prepay ? parseInt(NO.prepay) : 0,
+    prepayMethod: NO.payment === "Передплата" ? (NO.prepayMethod || "") : "",
+    prepay: NO.payment === "Передплата" && NO.prepay ? parseInt(NO.prepay) : 0,
     items: validItems.map(item => {
       const total = item.services.reduce((s,x)=>s+x.price,0);
       const catLabel = PRICE[item.category] ? PRICE[item.category].label : item.category;
@@ -3101,7 +3113,7 @@ renderers.finance = function() {
     revenue += orderTotal(num);
     const pAmt = extractAmt(gv(o,"Оплата"));
     const pM = gv(o,"Спосіб передоплати");
-    if (gv(o,"Оплата").includes("Передоплата") && pAmt) { prepaySum += pAmt; if (byMethod[pM] !== undefined) byMethod[pM] += pAmt; }
+    if (isPrepayStr(gv(o,"Оплата")) && pAmt) { prepaySum += pAmt; if (byMethod[pM] !== undefined) byMethod[pM] += pAmt; }
     const sAmt = extractAmt(gv(o,"Сума доплати"));
     const sM = gv(o,"Спосіб доплати");
     if (sAmt) { settleSum += sAmt; if (byMethod[sM] !== undefined) byMethod[sM] += sAmt; }
@@ -3116,7 +3128,7 @@ renderers.finance = function() {
     tailorRevenue += extractAmt(gv(t,"Вартість"));
     const pAmt = extractAmt(gv(t,"Оплата"));
     const pM = gv(t,"Спосіб передоплати");
-    if (gv(t,"Оплата").includes("Передоплата") && pAmt && byMethod[pM] !== undefined) byMethod[pM] += pAmt;
+    if (isPrepayStr(gv(t,"Оплата")) && pAmt && byMethod[pM] !== undefined) byMethod[pM] += pAmt;
     const sAmt = extractAmt(gv(t,"Сума доплати"));
     const sM = gv(t,"Спосіб доплати");
     if (sAmt && byMethod[sM] !== undefined) byMethod[sM] += sAmt;
@@ -3262,7 +3274,7 @@ function openEditOrder(num) {
     client: gv(o,"Ім'я клієнта"),
     phone: gv(o,"Телефон"),
     messenger: gv(o,"Месенджер"),
-    payment: gv(o,"Оплата").includes("Передоплата") ? "Передоплата" : (gv(o,"Оплata") || gv(o,"Оплата") || ""),
+    payment: isPrepayStr(gv(o,"Оплата")) ? "Передплата" : (gv(o,"Оплata") || gv(o,"Оплата") || ""),
     deadline: gv(o,"Термін"),
     items: its.map((it, idx) => ({
       type: gv(it,"Тип"),
@@ -4395,6 +4407,29 @@ function vocative(name) {
 
 let detailOrderNum = null;
 
+/* Статичний міні-календар поточного місяця з позначеним терміном (клік поки не працює — доопрацюємо окремо) */
+function buildMiniCal(termStr) {
+  const now = new Date();
+  const monthNames = ["Січень","Лютий","Березень","Квітень","Травень","Червень","Липень","Серпень","Вересень","Жовтень","Листопад","Грудень"];
+  let selDay = null;
+  const m = (termStr || "").match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (m && parseInt(m[2]) === now.getMonth()+1 && parseInt(m[3]) === now.getFullYear()) selDay = parseInt(m[1]);
+
+  const first = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOffset = (first.getDay() + 6) % 7; // понеділок=0
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  const daysInPrev = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+
+  let cells = "";
+  for (let i = startOffset; i > 0; i--) cells += "<div class='mini-cal-day mut'>" + (daysInPrev - i + 1) + "</div>";
+  for (let d = 1; d <= daysInMonth; d++) cells += "<div class='mini-cal-day" + (d === selDay ? " sel" : "") + "'>" + d + "</div>";
+
+  const dow = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"].map(d => "<div class='mini-cal-dow'>" + d + "</div>").join("");
+  const label = termStr ? termStr : (selDay ? "" : "без терміну");
+  return "<div class='mini-cal'><div class='mini-cal-head'><span>" + monthNames[now.getMonth()] + " " + now.getFullYear() + "</span><span style='color:var(--txt-3);font-size:10px'>" + label + "</span></div>" +
+    "<div class='mini-cal-grid'>" + dow + cells + "</div></div>";
+}
+
 function openOrder(num) {
   detailOrderNum = num;
   const modalBody = document.getElementById("odm-body");
@@ -4408,33 +4443,42 @@ function openOrder(num) {
   const phone = gv(o,"Телефон");
   const phoneClean = phone.replace(/[^\d]/g,"");
   const activeMsg = gv(o,"Месенджер");
-
-  // Рейтинг клієнта (без загальної історії/суми — це для картки клієнта, не замовлення)
   const rating = clientRating(phone);
 
-  // Клієнт-блок
+  // Клієнт: контакт + єдиний переважний месенджер (іконкою)
   const commLinks = {
     telegram: "https://t.me/+" + phoneClean,
     whatsapp: "https://wa.me/" + phoneClean,
     viber: "viber://chat?number=%2B" + phoneClean
   };
-  const commHTML = ["telegram","whatsapp","viber"].map(m => {
-    const active = activeMsg === m;
-    const style = active ? " style='background:" + MSG_COLORS[m] + "'" : "";
-    return "<a class='d-comm-btn" + (active?" active":"") + "'" + style + " href='" + commLinks[m] + "' target='_blank' rel='noopener'>" +
-      MSG_ICONS[m] + MSG_LABELS[m] + "</a>";
-  }).join("");
+  const msgKey = activeMsg && commLinks[activeMsg] ? activeMsg : "telegram";
+  const msgIcoHTML = "<a class='d-msg-ico' style='background:" + MSG_COLORS[msgKey] + "' href='" + commLinks[msgKey] + "' target='_blank' rel='noopener' onclick='event.stopPropagation()'>" + MSG_ICONS[msgKey] + "</a>";
 
-  const delivery = its.length ? gv(its[0],"Доставка") : "";
+  const allNotified = its.length > 0 && its.every(it => gv(it,"Сповіщено"));
+  const notifyBtn = its.length ? "<label class='d-client-notify" + (allNotified?" on":"") + "' onclick=\"event.preventDefault();markAllNotified('" + num + "'," + (allNotified?"false":"true") + ")\"><span class='d-check" + (allNotified?" on":"") + "'>" + (allNotified?"✓":"") + "</span>Сповіщено</label>" : "";
+
+  const BROUGHT_CAP = 2;
+  const broughtRows = its.slice(0, BROUGHT_CAP).map((it, idx) => {
+    const iname = [gv(it,"Тип"), gv(it,"Бренд")].filter(Boolean).join(" · ") || "Виріб";
+    const note = gv(it,"Коментар");
+    return "<div class='brought-item'><span class='brought-item-num'>№" + (idx+1) + "</span><span class='brought-item-name'>" + iname + "</span>" +
+      (note ? "<div class='brought-item-note'>" + note + "</div>" : "") + "</div>";
+  }).join("");
+  const broughtMore = its.length > BROUGHT_CAP ? "<button class='brought-more-btn' onclick=\"openAllItemsModal('" + num + "')\">Показати всі (" + its.length + ") →</button>" : "";
+
+  const masterNote = gv(o,"Нотатка майстра");
+
   const clientBlock =
     "<div class='dblock'><div class='dblock-label'>Клієнт · <span class='rating-pick' onclick=\"openRatingPick('" + phone.replace(/'/g,"") + "')\">" + rating.label + " " + rating.dot + (rating.debt ? " " + rating.debt.toLocaleString("uk-UA") + " ₴" : "") + (rating.manual ? " ✎" : "") + "</span></div>" +
     "<div class='d-client-head'>" +
-      "<div class='d-avatar'>" + name.charAt(0).toUpperCase() + "</div>" +
       "<div><div class='d-client-name'><span>" + name + "</span></div>" +
-      "<div class='d-client-sub'>" + phone + "</div></div>" +
+      "<div class='d-client-sub'>" + msgIcoHTML + phone + "</div></div>" +
+      notifyBtn +
     "</div>" +
-    "<div class='d-comm'>" + commHTML + "</div>" +
-    (delivery ? "<div class='d-exec-row' style='margin-top:10px'><span class='pl'>Доставка</span><span class='pv'>" + delivery + "</span></div>" : "") +
+    "<div class='brought-list'>" + broughtRows + "</div>" +
+    broughtMore +
+    "<div class='d-note-label'" + (broughtMore || broughtRows ? " style='margin-top:12px'" : "") + ">Нотатка для майстра</div>" +
+    "<textarea class='d-note-area' placeholder='Внутрішня примітка — клієнт її не бачить' onblur=\"saveMasterNote('" + num + "',this.value)\">" + masterNote.replace(/&/g,"&amp;").replace(/</g,"&lt;") + "</textarea>" +
     "</div>";
 
   // Вироби зі статусами
@@ -4443,13 +4487,16 @@ function openOrder(num) {
     const itemTotal = extractAmt(gv(it,"Сума"));
     total += itemTotal;
     const curIdx = itemStatusIndex(gv(it,"Статус"));
-    const statusBtns = ITEM_STATUSES.map((s, si) => {
-      const done = si <= curIdx, current = si === curIdx;
-      let cls = "d-status-btn";
-      if (current) cls += " current"; else if (done) cls += " done";
-      const style = current ? " style='background:" + s[2] + "'" : "";
-      return "<button class='" + cls + "'" + style + " onclick=\"setItemStatus('" + num + "'," + idx + "," + si + ")\">" + s[1] + "</button>";
-    }).join("");
+    let statusRail = "<div class='cr-rail d-status-rail'>";
+    ITEM_STATUSES.forEach((s, si) => {
+      const done = si < curIdx, current = si === curIdx;
+      const cls = (current ? "active " : "") + (done ? "done" : "");
+      statusRail += "<div class='cr-rstep " + cls + "' onclick=\"setItemStatus('" + num + "'," + idx + "," + si + ")\">" +
+        "<div class='cr-rdot'>" + (done ? "✓" : (si+1)) + "</div><div class='cr-rlbl'>" + s[1] + "</div></div>";
+      if (si < ITEM_STATUSES.length - 1) statusRail += "<div class='cr-rline " + (si < curIdx ? "done" : "") + "'></div>";
+    });
+    statusRail += "</div>";
+
     const iname = [gv(it,"Тип"), gv(it,"Бренд")].filter(Boolean).join(" · ") || "Виріб";
     const itemNum = gv(it,"Номер виробу") || (num + "-" + (idx+1));
     const notified = gv(it,"Сповіщено");
@@ -4458,70 +4505,83 @@ function openOrder(num) {
       "<span class='d-check" + (notified ? " on" : "") + "'>" + (notified ? "✓" : "") + "</span>" +
       (notified ? "Сповіщено " + notified : "Позначити, що сповіщено") + "</label>";
 
-    // Виконавці: хто взяв у роботу / хто видав
     const master = gv(it,"Майстер");
     const issuedBy = gv(it,"Хто видав");
     const dWork = gv(it,"Дата в роботі");
     const dIssue = gv(it,"Дата видачі");
     const issued = gv(it,"Статус") === "📦 Виданий";
+    const miniBtn = issued ? "" :
+      (master ? "<button class='d-issue-mini' onclick=\"openMasterPick('" + num + "'," + idx + ",'issue')\">Видати →</button>"
+              : "<button class='d-work-mini' onclick=\"openMasterPick('" + num + "'," + idx + ",'work')\">Прийняти</button>");
+
     let execHTML = "";
-    if (master) execHTML += "<div class='d-exec-row'><span class='pl'>У роботі</span><span class='pv'>" + master + (dWork ? " · " + dWork : "") + "</span></div>";
+    if (master) execHTML += "<div class='d-exec-row'><span class='pl'>Прийняв в роботу</span><span class='pv'>" + master + (dWork ? " · " + dWork : "") + "</span></div>";
     if (issuedBy) execHTML += "<div class='d-exec-row'><span class='pl'>Видав</span><span class='pv'>" + issuedBy + (dIssue ? " · " + dIssue : "") + "</span></div>";
-    let execBtns = "";
-    if (!master) execBtns += "<button class='d-work-btn' onclick=\"openMasterPick('" + num + "'," + idx + ",'work')\">Прийняти в роботу</button>";
-    if (!issued) execBtns += "<button class='d-issue-btn' onclick=\"openMasterPick('" + num + "'," + idx + ",'issue')\">Видати</button>";
-    const execBlock = (execHTML || execBtns)
-      ? "<div class='d-exec'>" + execHTML + (execBtns ? "<div class='d-exec-btns'>" + execBtns + "</div>" : "") + "</div>"
-      : "";
 
     return "<div class='d-item'>" +
       "<div class='d-item-head'><div><span class='d-item-num'>№" + (idx+1) + "</span> <span class='d-item-name'>" + iname + "</span></div>" +
       "<span class='d-item-price'>" + (itemTotal ? itemTotal.toLocaleString("uk-UA") + " ₴" : "—") + "</span></div>" +
       "<div class='d-item-svc'>" + gv(it,"Послуги") + "</div>" +
-      (itemNote ? "<div class='d-item-note'>📝 " + itemNote + "</div>" : "") +
-      "<div class='d-status-row'>" + statusBtns + "</div>" +
-      execBlock +
+      (itemNote ? "<div class='d-item-note'>Коментар: " + itemNote + "</div>" : "") +
+      "<div class='status-row'>" + statusRail + miniBtn + "</div>" +
+      execHTML +
       notifyCheck +
       "</div>";
   }).join("");
-  const allNotified = its.length > 0 && its.every(it => gv(it,"Сповіщено"));
-  const markAllBtn = its.length > 1 ?
-    "<button class='d-markall' onclick=\"markAllNotified('" + num + "'," + (allNotified ? "false" : "true") + ")\">" +
-      (allNotified ? "Зняти позначки сповіщення" : "✓ Позначити всі як сповіщені") + "</button>" : "";
-  const itemsBlock = "<div class='dblock dblock-full'><div class='dblock-label' style='display:flex;justify-content:space-between;align-items:center'>Вироби та статус" + markAllBtn + "</div>" + itemsHTML + "</div>";
+  const itemsBlock = "<div class='dblock dblock-full'><div class='dblock-label'>Вироби та статус</div>" + itemsHTML + "</div>";
 
-  // Оплата
+  const allIssuedNow = its.length > 0 && its.every(it => gv(it,"Статус") === "📦 Виданий");
+
+  // Виконання та оплата
   const payStr = gv(o,"Оплата");
   const prepayAmt = extractAmt(payStr);
-  const isPrepay = payStr.includes("Передоплата");
   const prepayMethod = gv(o,"Спосіб передоплати");
   const settleAmt = extractAmt(gv(o,"Сума доплати"));
   const settleMethod = gv(o,"Спосіб доплати");
-  const paidTotal = (isPrepay ? prepayAmt : 0) + settleAmt;
-  const toPay = Math.max(0, total - paidTotal);
-  const payBlock = "<div class='dblock'><div class='dblock-label'>Оплата</div>" +
-    "<div class='d-pay-row'><span class='pl'>Тип</span><span class='pv'>" + (isPrepay ? "Передоплата" : (payStr || "—")) + "</span></div>" +
-    (isPrepay && prepayAmt ? "<div class='d-pay-row'><span class='pl'>Передоплата</span><span class='pv'>" + prepayAmt.toLocaleString("uk-UA") + " ₴" + (prepayMethod ? " · " + prepayMethod : "") + "</span></div>" : "") +
-    (settleAmt ? "<div class='d-pay-row'><span class='pl'>Доплата</span><span class='pv'>" + settleAmt.toLocaleString("uk-UA") + " ₴" + (settleMethod ? " · " + settleMethod : "") + "</span></div>" : "") +
-    "<div class='d-pay-row'><span class='pl'>Термін</span><span class='pv'>" + (gv(o,"Термін") || "—") + "</span></div>" +
-    "<div class='d-pay-total'><span class='pl'>" + (toPay > 0 ? "До сплати" : "Сплачено") + "</span><span class='pv'>" + (toPay > 0 ? toPay.toLocaleString("uk-UA") + " ₴" : total.toLocaleString("uk-UA") + " ₴") + "</span></div>" +
-    (toPay > 0 ? "<button class='d-settle-btn' onclick=\"openSettle('" + num + "'," + toPay + ")\">Прийняти доплату " + toPay.toLocaleString("uk-UA") + " ₴</button>" : "") +
-    (payConfigured() ? "<button class='d-settle-btn' style='background:none;border:1px solid var(--cognac-border);color:var(--cognac);margin-top:8px' onclick='openPayQR()'>Реквізити для оплати</button>" : "") +
+  const payStatus = computePayStatus(total, payStr, prepayAmt, settleAmt);
+  const toPay = payStatus.toPay;
+  const delivery = its.length ? gv(its[0],"Доставка") : "";
+  const term = gv(o,"Термін") || "";
+
+  let payStatusRows;
+  if (payStatus.isPaid) {
+    payStatusRows = "<div class='pay-status-row'><span class='pl'>Оплачено</span><span class='pv'>" + total.toLocaleString("uk-UA") + " ₴</span></div>";
+  } else if (payStatus.isPrepay) {
+    payStatusRows = "<div class='pay-status-row'><span class='pl'>Передплата</span><span class='pv'>" + prepayAmt.toLocaleString("uk-UA") + " ₴" + (prepayMethod ? " · " + prepayMethod : "") + "</span></div>" +
+      "<div class='pay-status-row'><span class='pl'>Залишок</span><span class='pv due'>" + toPay.toLocaleString("uk-UA") + " ₴</span></div>";
+  } else {
+    payStatusRows = "<div class='pay-status-row'><span class='pl'>До сплати</span><span class='pv due'>" + toPay.toLocaleString("uk-UA") + " ₴</span></div>" +
+      (settleAmt ? "<div class='pay-status-row'><span class='pl'>Доплачено</span><span class='pv'>" + settleAmt.toLocaleString("uk-UA") + " ₴" + (settleMethod ? " · " + settleMethod : "") + "</span></div>" : "");
+  }
+
+  const payBlock = "<div class='dblock'>" +
+    "<div class='dblock-label'>Виконання та оплата</div>" +
+    buildMiniCal(term) +
+    "<div class='info-2col'>" +
+      "<div class='info-row'><div class='il'>Термін</div><div class='iv'>" + (term || "Без терміну") + "</div></div>" +
+      "<div class='info-row'><div class='il'>Отримання</div><div class='iv'>" + (delivery || "—") + "</div></div>" +
+    "</div>" +
+    "<div class='info-2col' style='margin-bottom:0'>" +
+      "<div class='info-row'><div class='il'>Тип оплати</div><div class='iv'>" + (payStatus.isPrepay ? "Передплата" : "Післяплата") + "</div></div>" +
+      "<div class='info-row'><div class='il'>Спосіб</div><div class='iv'>" + (payStatus.isPrepay ? (prepayMethod || "—") : (settleMethod || "—")) + "</div></div>" +
+    "</div>" +
+    "<div class='d-pay-total'><span class='pl'>Сума</span><span class='pv'>" + total.toLocaleString("uk-UA") + " ₴</span></div>" +
+    "<div class='pay-status-rows'>" + payStatusRows + "</div>" +
+    (toPay > 0 ? "<button class='d-settle-btn' style='margin-top:10px' onclick=\"openSettle('" + num + "'," + toPay + ")\">Прийняти доплату " + toPay.toLocaleString("uk-UA") + " ₴</button>" : "") +
+    (toPay > 0 && payConfigured() ? "<button class='d-settle-btn' style='margin-top:8px' onclick='openPayQR()'>Реквізити для оплати</button>" : "") +
     "</div>";
 
-  // Бонуси
+  // Бонуси (повна функціональність — окремим блоком)
   const accrued = extractAmt(gv(o,"Нараховано бонусів"));
   const spent = extractAmt(gv(o,"Списано бонусів"));
   const balance = clientBonusBalance(phone);
   const clientPct = bonusPctFor(phone);
   const wouldAccrue = Math.round(total * clientPct / 100);
-  const allIssued = its.length > 0 && its.every(it => gv(it,"Статус") === "📦 Виданий");
   let bonusInner =
     "<div class='d-pay-row'><span class='pl'>Баланс клієнта</span><span class='pv' style='color:var(--cognac)'>" + balance.toLocaleString("uk-UA") + " балів</span></div>";
   if (accrued) bonusInner += "<div class='d-pay-row'><span class='pl'>Нараховано за це замовлення</span><span class='pv'>+" + accrued.toLocaleString("uk-UA") + "</span></div>";
   if (spent) bonusInner += "<div class='d-pay-row'><span class='pl'>Списано за це замовлення</span><span class='pv'>−" + spent.toLocaleString("uk-UA") + "</span></div>";
-  // Кнопка нарахування — коли все видано і ще не нараховано
-  if (allIssued && !accrued) {
+  if (allIssuedNow && !accrued) {
     if (clientPct > 0) {
       bonusInner += "<button class='d-settle-btn' style='background:#2FA98C' onclick=\"openAccrueBonus('" + num + "'," + wouldAccrue + ")\">Нарахувати " + wouldAccrue + " балів (" + clientPct + "%)</button>";
       bonusInner += "<div class='d-bonus-hint'>Ставка " + clientPct + "% — за статусом «" + rating.label + "». Не обов'язково: якщо була знижка, можна не нараховувати.</div>";
@@ -4533,7 +4593,6 @@ function openOrder(num) {
       ? ("Нарахування " + wouldAccrue + " балів (" + clientPct + "% за статусом «" + rating.label + "») — доступне після видачі")
       : ("Для статусу «" + rating.label + "» бонуси не нараховуються")) + "</div>";
   }
-  // Списання — якщо баланс досяг мінімуму і ще не списували в цьому замовленні
   if (!spent) {
     if (balance >= BONUS_MIN_SPEND) {
       bonusInner += "<button class='d-settle-btn' style='background:none;border:1px solid var(--cognac-border);color:var(--cognac);margin-top:8px' onclick=\"openSpendBonus('" + num + "'," + balance + "," + total + ")\">Списати бали (доступно " + balance + ")</button>";
@@ -4541,60 +4600,84 @@ function openOrder(num) {
       bonusInner += "<div class='d-bonus-hint'>Списання доступне від " + BONUS_MIN_SPEND + " балів</div>";
     }
   }
-  const bonusBlock = "<div class='dblock admin-only'><div class='dblock-label'>Бонуси</div>" + bonusInner + "</div>";
-
-  // Історія (таймлайн з дат виробів)
-  const events = [];
-  events.push(["Створено", gv(o,"Дата створення"), gv(o,"Приймальник")]);
-  its.forEach((it, idx) => {
-    const persons = [gv(it,"Майстер"), "", gv(it,"Хто видав")];
-    ["Дата в роботі","Дата готово","Дата видачі"].forEach((f, fi) => {
-      const d = gv(it, f);
-      if (d) events.push([["В роботі","Готово","Видано"][fi] + " №" + (idx+1), d, persons[fi]]);
-    });
-  });
-  const timelineBlock = "<div class='dblock'><div class='dblock-label'>Історія</div>" +
-    events.map(e => "<div class='d-timeline-row'><span class='d-timeline-dot'></span><span class='d-timeline-txt'>" + e[0] + (e[2] ? " — " + e[2] : "") + "</span><span class='d-timeline-date'>" + e[1] + "</span></div>").join("") +
-    "</div>";
-
-  // Сповіщення клієнта
-  const notifyBlock = "<div class='dblock'><div class='dblock-label'>Сповістити клієнта</div>" +
-    "<div class='d-notify'>" +
-      "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','ready')\">" + copyIcon() + "Готово</button>" +
-      "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','remind')\">" + copyIcon() + "Нагадування</button>" +
-      "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','accepted')\">" + copyIcon() + "Прийнято</button>" +
-    "</div></div>";
-
-  // Компактний технічний список послуг (замість завжди відкритого дизайнерського чека —
-  // дублював itemsBlock, займав багато місця)
-  let svcTechTotal = 0;
-  const svcTechRows = its.map((it, idx) => {
-    const amt = extractAmt(gv(it,"Сума")); svcTechTotal += amt;
-    const name = [gv(it,"Тип"), gv(it,"Бренд")].filter(Boolean).join(" · ") || "Виріб";
-    const svcs = gv(it,"Послуги") || "Послуги";
-    return "<div class='svc-tech-row'><span class='svc-tech-label'>№" + (idx+1) + " " + name + " — " + svcs + "</span><span class='svc-tech-price'>" + amt.toLocaleString("uk-UA") + " ₴</span></div>";
-  }).join("");
-  const receiptBlock = "<div class='dblock'>" +
-    "<div class='dblock-label'>Послуги</div>" +
-    "<div class='svc-tech-list'>" + svcTechRows + "</div>" +
-    "<div class='svc-tech-row svc-tech-total'><span>Разом</span><span>" + svcTechTotal.toLocaleString("uk-UA") + " ₴</span></div>" +
-    "<button class='d-settle-btn' style='background:none;border:1px solid var(--cognac-border);color:var(--cognac);margin-top:10px' onclick=\"openReceiptModal('" + num + "')\">Переглянути чек</button>" +
-    "</div>";
+  const bonusBlock = "<div class='dblock dblock-full admin-only'><div class='dblock-label'>Бонуси</div>" + bonusInner + "</div>";
 
   modalBody.innerHTML =
     "<div class='detail-top'>" +
       "<span class='detail-title'>Замовлення " + num + "</span>" +
       "<span class='badge " + stMeta[1] + "'>" + stMeta[0] + "</span>" +
-      "<button class='detail-edit' onclick=\"openEditOrder('" + num + "')\">Редагувати</button>" +
-      "<button class='detail-edit admin-only' style='color:#E24B4A;border-color:rgba(226,75,74,0.3)' onclick=\"openDeleteOrderConfirm('" + num + "')\">Видалити</button>" +
     "</div>" +
-    "<div class='detail-grid'>" +
-      "<div class='detail-col'>" + clientBlock + payBlock + bonusBlock + timelineBlock + "</div>" +
-      "<div class='detail-col'>" + itemsBlock + receiptBlock + "</div>" +
+    "<div class='detail-created'>Створено: " + (gv(o,"Дата створення") || "—") + (gv(o,"Приймальник") ? " · " + gv(o,"Приймальник") : "") + "</div>" +
+    "<div class='detail-grid'>" + clientBlock + payBlock + "</div>" +
+    bonusBlock +
+    itemsBlock +
+    "<div class='detail-grid' style='margin-top:12px'>" +
+      "<button class='issue-order-btn" + (allIssuedNow ? "" : "") + "' " + (allIssuedNow ? "disabled" : "onclick=\"issueWholeOrder('" + num + "')\"") + ">" + (allIssuedNow ? "Замовлення видано" : "Видати замовлення") + "</button>" +
+      "<button class='d-settle-btn' onclick=\"openReceiptModal('" + num + "')\">Переглянути чек</button>" +
     "</div>" +
-    "<div class='detail-stack'>" + notifyBlock + "</div>";
+    "<div class='detail-grid' style='margin-top:12px;margin-bottom:0'>" +
+      "<div class='dblock'><div class='dblock-label'>Сповістити клієнта</div>" +
+      "<div class='d-notify'>" +
+        "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','ready')\">" + copyIcon() + "Готово</button>" +
+        "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','remind')\">" + copyIcon() + "Нагадування</button>" +
+        "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','accepted')\">" + copyIcon() + "Прийнято</button>" +
+      "</div></div>" +
+      "<div class='dblock'><div class='dblock-label'>Замовлення</div>" +
+      "<div style='display:flex;gap:8px'>" +
+        "<button class='detail-edit' style='flex:1;text-align:center;padding:11px' onclick=\"openEditOrder('" + num + "')\">Редагувати</button>" +
+        "<button class='detail-edit admin-only' style='flex:1;text-align:center;padding:11px;color:#E24B4A;border-color:rgba(226,75,74,0.3)' onclick=\"openDeleteOrderConfirm('" + num + "')\">Видалити</button>" +
+      "</div></div>" +
+    "</div>";
 
   document.getElementById("odm-bg").classList.add("open");
+}
+
+async function saveMasterNote(num, note) {
+  try {
+    await fetch(API_URL.replace("/order","/order/master-note"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ order_num: num, note: note })
+    });
+    const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
+    if (o) o["Нотатка майстра"] = note;
+  } catch(e) { console.error("master note save failed", e); }
+}
+
+function openAllItemsModal(num) {
+  const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+  const rows = its.map((it, idx) => {
+    const iname = [gv(it,"Тип"), gv(it,"Бренд")].filter(Boolean).join(" · ") || "Виріб";
+    const note = gv(it,"Коментар");
+    return "<div class='brought-item'><span class='brought-item-num'>№" + (idx+1) + "</span><span class='brought-item-name'>" + iname + "</span>" +
+      (note ? "<div class='brought-item-note'>" + note + "</div>" : "") + "</div>";
+  }).join("");
+  let ov = document.getElementById("all-items-modal");
+  if (!ov) {
+    ov = document.createElement("div");
+    ov.id = "all-items-modal";
+    ov.className = "odm-bg";
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = "<div class='odm' style='width:380px'>" +
+    "<div class='odm-close' onclick='closeAllItemsModal()'>×</div>" +
+    "<div class='odm-scroll'>" +
+      "<div class='detail-top'><span class='detail-title'>Усі вироби (" + its.length + ")</span></div>" +
+      "<div class='brought-list'>" + rows + "</div>" +
+    "</div></div>";
+  ov.classList.add("open");
+}
+function closeAllItemsModal() {
+  const ov = document.getElementById("all-items-modal");
+  if (ov) ov.classList.remove("open");
+}
+
+async function issueWholeOrder(num) {
+  const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+  for (let idx = 0; idx < its.length; idx++) {
+    if (gv(its[idx],"Статус") !== "📦 Виданий") {
+      await setItemStatus(num, idx, 3);
+    }
+  }
 }
 
 function backToOrders() {
@@ -4623,7 +4706,7 @@ function clientPaymentStats(phone) {
     const total = orderTotal(num);
     if (!total) return;
     const payStr = gv(o,"Оплата");
-    const prepay = payStr.includes("Передоплата") ? extractAmt(payStr) : 0;
+    const prepay = isPrepayStr(payStr) ? extractAmt(payStr) : 0;
     const settle = extractAmt(gv(o,"Сума доплати"));
     const debt = Math.max(0, total - prepay - settle);
     const st = getStatus(num);
@@ -4636,7 +4719,7 @@ function clientPaymentStats(phone) {
     const total = extractAmt(gv(t,"Вартість"));
     if (!total) return;
     const payStr = gv(t,"Оплата");
-    const prepay = payStr.includes("Передоплата") ? extractAmt(payStr) : 0;
+    const prepay = isPrepayStr(payStr) ? extractAmt(payStr) : 0;
     const settle = extractAmt(gv(t,"Сума доплати"));
     const debt = Math.max(0, total - prepay - settle);
     if (gv(t,"Статус") === "📦 Виданий") {
