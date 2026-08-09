@@ -3,7 +3,6 @@
    підключається наприкінці, після основного коду.
    Залежить від глобальних: ORDERS, gv, openOrder, clientRating,
    clientPaymentStats, clientBonusBalance, clientMessenger, esc, renderers. */
-
 /* ═══════════════ ВКЛАДКА КЛІЄНТИ ═══════════════ */
 let clientSearch = "";
 let _clientsCache = [];
@@ -43,7 +42,6 @@ renderers.clients = function() {
   });
   _clientsCache = Object.values(map).sort((a,b) => b.sum - a.sum);
   const rows = buildClientRows();
-
   page.innerHTML =
     "<div class='page-header'><div class='page-title'>Клієнти</div>" +
       "<button class='btn-primary' onclick='openSummaryReceipt()'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'><path d='M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z'/><path d='M9 12h6M9 16h6M9 8h3'/></svg>Зведений чек</button>" +
@@ -54,10 +52,122 @@ renderers.clients = function() {
     "</div>";
 };
 
+/* ═══════════════ МІНІ-КАРТКА КЛІЄНТА ═══════════════
+   Поки немає повноцінної картки з історією — тут базове зведення
+   + баланс бонусів + (адмін) обнулення бонусів клієнта. */
 function openClientCard(phone) {
-  // Знайти останнє замовлення клієнта і відкрити його картку
-  const cOrders = ORDERS.filter(o => gv(o,"Телефон") === phone);
-  if (!cOrders.length) return;
-  const last = cOrders[cOrders.length - 1];
-  openOrder(gv(last,"Номер замовлення"));
+  const c = _clientsCache.find(x => x.phone === phone);
+  const name = c ? (c.name || "—") : "—";
+  const r = clientRating(phone);
+  const balance = clientBonusBalance(phone);
+  const count = c ? c.count : 0;
+  const sum = c ? c.sum : 0;
+
+  let ov = document.getElementById("client-card-modal");
+  if (!ov) {
+    ov = document.createElement("div");
+    ov.id = "client-card-modal";
+    ov.className = "odm-bg";
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = "<div class='odm' style='width:380px'>" +
+    "<div class='odm-close' onclick='closeClientCard()'>×</div>" +
+    "<div class='odm-scroll'>" +
+      "<div class='detail-top'><span class='detail-title' style='font-size:16px'>" + name + "</span>" +
+        "<span class='rating-pick' onclick=\"openRatingPick('" + phone.replace(/'/g,"") + "')\">" + r.label + " " + r.dot + "</span>" +
+      "</div>" +
+      "<div class='d-pay-row'><span class='pl'>Телефон</span><span class='pv'>" + phone + "</span></div>" +
+      "<div class='d-pay-row'><span class='pl'>Замовлень</span><span class='pv'>" + count + "</span></div>" +
+      "<div class='d-pay-row'><span class='pl'>Загальна сума</span><span class='pv'>" + sum.toLocaleString("uk-UA") + " ₴</span></div>" +
+      "<div class='d-pay-total'><span class='pl'>Баланс бонусів</span><span class='pv' style='color:var(--cognac)'>" + balance.toLocaleString("uk-UA") + " балів</span></div>" +
+      "<button class='d-settle-btn' style='margin-top:14px' onclick=\"closeClientCard();openClientHistory('" + phone.replace(/'/g,"") + "',null)\">Історія замовлень</button>" +
+      (balance > 0 ? "<button class='d-settle-btn admin-only' style='margin-top:8px;background:none;border:1px solid rgba(226,75,74,0.3);color:#E24B4A' onclick=\"openResetBonusConfirm('" + phone.replace(/'/g,"") + "','" + name.replace(/'/g,"") + "')\">Обнулити бонуси</button>" : "") +
+    "</div></div>";
+  ov.classList.add("open");
+}
+function closeClientCard() {
+  const ov = document.getElementById("client-card-modal");
+  if (ov) ov.classList.remove("open");
+}
+
+/* ── Обнулення бонусів клієнта (адмін, підтвердження паролем) ──
+   Скидає "Нараховано бонусів"/"Списано бонусів" на 0 у ВСІХ замовленнях
+   цього телефону — тобто баланс стає 0. Дані самих замовлень не чіпаються. */
+let pendingResetBonusPhone = null;
+function openResetBonusConfirm(phone, name) {
+  if (!isAdmin()) { toast("Доступно лише адміністратору"); return; }
+  pendingResetBonusPhone = phone;
+  const balance = clientBonusBalance(phone);
+
+  let ov = document.getElementById("reset-bonus-confirm");
+  if (!ov) {
+    ov = document.createElement("div");
+    ov.id = "reset-bonus-confirm";
+    ov.className = "odm-bg";
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = "<div class='odm' style='width:380px'>" +
+    "<div class='odm-close' onclick='closeResetBonusConfirm()'>×</div>" +
+    "<div class='odm-scroll'>" +
+      "<div class='detail-top'><span class='detail-title' style='font-size:16px'>Обнулити бонуси?</span></div>" +
+      "<p style='font-size:13px;color:var(--txt-2);line-height:1.5;margin:0 0 4px'>" +
+        name + " · " + phone + "<br>Поточний баланс: <b style='color:var(--cognac)'>" + balance.toLocaleString("uk-UA") + " балів</b>" +
+      "</p>" +
+      "<p style='font-size:12px;color:var(--txt-3);line-height:1.5'>Нарахування та списання обнуляться у всіх замовленнях цього клієнта. Дію не можна скасувати автоматично.</p>" +
+      "<div class='cr-block-label' style='margin-top:14px'>Пароль адміністратора</div>" +
+      "<input class='cr-input' id='reset-bonus-pw' type='password' placeholder='Пароль' onkeydown=\"if(event.key==='Enter')confirmResetBonus()\">" +
+      "<div class='login-err' id='reset-bonus-err'></div>" +
+      "<div style='display:flex;gap:10px;margin-top:6px'>" +
+        "<button onclick='closeResetBonusConfirm()' style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:13px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:13px'>Скасувати</button>" +
+        "<button class='cr-create-btn' style='flex:2;margin-top:0;background:#E24B4A' id='reset-bonus-btn' onclick='confirmResetBonus()'>Обнулити</button>" +
+      "</div>" +
+    "</div></div>";
+  ov.classList.add("open");
+  setTimeout(() => { const el = document.getElementById("reset-bonus-pw"); if (el) el.focus(); }, 50);
+}
+function closeResetBonusConfirm() {
+  const ov = document.getElementById("reset-bonus-confirm");
+  if (ov) ov.classList.remove("open");
+  pendingResetBonusPhone = null;
+}
+async function confirmResetBonus() {
+  if (!pendingResetBonusPhone) return;
+  const err = document.getElementById("reset-bonus-err");
+  const pw = document.getElementById("reset-bonus-pw").value;
+  if (!pw) { err.textContent = "Введіть пароль"; return; }
+  let hash;
+  try { hash = await sha256(pw); } catch(e) { err.textContent = "Помилка перевірки"; return; }
+  if (hash !== ROLE_HASHES.admin) { err.textContent = "Невірний пароль"; return; }
+
+  const btn = document.getElementById("reset-bonus-btn");
+  btn.textContent = "Обнулення..."; btn.disabled = true;
+  err.textContent = "";
+
+  const phone = pendingResetBonusPhone;
+  const phoneOrders = ORDERS.filter(o => gv(o,"Телефон") === phone);
+  let failed = 0;
+  for (const o of phoneOrders) {
+    const num = gv(o,"Номер замовлення");
+    const hadAccrued = extractAmt(gv(o,"Нараховано бонусів"));
+    const hadSpent = extractAmt(gv(o,"Списано бонусів"));
+    if (!hadAccrued && !hadSpent) continue;
+    try {
+      const res = await fetch(API_URL.replace("/order","/bonus"), {
+        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ order_num: num, accrued: 0, spent: 0 })
+      });
+      const r = await res.json();
+      if (r.status === "ok") { o["Нараховано бонусів"] = "0"; o["Списано бонусів"] = "0"; }
+      else failed++;
+    } catch(e) { failed++; }
+  }
+
+  closeResetBonusConfirm();
+  if (failed) {
+    toast("Готово, але " + failed + " замовлень не оновилися — спробуйте ще раз");
+  } else {
+    toast("Бонуси клієнта обнулено");
+  }
+  closeClientCard();
+  if (renderers.clients) renderers.clients();
 }
