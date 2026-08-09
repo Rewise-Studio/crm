@@ -54,7 +54,7 @@ renderers.clients = function() {
 
 /* ═══════════════ МІНІ-КАРТКА КЛІЄНТА ═══════════════
    Поки немає повноцінної картки з історією — тут базове зведення
-   + баланс бонусів + (адмін) обнулення бонусів клієнта. */
+   + телефон/месенджер/статус (редагування — лише адмін) + бонуси. */
 function openClientCard(phone) {
   const c = _clientsCache.find(x => x.phone === phone);
   const name = c ? (c.name || "—") : "—";
@@ -62,6 +62,22 @@ function openClientCard(phone) {
   const balance = clientBonusBalance(phone);
   const count = c ? c.count : 0;
   const sum = c ? c.sum : 0;
+  const msg = clientMessenger(phone);
+  const admin = isAdmin();
+
+  const statusRow = admin
+    ? "<div class='d-pay-row'><span class='pl'>Статус</span><span class='pv rating-pick' onclick=\"openRatingPick('" + phone.replace(/'/g,"") + "')\">" + r.label + " " + r.dot + "</span></div>"
+    : "<div class='d-pay-row'><span class='pl'>Статус</span><span class='pv'>" + r.label + " " + r.dot + "</span></div>";
+
+  const phoneRow = admin
+    ? "<div class='d-pay-row'><span class='pl'>Телефон</span><span class='pv'><input class='cc-inline-input' id='cc-phone-input' value=\"" + phone.replace(/"/g,"&quot;") + "\" onblur=\"saveClientPhone('" + phone.replace(/'/g,"") + "',this.value)\"></span></div>"
+    : "<div class='d-pay-row'><span class='pl'>Телефон</span><span class='pv'>" + phone + "</span></div>";
+
+  const msgRow = admin
+    ? "<div class='d-pay-row' style='align-items:center'><span class='pl'>Месенджер</span><span class='cc-msg-picker'>" +
+        ["telegram","whatsapp","viber"].map(m => "<button class='cc-msg-btn" + (msg===m?" active":"") + "'" + (msg===m?" style='background:"+MSG_COLORS[m]+"'":"") + " onclick=\"setClientMessenger('" + phone.replace(/'/g,"") + "','" + m + "')\">" + MSG_ICONS[m] + "</button>").join("") +
+      "</span></div>"
+    : "<div class='d-pay-row'><span class='pl'>Месенджер</span><span class='pv'>" + (msg ? MSG_LABELS[msg] : "—") + "</span></div>";
 
   let ov = document.getElementById("client-card-modal");
   if (!ov) {
@@ -73,21 +89,70 @@ function openClientCard(phone) {
   ov.innerHTML = "<div class='odm' style='width:380px'>" +
     "<div class='odm-close' onclick='closeClientCard()'>×</div>" +
     "<div class='odm-scroll'>" +
-      "<div class='detail-top'><span class='detail-title' style='font-size:16px'>" + name + "</span>" +
-        "<span class='rating-pick' onclick=\"openRatingPick('" + phone.replace(/'/g,"") + "')\">" + r.label + " " + r.dot + "</span>" +
-      "</div>" +
-      "<div class='d-pay-row'><span class='pl'>Телефон</span><span class='pv'>" + phone + "</span></div>" +
+      "<div class='detail-top'><span class='detail-title' style='font-size:16px'>" + name + "</span></div>" +
+      phoneRow +
+      msgRow +
+      statusRow +
       "<div class='d-pay-row'><span class='pl'>Замовлень</span><span class='pv'>" + count + "</span></div>" +
       "<div class='d-pay-row'><span class='pl'>Загальна сума</span><span class='pv'>" + sum.toLocaleString("uk-UA") + " ₴</span></div>" +
       "<div class='d-pay-total'><span class='pl'>Баланс бонусів</span><span class='pv' style='color:var(--cognac)'>" + balance.toLocaleString("uk-UA") + " балів</span></div>" +
       "<button class='d-settle-btn' style='margin-top:14px' onclick=\"closeClientCard();openClientHistory('" + phone.replace(/'/g,"") + "',null)\">Історія замовлень</button>" +
-      (balance > 0 ? "<button class='d-settle-btn admin-only' style='margin-top:8px;background:none;border:1px solid rgba(226,75,74,0.3);color:#E24B4A' onclick=\"openResetBonusConfirm('" + phone.replace(/'/g,"") + "','" + name.replace(/'/g,"") + "')\">Обнулити бонуси</button>" : "") +
+      (admin && balance > 0 ? "<button class='d-settle-btn admin-only' style='margin-top:8px;background:none;border:1px solid rgba(226,75,74,0.3);color:#E24B4A' onclick=\"openResetBonusConfirm('" + phone.replace(/'/g,"") + "','" + name.replace(/'/g,"") + "')\">Обнулити бонуси</button>" : "") +
     "</div></div>";
   ov.classList.add("open");
 }
 function closeClientCard() {
   const ov = document.getElementById("client-card-modal");
   if (ov) ov.classList.remove("open");
+}
+
+/* Зберегти месенджер клієнта — пишемо в останнє замовлення цього телефону
+   (clientMessenger читає саме звідти, той самий підхід, що й з рейтингом) */
+async function setClientMessenger(phone, m) {
+  if (!isAdmin()) return;
+  const orders = ORDERS.filter(o => gv(o,"Телефон") === phone);
+  if (!orders.length) { toast("У клієнта ще немає замовлень"); return; }
+  const last = orders[orders.length - 1];
+  const num = gv(last,"Номер замовлення");
+  const newVal = gv(last,"Месенджер") === m ? "" : m;
+  last["Месенджер"] = newVal;
+  openClientCard(phone);
+  try {
+    await fetch(API_URL.replace("/order","/order/update"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ order_num: num, messenger: newVal })
+    });
+  } catch(e) { console.error("messenger save failed", e); toast("Не вдалося зберегти месенджер"); }
+}
+
+/* Зберегти новий номер телефону клієнта — оновлює ВСІ його замовлення,
+   щоб історія лишилась звʼязаною (телефон — це ключ групування клієнтів). */
+async function saveClientPhone(oldPhone, newPhoneRaw) {
+  if (!isAdmin()) return;
+  const newPhone = (newPhoneRaw || "").trim();
+  if (!newPhone || newPhone === oldPhone) return;
+  if (!confirm("Змінити телефон клієнта на " + newPhone + "?\nОновляться всі його замовлення (" + ORDERS.filter(o => gv(o,"Телефон")===oldPhone).length + ").")) {
+    openClientCard(oldPhone);
+    return;
+  }
+  const orders = ORDERS.filter(o => gv(o,"Телефон") === oldPhone);
+  let failed = 0;
+  for (const o of orders) {
+    const num = gv(o,"Номер замовлення");
+    try {
+      const res = await fetch(API_URL.replace("/order","/order/update"), {
+        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ order_num: num, phone: newPhone })
+      });
+      const r = await res.json();
+      if (r.status === "ok") o["Телефон"] = newPhone; else failed++;
+    } catch(e) { failed++; }
+  }
+  closeClientCard();
+  if (failed) toast("Готово, але " + failed + " замовлень не оновилися");
+  else toast("Телефон оновлено");
+  if (renderers.clients) renderers.clients();
+  openClientCard(newPhone);
 }
 
 /* ── Обнулення бонусів клієнта (адмін, підтвердження паролем) ──
