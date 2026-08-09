@@ -465,6 +465,8 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .pr-due { color: var(--cognac); font-weight: 600; }
 .r-footer { text-align: center; margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(58,50,40,0.08); font-family: 'Tenor Sans', serif; font-size: 11px; color: rgba(58,50,40,0.6); letter-spacing: 0.03em; line-height: 1.6; }
 .r-disclaimer { text-align: center; margin-top: 10px; font-family: 'Commissioner', sans-serif; font-size: 8px; color: rgba(58,50,40,0.32); letter-spacing: 0.04em; }
+.r-bonus-line { text-align: left; font-size: 11px; color: rgba(42,38,33,0.55); margin-top: 10px; }
+.r-bonus-line b { color: var(--cognac); font-weight: 600; }
 .r-empty { text-align: center; padding: 50px 0; color: rgba(58,50,40,0.3); font-size: 12px; }
 .r-empty .icon { font-size: 30px; margin-bottom: 10px; }
 
@@ -537,6 +539,9 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .d-note-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--txt-3); margin: 4px 0 6px; }
 .d-note-area { width: 100%; resize: none; border: 1px solid var(--field-border); border-radius: 7px; padding: 8px 10px; font-family: 'Commissioner', sans-serif; font-size: 12px; color: var(--txt); background: var(--surface-2); min-height: 46px; }
 .d-note-area::placeholder { color: var(--txt-3); }
+.d-bonus-inline { font-size: 11.5px; color: var(--txt-2); padding-top: 10px; margin-top: auto; border-top: 1px solid var(--line-soft); cursor: pointer; }
+.d-bonus-inline:hover { color: var(--txt); }
+.d-bonus-inline b { color: var(--cognac); font-weight: 500; }
 
 .info-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin-bottom: 10px; }
 .info-2col > .info-row:last-child { text-align: right; }
@@ -4468,6 +4473,11 @@ function openOrder(num) {
 
   const masterNote = gv(o,"Нотатка майстра");
 
+  // Легкий розрахунок для міні-рядка бонусів (повний розрахунок — усередині модалки, окремою функцією)
+  const teaserBalance = clientBonusBalance(phone);
+  const teaserAccrued = extractAmt(gv(o,"Нараховано бонусів"));
+  const bonusTeaser = "<div class='d-bonus-inline admin-only' onclick=\"openBonusModal('" + num + "')\">Бали клієнта: <b>" + teaserBalance.toLocaleString("uk-UA") + "</b>" + (teaserAccrued ? " · за це замовлення +" + teaserAccrued.toLocaleString("uk-UA") : "") + "</div>";
+
   const clientBlock =
     "<div class='dblock'><div class='dblock-label'>Клієнт · <span class='rating-pick' onclick=\"openRatingPick('" + phone.replace(/'/g,"") + "')\">" + rating.label + " " + rating.dot + (rating.debt ? " " + rating.debt.toLocaleString("uk-UA") + " ₴" : "") + (rating.manual ? " ✎" : "") + "</span></div>" +
     "<div class='d-client-head'>" +
@@ -4479,6 +4489,7 @@ function openOrder(num) {
     broughtMore +
     "<div class='d-note-label'" + (broughtMore || broughtRows ? " style='margin-top:12px'" : "") + ">Нотатка для майстра</div>" +
     "<textarea class='d-note-area' placeholder='Внутрішня примітка — клієнт її не бачить' onblur=\"saveMasterNote('" + num + "',this.value)\">" + masterNote.replace(/&/g,"&amp;").replace(/</g,"&lt;") + "</textarea>" +
+    bonusTeaser +
     "</div>";
 
   // Вироби зі статусами
@@ -4571,12 +4582,50 @@ function openOrder(num) {
     (toPay > 0 && payConfigured() ? "<button class='d-settle-btn' style='margin-top:8px' onclick='openPayQR()'>Реквізити для оплати</button>" : "") +
     "</div>";
 
-  // Бонуси (повна функціональність — окремим блоком)
+  modalBody.innerHTML =
+    "<div class='detail-top'>" +
+      "<span class='detail-title'>Замовлення " + num + "</span>" +
+      "<span class='badge " + stMeta[1] + "'>" + stMeta[0] + "</span>" +
+    "</div>" +
+    "<div class='detail-created'>Створено: " + (gv(o,"Дата створення") || "—") + (gv(o,"Приймальник") ? " · " + gv(o,"Приймальник") : "") + "</div>" +
+    "<div class='detail-grid'>" + clientBlock + payBlock + "</div>" +
+    itemsBlock +
+    "<div class='detail-grid' style='margin-top:12px'>" +
+      "<button class='issue-order-btn" + (allIssuedNow ? "" : "") + "' " + (allIssuedNow ? "disabled" : "onclick=\"issueWholeOrder('" + num + "')\"") + ">" + (allIssuedNow ? "Замовлення видано" : "Видати замовлення") + "</button>" +
+      "<button class='d-settle-btn' onclick=\"openReceiptModal('" + num + "')\">Переглянути чек</button>" +
+    "</div>" +
+    "<div class='detail-grid' style='margin-top:12px;margin-bottom:0'>" +
+      "<div class='dblock'><div class='dblock-label'>Сповістити клієнта</div>" +
+      "<div class='d-notify'>" +
+        "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','ready')\">" + copyIcon() + "Готово</button>" +
+        "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','remind')\">" + copyIcon() + "Нагадування</button>" +
+        "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','accepted')\">" + copyIcon() + "Прийнято</button>" +
+      "</div></div>" +
+      "<div class='dblock'><div class='dblock-label'>Замовлення</div>" +
+      "<div style='display:flex;gap:8px'>" +
+        "<button class='detail-edit' style='flex:1;text-align:center;padding:11px' onclick=\"openEditOrder('" + num + "')\">Редагувати</button>" +
+        "<button class='detail-edit admin-only' style='flex:1;text-align:center;padding:11px;color:#E24B4A;border-color:rgba(226,75,74,0.3)' onclick=\"openDeleteOrderConfirm('" + num + "')\">Видалити</button>" +
+      "</div></div>" +
+    "</div>";
+
+  document.getElementById("odm-bg").classList.add("open");
+}
+
+function openBonusModal(num) {
+  const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
+  if (!o) return;
+  const phone = gv(o,"Телефон");
+  const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+  const total = its.reduce((s,it) => s + extractAmt(gv(it,"Сума")), 0);
+  const allIssuedNow = its.length > 0 && its.every(it => gv(it,"Статус") === "📦 Виданий");
+  const rating = clientRating(phone);
+
   const accrued = extractAmt(gv(o,"Нараховано бонусів"));
   const spent = extractAmt(gv(o,"Списано бонусів"));
   const balance = clientBonusBalance(phone);
   const clientPct = bonusPctFor(phone);
   const wouldAccrue = Math.round(total * clientPct / 100);
+
   let bonusInner =
     "<div class='d-pay-row'><span class='pl'>Баланс клієнта</span><span class='pv' style='color:var(--cognac)'>" + balance.toLocaleString("uk-UA") + " балів</span></div>";
   if (accrued) bonusInner += "<div class='d-pay-row'><span class='pl'>Нараховано за це замовлення</span><span class='pv'>+" + accrued.toLocaleString("uk-UA") + "</span></div>";
@@ -4600,36 +4649,25 @@ function openOrder(num) {
       bonusInner += "<div class='d-bonus-hint'>Списання доступне від " + BONUS_MIN_SPEND + " балів</div>";
     }
   }
-  const bonusBlock = "<div class='dblock dblock-full admin-only'><div class='dblock-label'>Бонуси</div>" + bonusInner + "</div>";
 
-  modalBody.innerHTML =
-    "<div class='detail-top'>" +
-      "<span class='detail-title'>Замовлення " + num + "</span>" +
-      "<span class='badge " + stMeta[1] + "'>" + stMeta[0] + "</span>" +
-    "</div>" +
-    "<div class='detail-created'>Створено: " + (gv(o,"Дата створення") || "—") + (gv(o,"Приймальник") ? " · " + gv(o,"Приймальник") : "") + "</div>" +
-    "<div class='detail-grid'>" + clientBlock + payBlock + "</div>" +
-    bonusBlock +
-    itemsBlock +
-    "<div class='detail-grid' style='margin-top:12px'>" +
-      "<button class='issue-order-btn" + (allIssuedNow ? "" : "") + "' " + (allIssuedNow ? "disabled" : "onclick=\"issueWholeOrder('" + num + "')\"") + ">" + (allIssuedNow ? "Замовлення видано" : "Видати замовлення") + "</button>" +
-      "<button class='d-settle-btn' onclick=\"openReceiptModal('" + num + "')\">Переглянути чек</button>" +
-    "</div>" +
-    "<div class='detail-grid' style='margin-top:12px;margin-bottom:0'>" +
-      "<div class='dblock'><div class='dblock-label'>Сповістити клієнта</div>" +
-      "<div class='d-notify'>" +
-        "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','ready')\">" + copyIcon() + "Готово</button>" +
-        "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','remind')\">" + copyIcon() + "Нагадування</button>" +
-        "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','accepted')\">" + copyIcon() + "Прийнято</button>" +
-      "</div></div>" +
-      "<div class='dblock'><div class='dblock-label'>Замовлення</div>" +
-      "<div style='display:flex;gap:8px'>" +
-        "<button class='detail-edit' style='flex:1;text-align:center;padding:11px' onclick=\"openEditOrder('" + num + "')\">Редагувати</button>" +
-        "<button class='detail-edit admin-only' style='flex:1;text-align:center;padding:11px;color:#E24B4A;border-color:rgba(226,75,74,0.3)' onclick=\"openDeleteOrderConfirm('" + num + "')\">Видалити</button>" +
-      "</div></div>" +
-    "</div>";
-
-  document.getElementById("odm-bg").classList.add("open");
+  let ov = document.getElementById("bonus-modal");
+  if (!ov) {
+    ov = document.createElement("div");
+    ov.id = "bonus-modal";
+    ov.className = "odm-bg";
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = "<div class='odm' style='width:380px'>" +
+    "<div class='odm-close' onclick='closeBonusModal()'>×</div>" +
+    "<div class='odm-scroll'>" +
+      "<div class='detail-top'><span class='detail-title'>Бонуси · " + num + "</span></div>" +
+      bonusInner +
+    "</div></div>";
+  ov.classList.add("open");
+}
+function closeBonusModal() {
+  const ov = document.getElementById("bonus-modal");
+  if (ov) ov.classList.remove("open");
 }
 
 async function saveMasterNote(num, note) {
@@ -4907,16 +4945,124 @@ async function confirmSettle() {
   const amt = parseInt(document.getElementById("settle-amt").value || "0");
   if (!amt) { alert("Вкажіть суму"); return; }
   if (!settleState.method) { alert("Оберіть спосіб оплати"); return; }
-  const o = ORDERS.find(x => gv(x,"Номер замовлення") === settleState.num);
+  const num = settleState.num;
+  const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
   if (o) { o["Сума доплати"] = String(amt); o["Спосіб доплати"] = settleState.method; }
   closeSettle();
-  openOrder(settleState.num);
+  openOrder(num);
   try {
     await fetch(API_URL.replace("/order","/settle"), {
       method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ order_num: settleState.num, amount: amt, method: settleState.method })
+      body: JSON.stringify({ order_num: num, amount: amt, method: settleState.method })
     });
   } catch(e) { console.error("settle failed", e); }
+
+  // Якщо це фінальний платіж (замовлення тепер повністю оплачене) — пропонуємо бонуси одним потоком
+  if (o) {
+    const total = orderTotal(num);
+    const payStr = gv(o,"Оплата");
+    const prepayAmt = extractAmt(payStr);
+    const status = computePayStatus(total, payStr, prepayAmt, amt);
+    if (status.isPaid) startPostPaymentBonusFlow(num);
+  }
+}
+
+/* ═══════ ПОТІК БОНУСІВ ПІСЛЯ ФІНАЛЬНОЇ ОПЛАТИ ═══════
+   Спочатку пропонуємо списати наявний баланс (якщо є), одразу після —
+   нарахувати нові бали. Кожен крок можна пропустити. */
+function startPostPaymentBonusFlow(num) {
+  const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
+  if (!o) return;
+  const phone = gv(o,"Телефон");
+  const total = orderTotal(num);
+  const balance = clientBonusBalance(phone);
+  const spent = extractAmt(gv(o,"Списано бонусів"));
+  if (balance >= BONUS_MIN_SPEND && !spent) {
+    promptSpendStep(num, balance, total);
+  } else {
+    promptAccrueStep(num, total);
+  }
+}
+function promptSpendStep(num, balance, total) {
+  const maxByOrder = Math.floor(total * BONUS_SPEND_CAP / 100);
+  const maxSpend = Math.min(balance, maxByOrder);
+  const body = document.getElementById("odm-body");
+  const wrap = document.createElement("div");
+  wrap.className = "settle-overlay";
+  wrap.innerHTML =
+    "<div class='settle-card'>" +
+      "<div class='dblock-label'>Списати бонуси?</div>" +
+      "<div style='font-size:12px;color:var(--txt-2);margin-bottom:10px'>Доступно: " + balance + " · макс. для цього чека (" + BONUS_SPEND_CAP + "%): " + maxByOrder + "</div>" +
+      "<input class='cr-input' id='spend-amt' type='number' value='" + maxSpend + "' max='" + maxSpend + "'>" +
+      "<div style='display:flex;gap:8px;margin-top:10px'>" +
+        "<button onclick=\"skipSpendStep('" + num + "'," + total + ")\" style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:11px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px'>Пропустити</button>" +
+        "<button class='d-settle-btn' style='flex:2;margin-top:0' onclick=\"confirmSpendStep('" + num + "'," + maxSpend + "," + total + ")\">Списати</button>" +
+      "</div>" +
+    "</div>";
+  body.appendChild(wrap);
+}
+async function confirmSpendStep(num, maxSpend, total) {
+  let amt = parseInt(document.getElementById("spend-amt").value || "0");
+  if (amt > maxSpend) amt = maxSpend;
+  if (amt > 0) {
+    const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
+    if (o) o["Списано бонусів"] = String(amt);
+    try {
+      await fetch(API_URL.replace("/order","/bonus"), {
+        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ order_num: num, spent: amt })
+      });
+    } catch(e) { console.error("spend failed", e); }
+  }
+  closeSettle();
+  promptAccrueStep(num, total);
+}
+function skipSpendStep(num, total) {
+  closeSettle();
+  promptAccrueStep(num, total);
+}
+function promptAccrueStep(num, total) {
+  if (detailOrderNum) openOrder(detailOrderNum);
+  const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
+  if (!o) return;
+  const accrued = extractAmt(gv(o,"Нараховано бонусів"));
+  if (accrued) return;
+  const phone = gv(o,"Телефон");
+  const clientPct = bonusPctFor(phone);
+  if (clientPct <= 0) return;
+  const wouldAccrue = Math.round(total * clientPct / 100);
+  const body = document.getElementById("odm-body");
+  const wrap = document.createElement("div");
+  wrap.className = "settle-overlay";
+  wrap.innerHTML =
+    "<div class='settle-card'>" +
+      "<div class='dblock-label'>Нарахувати бонуси?</div>" +
+      "<div style='font-size:12px;color:var(--txt-2);margin-bottom:10px'>" + clientPct + "% від суми чека — за статусом клієнта.</div>" +
+      "<input class='cr-input' id='accrue-amt' type='number' value='" + wouldAccrue + "'>" +
+      "<div style='display:flex;gap:8px;margin-top:10px'>" +
+        "<button onclick='skipAccrueStep()' style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:11px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px'>Пропустити</button>" +
+        "<button class='d-settle-btn' style='flex:2;margin-top:0;background:#2FA98C' onclick=\"confirmAccrueStep('" + num + "')\">Нарахувати</button>" +
+      "</div>" +
+    "</div>";
+  body.appendChild(wrap);
+}
+async function confirmAccrueStep(num) {
+  const amt = parseInt(document.getElementById("accrue-amt").value || "0");
+  closeSettle();
+  if (amt > 0) {
+    const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
+    if (o) o["Нараховано бонусів"] = String(amt);
+    if (detailOrderNum) openOrder(detailOrderNum);
+    try {
+      await fetch(API_URL.replace("/order","/bonus"), {
+        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ order_num: num, accrued: amt })
+      });
+    } catch(e) { console.error("accrue failed", e); }
+  }
+}
+function skipAccrueStep() {
+  closeSettle();
 }
 
 /* ─── БОНУСИ ─── */
@@ -4959,7 +5105,7 @@ async function saveRating(phone, rating) {
 /* ─── БОНУСИ: нарахування з можливістю змінити суму ─── */
 function openAccrueBonus(num, suggested) {
   if (!isAdmin()) { toast("Бонуси доступні лише адміністратору"); return; }
-  const body = document.getElementById("odm-body");
+  const body = document.querySelector("#bonus-modal.open .odm-scroll") || document.getElementById("odm-body");
   const wrap = document.createElement("div");
   wrap.className = "settle-overlay";
   wrap.innerHTML =
@@ -4998,7 +5144,7 @@ function openSpendBonus(num, balance, total) {
   // Ліміт списання 30% від суми чека
   const maxByOrder = Math.floor(total * BONUS_SPEND_CAP / 100);
   const maxSpend = Math.min(balance, maxByOrder);
-  const body = document.getElementById("odm-body");
+  const body = document.querySelector("#bonus-modal.open .odm-scroll") || document.getElementById("odm-body");
   const wrap = document.createElement("div");
   wrap.className = "settle-overlay";
   wrap.innerHTML =
