@@ -704,6 +704,9 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .olr-num { font-weight: 500; color: var(--leather); font-size: 13px; white-space: nowrap; flex-shrink: 0; }
 .olr-item { flex: 1; min-width: 0; font-size: 13px; color: var(--txt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .olr-badge { flex-shrink: 0; }
+.olr-pay-badge { flex-shrink: 0; font-size: 9.5px; padding: 3px 8px; border-radius: 10px; font-weight: 500; }
+.olr-pay-badge.paid { background: rgba(47,169,140,0.14); color: #2FA98C; }
+.olr-pay-badge.unpaid { background: rgba(226,75,74,0.12); color: #E24B4A; }
 .olr-2 { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 4px; }
 .olr-client { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .olr-client .nm { font-weight: 500; color: var(--txt); font-size: 14px; }
@@ -1588,7 +1591,7 @@ const DEFAULT_COLORS = ["Чорний","Коричневий","Коньяк","Б
 const MATERIALS = ["Шкіра","Замша","Нубук","Текстиль","Лак","Комбінований"];
 const CONDITIONS = ["Новий стан","Гарний стан","Незначні потертості","Потертості","Пошкодження","Сильний знос"];
 const DELIVERY_OPTS = ["Самовивіз","Нова пошта","Кур'єр"];
-let ordersFilter = "all", ordersSearch = "", ordersPayFilter = "all";
+let ordersFilter = new Set(), ordersSearch = "", ordersPayFilter = "all";
 let dataLoaded = false;
 
 function gv(obj, ...keys) {
@@ -2848,10 +2851,11 @@ renderers.orders = function() {
   const periodNums = new Set(periodOrders.map(o => gv(o,"Номер замовлення")));
   const itemsInWork = ITEMS.filter(i => periodNums.has(gv(i,"Номер замовлення")) && gv(i,"Статус") === "⚙️ В роботі").length;
 
-  const tabs = FILTER_DEFS.map(([k,label]) =>
-    "<button class='ftab" + (ordersFilter === k ? " active" : "") + "' onclick=\"setOrdersFilter('" + k + "')\">" +
-    label + "<b>" + (counts[k] || 0) + "</b></button>"
-  ).join("");
+  const tabs = FILTER_DEFS.map(([k,label]) => {
+    const active = k === "all" ? ordersFilter.size === 0 : ordersFilter.has(k);
+    return "<button class='ftab" + (active ? " active" : "") + "' onclick=\"setOrdersFilter('" + k + "')\">" +
+      label + "<b>" + (counts[k] || 0) + "</b></button>";
+  }).join("");
 
   const payCounts = { all: periodOrders.length, paid: 0, unpaid: 0 };
   periodOrders.forEach(o => {
@@ -2887,7 +2891,12 @@ renderers.orders = function() {
   renderOrdersList();
 };
 
-function setOrdersFilter(k) { ordersFilter = k; renderers.orders(); }
+function setOrdersFilter(k) {
+  if (k === "all") { ordersFilter.clear(); }
+  else if (ordersFilter.has(k)) { ordersFilter.delete(k); }
+  else { ordersFilter.add(k); }
+  renderers.orders();
+}
 function setOrdersPayFilter(k) { ordersPayFilter = k; renderers.orders(); }
 function onOrdersSearch(v) { ordersSearch = v; renderOrdersList(); }
 
@@ -2900,7 +2909,7 @@ function renderOrdersList() {
   const q = ordersSearch.trim().toLowerCase();
   const filtered = ordersInPeriod(periodSel.orders).filter(o => {
     const num = gv(o,"Номер замовлення");
-    const stOk = ordersFilter === "all" || getStatus(num) === ordersFilter;
+    const stOk = ordersFilter.size === 0 || ordersFilter.has(getStatus(num));
     const payOk = ordersPayFilter === "all" ||
       (ordersPayFilter === "paid" ? isOrderPaid(num) : !isOrderPaid(num));
     const qOk = !q ||
@@ -2922,11 +2931,15 @@ function renderOrdersList() {
     const imp = isImportant(num);
     const flagSvg = "<svg viewBox='0 0 24 24' fill='" + (imp?"currentColor":"none") + "' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 21V4h13l-2 4 2 4H4'/></svg>";
     const master = orderMaster(num);
+    const total = orderTotal(num);
+    const paid = isOrderPaid(num);
+    const payBadge = total > 0 ? "<span class='olr-pay-badge" + (paid ? " paid" : " unpaid") + "'>" + (paid ? "Оплачено" : "Не оплачено") + "</span>" : "";
     return "<div class='olr" + (warn ? " urgent-soon" : "") + (imp ? " important" : "") + "' data-num=\"" + num + "\" onclick=\"openOrder('" + num + "')\" oncontextmenu=\"toggleImportant('" + num + "',event);return false\">" +
       "<div class='olr-1'>" +
         "<span class='olr-num'>" + num + "</span>" +
         "<span class='olr-item'>" + orderItemName(num) + "</span>" +
         "<span class='olr-badge'>" + statusBadge(num) + "</span>" +
+        payBadge +
         "<button class='ocard-flag" + (imp?" on":"") + "' onclick=\"toggleImportant('" + num + "',event)\" aria-label='Важливо'>" + flagSvg + "</button>" +
       "</div>" +
       "<div class='olr-2'>" +
@@ -4536,8 +4549,8 @@ function openOrder(num) {
               : "<button class='d-work-mini' onclick=\"openMasterPick('" + num + "'," + idx + ",'work')\">Прийняти</button>");
 
     let execHTML = "";
-    if (master) execHTML += "<div class='d-exec-row'><span class='pl'>Прийняв в роботу</span><span class='pv'>" + master + (dWork ? " · " + dWork : "") + "</span></div>";
-    if (issuedBy) execHTML += "<div class='d-exec-row'><span class='pl'>Видав</span><span class='pv'>" + issuedBy + (dIssue ? " · " + dIssue : "") + "</span></div>";
+    if (master || dWork) execHTML += "<div class='d-exec-row'><span class='pl'>Прийняв в роботу</span><span class='pv'>" + (master || "—") + (dWork ? " · " + dWork : "") + "</span></div>";
+    if (issuedBy || dIssue) execHTML += "<div class='d-exec-row'><span class='pl'>Видав</span><span class='pv'>" + (issuedBy || "—") + (dIssue ? " · " + dIssue : "") + "</span></div>";
 
     return "<div class='d-item'>" +
       "<div class='d-item-head'><div><span class='d-item-num'>№" + (idx+1) + "</span> <span class='d-item-name'>" + iname + "</span></div>" +
@@ -4719,12 +4732,43 @@ function closeAllItemsModal() {
   if (ov) ov.classList.remove("open");
 }
 
-async function issueWholeOrder(num) {
+function issueWholeOrder(num) {
   const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+  const pending = its.filter(it => gv(it,"Статус") !== "📦 Виданий");
+  if (!pending.length) return;
+  const names = masterNames();
+  const body = document.getElementById("odm-body");
+  const wrap = document.createElement("div");
+  wrap.className = "settle-overlay";
+  const opts = names.length
+    ? names.map(m => "<button class='rating-opt' onclick=\"confirmIssueWholeOrder('" + num + "','" + m.replace(/'/g,"\\'") + "')\">" + m + "</button>").join("")
+    : "<div class='d-bonus-hint'>Додайте майстрів у лист «Майстри»</div>";
+  wrap.innerHTML =
+    "<div class='settle-card'>" +
+      "<div class='dblock-label'>Хто видає замовлення?</div>" +
+      "<div class='rating-opts'>" + opts + "</div>" +
+      "<button onclick='closeSettle()' style='width:100%;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:11px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px'>Скасувати</button>" +
+    "</div>";
+  body.appendChild(wrap);
+}
+async function confirmIssueWholeOrder(num, master) {
+  closeSettle();
+  const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+  const nowVal = new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit",year:"numeric"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
   for (let idx = 0; idx < its.length; idx++) {
-    if (gv(its[idx],"Статус") !== "📦 Виданий") {
-      await setItemStatus(num, idx, 3);
-    }
+    const it = its[idx];
+    if (gv(it,"Статус") === "📦 Виданий") continue;
+    it["Статус"] = "📦 Виданий";
+    it["Хто видав"] = master;
+    it["Дата видачі"] = nowVal;
+    openOrder(num);
+    const itemNum = gv(it,"Номер виробу") || (num + "-" + (idx+1));
+    try {
+      await fetch(API_URL.replace("/order","/status"), {
+        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ item_num: itemNum, status: "📦 Виданий", master: master })
+      });
+    } catch(e) { console.error("bulk issue failed", e); }
   }
 }
 
