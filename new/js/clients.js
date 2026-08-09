@@ -85,9 +85,8 @@ function renderClientCardView(phone) {
   const sum = c ? c.sum : 0;
   const msg = clientMessenger(phone);
   const admin = isAdmin();
-  // Майбутні поля — поки немає відповідних колонок у таблиці, тому порожні
-  const birthday = "";
-  const address = "";
+  const birthday = clientBirthday(phone);
+  const address = clientMailAddress(phone);
 
   const orders = ORDERS.filter(o => gv(o,"Телефон") === phone && !isOrderDeleted(o));
   const sorted = [...orders].sort((a,b) => {
@@ -160,9 +159,12 @@ function openClientEdit(phone) {
   if (!isAdmin()) { toast("Редагування доступне лише адміністратору"); return; }
   const c = _clientsCache.find(x => x.phone === phone);
   const name = c ? (c.name || "—") : "—";
+  const nameParts = splitClientName(name);
   const r = clientRating(phone);
   const balance = clientBonusBalance(phone);
   const msg = clientMessenger(phone);
+  const birthday = clientBirthday(phone);
+  const address = clientMailAddress(phone);
 
   const msgPick = ["telegram","whatsapp","viber"].map(m => {
     const active = msg === m;
@@ -179,8 +181,14 @@ function openClientEdit(phone) {
       "<div class='edit-form'>" +
         "<div class='cr-block-label first'>Телефон</div>" +
         "<input class='cr-input' value=\"" + phone.replace(/"/g,"&quot;") + "\" onblur=\"saveClientPhone('" + phone.replace(/'/g,"") + "',this.value)\">" +
+        "<div class='cr-block-label'>Прізвище / позначення</div>" +
+        "<input class='cr-input' placeholder='напр. Адвокат, Магазин взуття' value=\"" + nameParts.rest.replace(/"/g,"&quot;") + "\" onblur=\"saveClientNameTag('" + phone.replace(/'/g,"") + "','" + nameParts.first.replace(/'/g,"") + "',this.value)\">" +
         "<div class='cr-block-label'>Месенджер</div>" +
         "<div class='cr-msg-pick'>" + msgPick + "</div>" +
+        "<div class='cr-block-label'>День народження</div>" +
+        "<input class='cr-input' placeholder='ДД.ММ.РРРР' value=\"" + birthday.replace(/"/g,"&quot;") + "\" onblur=\"saveClientBirthday('" + phone.replace(/'/g,"") + "',this.value)\">" +
+        "<div class='cr-block-label'>Адреса (пошта)</div>" +
+        "<input class='cr-input' placeholder='напр. Нова Пошта №23, Одеса' value=\"" + address.replace(/"/g,"&quot;") + "\" onblur=\"saveClientMailAddress('" + phone.replace(/'/g,"") + "',this.value)\">" +
         "<div class='cr-block-label'>Статус клієнта</div>" +
         "<div class='d-pay-row'><span class='pv rating-pick' onclick=\"openRatingPick('" + phone.replace(/'/g,"") + "','client-card-odm','client')\">" + r.label + " " + r.dot + "</span></div>" +
       "</div>" +
@@ -206,6 +214,66 @@ async function setClientMessenger(phone, m) {
       body: JSON.stringify({ order_num: num, messenger: newVal })
     });
   } catch(e) { console.error("messenger save failed", e); toast("Не вдалося зберегти месенджер"); }
+}
+
+/* Зберегти прізвище/позначення — склеюємо з іменем в одне поле "Ім'я клієнта"
+   і оновлюємо ВСІ замовлення телефону (як і з номером телефону — це той самий
+   ключовий атрибут клієнта, має лишатись однаковим по всій історії). */
+async function saveClientNameTag(phone, firstName, restRaw) {
+  if (!isAdmin()) return;
+  const rest = (restRaw || "").trim();
+  const newName = rest ? (firstName + " " + rest) : firstName;
+  const orders = ORDERS.filter(o => gv(o,"Телефон") === phone);
+  if (!orders.length) { toast("У клієнта ще немає замовлень"); return; }
+  let failed = 0;
+  for (const o of orders) {
+    const num = gv(o,"Номер замовлення");
+    try {
+      const res = await fetch(API_URL.replace("/order","/order/update"), {
+        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ order_num: num, client: newName })
+      });
+      const r = await res.json();
+      if (r.status === "ok") o["Ім'я клієнта"] = newName; else failed++;
+    } catch(e) { failed++; }
+  }
+  if (failed) toast("Готово, але " + failed + " замовлень не оновилися");
+  if (renderers.clients) renderers.clients();
+  openClientEdit(phone);
+}
+
+/* День народження і пошта — пишемо в останнє замовлення, як месенджер */
+async function saveClientBirthday(phone, value) {
+  if (!isAdmin()) return;
+  const orders = ORDERS.filter(o => gv(o,"Телефон") === phone);
+  if (!orders.length) { toast("У клієнта ще немає замовлень"); return; }
+  const last = orders[orders.length - 1];
+  const num = gv(last,"Номер замовлення");
+  const newVal = (value || "").trim();
+  last["День народження"] = newVal;
+  openClientEdit(phone);
+  try {
+    await fetch(API_URL.replace("/order","/order/update"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ order_num: num, birthday: newVal })
+    });
+  } catch(e) { console.error("birthday save failed", e); toast("Не вдалося зберегти день народження"); }
+}
+async function saveClientMailAddress(phone, value) {
+  if (!isAdmin()) return;
+  const orders = ORDERS.filter(o => gv(o,"Телефон") === phone);
+  if (!orders.length) { toast("У клієнта ще немає замовлень"); return; }
+  const last = orders[orders.length - 1];
+  const num = gv(last,"Номер замовлення");
+  const newVal = (value || "").trim();
+  last["Пошта"] = newVal;
+  openClientEdit(phone);
+  try {
+    await fetch(API_URL.replace("/order","/order/update"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ order_num: num, mailAddress: newVal })
+    });
+  } catch(e) { console.error("mail address save failed", e); toast("Не вдалося зберегти адресу"); }
 }
 
 /* Зберегти новий номер телефону клієнта — оновлює ВСІ його замовлення,
