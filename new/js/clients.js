@@ -53,8 +53,9 @@ renderers.clients = function() {
 };
 
 /* ═══════════════ МІНІ-КАРТКА КЛІЄНТА ═══════════════
-   Поки немає повноцінної картки з історією — тут базове зведення
-   + телефон/месенджер/статус (редагування — лише адмін) + бонуси. */
+   Відкрита картка — лише перегляд (ім'я, телефон, статус, месенджер,
+   кількість замовлень, історія). Редагування — окремий режим,
+   доступний тільки адміну через кнопку «Редагувати». */
 function openClientCard(phone) {
   const c = _clientsCache.find(x => x.phone === phone);
   const name = c ? (c.name || "—") : "—";
@@ -65,20 +66,6 @@ function openClientCard(phone) {
   const msg = clientMessenger(phone);
   const admin = isAdmin();
 
-  const statusRow = admin
-    ? "<div class='d-pay-row'><span class='pl'>Статус</span><span class='pv rating-pick' onclick=\"openRatingPick('" + phone.replace(/'/g,"") + "')\">" + r.label + " " + r.dot + "</span></div>"
-    : "<div class='d-pay-row'><span class='pl'>Статус</span><span class='pv'>" + r.label + " " + r.dot + "</span></div>";
-
-  const phoneRow = admin
-    ? "<div class='d-pay-row'><span class='pl'>Телефон</span><span class='pv'><input class='cc-inline-input' id='cc-phone-input' value=\"" + phone.replace(/"/g,"&quot;") + "\" onblur=\"saveClientPhone('" + phone.replace(/'/g,"") + "',this.value)\"></span></div>"
-    : "<div class='d-pay-row'><span class='pl'>Телефон</span><span class='pv'>" + phone + "</span></div>";
-
-  const msgRow = admin
-    ? "<div class='d-pay-row' style='align-items:center'><span class='pl'>Месенджер</span><span class='cc-msg-picker'>" +
-        ["telegram","whatsapp","viber"].map(m => "<button class='cc-msg-btn" + (msg===m?" active":"") + "'" + (msg===m?" style='background:"+MSG_COLORS[m]+"'":"") + " onclick=\"setClientMessenger('" + phone.replace(/'/g,"") + "','" + m + "')\">" + MSG_ICONS[m] + "</button>").join("") +
-      "</span></div>"
-    : "<div class='d-pay-row'><span class='pl'>Месенджер</span><span class='pv'>" + (msg ? MSG_LABELS[msg] : "—") + "</span></div>";
-
   let ov = document.getElementById("client-card-modal");
   if (!ov) {
     ov = document.createElement("div");
@@ -86,24 +73,60 @@ function openClientCard(phone) {
     ov.className = "odm-bg";
     document.body.appendChild(ov);
   }
-  ov.innerHTML = "<div class='odm' style='width:380px'>" +
+  ov.innerHTML = "<div class='odm' id='client-card-odm' style='width:380px'>" +
     "<div class='odm-close' onclick='closeClientCard()'>×</div>" +
     "<div class='odm-scroll'>" +
       "<div class='detail-top'><span class='detail-title' style='font-size:16px'>" + name + "</span></div>" +
-      phoneRow +
-      msgRow +
-      statusRow +
+      "<div class='d-pay-row'><span class='pl'>Телефон</span><span class='pv'>" + phone + "</span></div>" +
+      "<div class='d-pay-row'><span class='pl'>Месенджер</span><span class='pv'>" + (msg ? MSG_LABELS[msg] : "—") + "</span></div>" +
+      "<div class='d-pay-row'><span class='pl'>Статус</span><span class='pv'>" + r.label + " " + r.dot + "</span></div>" +
       "<div class='d-pay-row'><span class='pl'>Замовлень</span><span class='pv'>" + count + "</span></div>" +
       "<div class='d-pay-row'><span class='pl'>Загальна сума</span><span class='pv'>" + sum.toLocaleString("uk-UA") + " ₴</span></div>" +
       "<div class='d-pay-total'><span class='pl'>Баланс бонусів</span><span class='pv' style='color:var(--cognac)'>" + balance.toLocaleString("uk-UA") + " балів</span></div>" +
       "<button class='d-settle-btn' style='margin-top:14px' onclick=\"closeClientCard();openClientHistory('" + phone.replace(/'/g,"") + "',null)\">Історія замовлень</button>" +
-      (admin && balance > 0 ? "<button class='d-settle-btn admin-only' style='margin-top:8px;background:none;border:1px solid rgba(226,75,74,0.3);color:#E24B4A' onclick=\"openResetBonusConfirm('" + phone.replace(/'/g,"") + "','" + name.replace(/'/g,"") + "')\">Обнулити бонуси</button>" : "") +
+      (admin ? "<button class='detail-edit' style='width:100%;text-align:center;padding:11px;margin-top:8px' onclick=\"openClientEdit('" + phone.replace(/'/g,"") + "')\">Редагувати</button>" : "") +
     "</div></div>";
   ov.classList.add("open");
 }
 function closeClientCard() {
   const ov = document.getElementById("client-card-modal");
   if (ov) ov.classList.remove("open");
+}
+
+/* ═══════════════ РЕДАГУВАННЯ КЛІЄНТА (адмін) ═══════════════
+   Окремий режим у тому ж модальному вікні — телефон, месенджер, статус,
+   обнулення бонусів. Дзеркалить патерн openOrder / openEditOrder. */
+function openClientEdit(phone) {
+  if (!isAdmin()) { toast("Редагування доступне лише адміністратору"); return; }
+  const c = _clientsCache.find(x => x.phone === phone);
+  const name = c ? (c.name || "—") : "—";
+  const r = clientRating(phone);
+  const balance = clientBonusBalance(phone);
+  const msg = clientMessenger(phone);
+
+  const msgPick = ["telegram","whatsapp","viber"].map(m => {
+    const active = msg === m;
+    const style = active ? " style='background:" + MSG_COLORS[m] + "'" : "";
+    return "<button class='cr-msg-btn" + (active?" active":"") + "'" + style + " onclick=\"setClientMessenger('" + phone.replace(/'/g,"") + "','" + m + "')\"><span class='msg-ico'" + (active?" style='color:#fff'":"") + ">" + MSG_ICONS[m] + "</span>" + MSG_LABELS[m] + "</button>";
+  }).join("");
+
+  const ov = document.getElementById("client-card-modal");
+  if (!ov) return;
+  ov.innerHTML = "<div class='odm' id='client-card-odm' style='width:380px'>" +
+    "<div class='odm-close' onclick='closeClientCard()'>×</div>" +
+    "<div class='odm-scroll'>" +
+      "<div class='detail-top'><span class='detail-title' style='font-size:16px'>Редагування — " + name + "</span></div>" +
+      "<div class='edit-form'>" +
+        "<div class='cr-block-label first'>Телефон</div>" +
+        "<input class='cr-input' value=\"" + phone.replace(/"/g,"&quot;") + "\" onblur=\"saveClientPhone('" + phone.replace(/'/g,"") + "',this.value)\">" +
+        "<div class='cr-block-label'>Месенджер</div>" +
+        "<div class='cr-msg-pick'>" + msgPick + "</div>" +
+        "<div class='cr-block-label'>Статус клієнта</div>" +
+        "<div class='d-pay-row'><span class='pv rating-pick' onclick=\"openRatingPick('" + phone.replace(/'/g,"") + "','client-card-odm','client')\">" + r.label + " " + r.dot + "</span></div>" +
+      "</div>" +
+      (balance > 0 ? "<button class='d-settle-btn' style='margin-top:14px;background:none;border:1px solid rgba(226,75,74,0.3);color:#E24B4A' onclick=\"openResetBonusConfirm('" + phone.replace(/'/g,"") + "','" + name.replace(/'/g,"") + "')\">Обнулити бонуси</button>" : "") +
+      "<button style='width:100%;margin-top:10px;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:13px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:13px' onclick=\"openClientCard('" + phone.replace(/'/g,"") + "')\">Готово</button>" +
+    "</div></div>";
 }
 
 /* Зберегти месенджер клієнта — пишемо в останнє замовлення цього телефону
@@ -116,7 +139,7 @@ async function setClientMessenger(phone, m) {
   const num = gv(last,"Номер замовлення");
   const newVal = gv(last,"Месенджер") === m ? "" : m;
   last["Месенджер"] = newVal;
-  openClientCard(phone);
+  openClientEdit(phone);
   try {
     await fetch(API_URL.replace("/order","/order/update"), {
       method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
@@ -132,7 +155,7 @@ async function saveClientPhone(oldPhone, newPhoneRaw) {
   const newPhone = (newPhoneRaw || "").trim();
   if (!newPhone || newPhone === oldPhone) return;
   if (!confirm("Змінити телефон клієнта на " + newPhone + "?\nОновляться всі його замовлення (" + ORDERS.filter(o => gv(o,"Телефон")===oldPhone).length + ").")) {
-    openClientCard(oldPhone);
+    openClientEdit(oldPhone);
     return;
   }
   const orders = ORDERS.filter(o => gv(o,"Телефон") === oldPhone);
@@ -152,7 +175,7 @@ async function saveClientPhone(oldPhone, newPhoneRaw) {
   if (failed) toast("Готово, але " + failed + " замовлень не оновилися");
   else toast("Телефон оновлено");
   if (renderers.clients) renderers.clients();
-  openClientCard(newPhone);
+  openClientEdit(newPhone);
 }
 
 /* ── Обнулення бонусів клієнта (адмін, підтвердження паролем) ──
