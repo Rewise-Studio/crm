@@ -707,6 +707,10 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .olr-pay-badge { flex-shrink: 0; font-size: 9.5px; padding: 3px 8px; border-radius: 10px; font-weight: 500; }
 .olr-pay-badge.paid { background: rgba(47,169,140,0.14); color: #2FA98C; }
 .olr-pay-badge.unpaid { background: rgba(226,75,74,0.12); color: #E24B4A; }
+.olr-notify-ico { flex-shrink: 0; display: inline-flex; align-items: center; }
+.olr-notify-ico.ok { width: 17px; height: 17px; border-radius: 5px; background: #2FA98C; color: #fff; justify-content: center; }
+.olr-notify-ico.ok svg { width: 10px; height: 10px; }
+.olr-notify-ico.warn { font-size: 10px; color: #E24B4A; font-weight: 500; white-space: nowrap; }
 .olr-2 { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 4px; }
 .olr-client { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .olr-client .nm { font-weight: 500; color: var(--txt); font-size: 14px; }
@@ -802,6 +806,7 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .client-bonus.ready { color: #2FA98C; font-weight: 500; }
 .rating-pick { cursor: pointer; border-bottom: 1px dashed var(--cognac-border); }
 .rating-pick:hover { color: var(--txt); }
+.rating-fixed { color: var(--cognac); }
 .rating-opts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
 .rating-opt { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 9px; border: 1px solid var(--field-border); background: transparent; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.15s; }
 .rating-opt:hover { border-color: var(--cognac); }
@@ -1725,6 +1730,9 @@ async function parseSettings(res) {
     if (map["Картка"] !== undefined) PAY.card = String(map["Картка"]).trim();
     if (map["Отримувач"] !== undefined) PAY.holder = String(map["Отримувач"]).trim();
     DAILY_CAP = num("Норма на день", DAILY_CAP);
+    if (map["Статус зелений"] !== undefined && map["Статус зелений"]) RATING_META.green.label = map["Статус зелений"];
+    if (map["Статус жовтий"] !== undefined && map["Статус жовтий"]) RATING_META.yellow.label = map["Статус жовтий"];
+    if (map["Статус червоний"] !== undefined && map["Статус червоний"]) RATING_META.red.label = map["Статус червоний"];
   } catch(e) { console.error("settings parse error", e); }
 }
 
@@ -2934,12 +2942,22 @@ function renderOrdersList() {
     const total = orderTotal(num);
     const paid = isOrderPaid(num);
     const payBadge = total > 0 ? "<span class='olr-pay-badge" + (paid ? " paid" : " unpaid") + "'>" + (paid ? "Оплачено" : "Не оплачено") + "</span>" : "";
+    const st0 = getStatus(num);
+    let notifyBadge = "";
+    if (st0 === "ready" || st0 === "issued") {
+      const orderItems = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+      const allNotified = orderItems.length > 0 && orderItems.every(i => gv(i,"Сповіщено"));
+      notifyBadge = allNotified
+        ? "<span class='olr-notify-ico ok' title='Клієнта сповіщено'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6L9 17l-5-5'/></svg></span>"
+        : "<span class='olr-notify-ico warn' title='Клієнта ще не сповіщено'>⚠ Сповістити</span>";
+    }
     return "<div class='olr" + (warn ? " urgent-soon" : "") + (imp ? " important" : "") + "' data-num=\"" + num + "\" onclick=\"openOrder('" + num + "')\" oncontextmenu=\"toggleImportant('" + num + "',event);return false\">" +
       "<div class='olr-1'>" +
         "<span class='olr-num'>" + num + "</span>" +
         "<span class='olr-item'>" + orderItemName(num) + "</span>" +
         "<span class='olr-badge'>" + statusBadge(num) + "</span>" +
         payBadge +
+        notifyBadge +
         "<button class='ocard-flag" + (imp?" on":"") + "' onclick=\"toggleImportant('" + num + "',event)\" aria-label='Важливо'>" + flagSvg + "</button>" +
       "</div>" +
       "<div class='olr-2'>" +
@@ -3874,6 +3892,17 @@ function renderParamsEditor() {
       "<button class='cr-create-btn' onclick='savePlanning()'>Зберегти</button>" +
     "</div>" +
     "<div class='stat-panel' style='max-width:560px'>" +
+      "<div class='stat-panel-label'>Назви статусів клієнта</div>" +
+      "<div class='param-hint' style='margin-bottom:10px'>Змінюють підпис усюди в CRM — і в картці клієнта, і в замовленнях.</div>" +
+      "<div class='param-row'><div><div class='param-name'>🟢 Статус</div></div>" +
+        "<input class='cr-input param-input' id='set-status-green' value=\"" + esc(RATING_META.green.label) + "\"></div>" +
+      "<div class='param-row'><div><div class='param-name'>🟡 Статус</div></div>" +
+        "<input class='cr-input param-input' id='set-status-yellow' value=\"" + esc(RATING_META.yellow.label) + "\"></div>" +
+      "<div class='param-row'><div><div class='param-name'>🔴 Статус</div></div>" +
+        "<input class='cr-input param-input' id='set-status-red' value=\"" + esc(RATING_META.red.label) + "\"></div>" +
+      "<button class='cr-create-btn' onclick='saveStatusLabels()'>Зберегти</button>" +
+    "</div>" +
+    "<div class='stat-panel' style='max-width:560px'>" +
       "<div class='stat-panel-label'>Приймальники</div>" +
       "<div class='param-hint' style='margin-bottom:10px'>Список береться з листа «Партнери» у таблиці. Щоб додати або прибрати людину — відредагуй той лист.</div>" +
       "<div class='cr-pills'>" + PARTNERS.map(p => "<span class='cr-pill' style='cursor:default'>" + p + "</span>").join("") + "</div>" +
@@ -3926,6 +3955,18 @@ async function savePlanning() {
   DAILY_CAP = cap;
   const ok = await priceApi("/settings/update", { items: { "Норма на день": cap } });
   toast(ok ? "Норму збережено" : "Не вдалося зберегти");
+}
+async function saveStatusLabels() {
+  const green = document.getElementById("set-status-green").value.trim();
+  const yellow = document.getElementById("set-status-yellow").value.trim();
+  const red = document.getElementById("set-status-red").value.trim();
+  if (!green || !yellow || !red) { toast("Усі три назви обов'язкові"); return; }
+  RATING_META.green.label = green;
+  RATING_META.yellow.label = yellow;
+  RATING_META.red.label = red;
+  const ok = await priceApi("/settings/update", { items: { "Статус зелений": green, "Статус жовтий": yellow, "Статус червоний": red } });
+  toast(ok ? "Назви статусів збережено" : "Не вдалося зберегти");
+  if (renderers[currentPage]) renderers[currentPage]();
 }
 // Модуль пошиву винесено у js/tailor.js (підключено наприкінці)
 
@@ -4502,7 +4543,7 @@ function openOrder(num) {
   const bonusTeaser = "<div class='d-bonus-inline admin-only' onclick=\"openBonusModal('" + num + "')\">Бали клієнта: <b>" + teaserBalance.toLocaleString("uk-UA") + "</b>" + (teaserAccrued ? " · за це замовлення +" + teaserAccrued.toLocaleString("uk-UA") : "") + "</div>";
 
   const clientBlock =
-    "<div class='dblock'><div class='dblock-label'>Клієнт · <span class='rating-pick' onclick=\"openRatingPick('" + phone.replace(/'/g,"") + "')\">" + rating.label + " " + rating.dot + (rating.debt ? " " + rating.debt.toLocaleString("uk-UA") + " ₴" : "") + (rating.manual ? " ✎" : "") + "</span></div>" +
+    "<div class='dblock'><div class='dblock-label'>Клієнт · <span class='rating-fixed'>" + rating.label + " " + rating.dot + (rating.debt ? " " + rating.debt.toLocaleString("uk-UA") + " ₴" : "") + "</span></div>" +
     "<div class='d-client-head'>" +
       "<div><div class='d-client-name'><span>" + name + "</span></div>" +
       "<div class='d-client-sub'>" + msgIcoHTML + phone + "</div></div>" +
@@ -4758,9 +4799,11 @@ async function confirmIssueWholeOrder(num, master) {
   for (let idx = 0; idx < its.length; idx++) {
     const it = its[idx];
     if (gv(it,"Статус") === "📦 Виданий") continue;
+    const wasNotified = !!gv(it,"Сповіщено");
     it["Статус"] = "📦 Виданий";
     it["Хто видав"] = master;
     it["Дата видачі"] = nowVal;
+    if (!wasNotified) it["Сповіщено"] = nowVal;
     openOrder(num);
     const itemNum = gv(it,"Номер виробу") || (num + "-" + (idx+1));
     try {
@@ -4768,6 +4811,12 @@ async function confirmIssueWholeOrder(num, master) {
         method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
         body: JSON.stringify({ item_num: itemNum, status: "📦 Виданий", master: master })
       });
+      if (!wasNotified) {
+        await fetch(API_URL.replace("/order","/notify"), {
+          method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ item_num: itemNum, notified: true })
+        });
+      }
     } catch(e) { console.error("bulk issue failed", e); }
   }
 }
@@ -4876,6 +4925,10 @@ async function assignMaster(num, itemIdx, action, master) {
   it["Статус"] = status;
   if (action === "work") { it["Майстер"] = master; it["Дата в роботі"] = nowVal; }
   else { it["Хто видав"] = master; it["Дата видачі"] = nowVal; }
+  // Видача без попереднього сповіщення — закриваємо "хвіст": клієнт і так забрав річ,
+  // нема сенсу далі показувати "не сповіщено" по факту вже виданого замовлення.
+  const wasNotified = action === "issue" ? !!gv(it,"Сповіщено") : true;
+  if (action === "issue" && !wasNotified) it["Сповіщено"] = nowVal;
   closeSettle();
   openOrder(num);
   const itemNum = gv(it,"Номер виробу") || (num + "-" + (itemIdx+1));
@@ -4884,6 +4937,12 @@ async function assignMaster(num, itemIdx, action, master) {
       method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
       body: JSON.stringify({ item_num: itemNum, status: status, master: master })
     });
+    if (action === "issue" && !wasNotified) {
+      await fetch(API_URL.replace("/order","/notify"), {
+        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ item_num: itemNum, notified: true })
+      });
+    }
   } catch(e) { console.error("assign master failed", e); }
 }
 
@@ -4892,6 +4951,8 @@ async function setItemStatus(num, itemIdx, statusIdx) {
   const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
   const it = its[itemIdx];
   if (!it) return;
+  const curIdx = itemStatusIndex(gv(it,"Статус"));
+  if (statusIdx < curIdx && !isAdmin()) { toast("Скасувати статус може лише адміністратор"); return; }
   const newStatus = ITEM_STATUSES[statusIdx][0];
   it["Статус"] = newStatus; // оптимістично оновлюємо локально
   openOrder(num); // перемалювати одразу
@@ -4909,6 +4970,7 @@ async function toggleNotified(itemNum, itemIdx, ev) {
   const it = ITEMS.find(i => gv(i,"Номер виробу") === itemNum);
   if (!it) return;
   const currently = !!gv(it,"Сповіщено");
+  if (currently && !isAdmin()) { toast("Зняти позначку сповіщення може лише адміністратор"); return; }
   const nowVal = currently ? "" : new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
   it["Сповіщено"] = nowVal;
   if (detailOrderNum) openOrder(detailOrderNum);
@@ -4921,6 +4983,7 @@ async function toggleNotified(itemNum, itemIdx, ev) {
 }
 
 async function markAllNotified(num, notified) {
+  if (!notified && !isAdmin()) { toast("Зняти позначку сповіщення може лише адміністратор"); return; }
   const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
   const nowVal = notified ? new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"}) : "";
   its.forEach(it => it["Сповіщено"] = nowVal);
