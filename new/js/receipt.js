@@ -19,7 +19,7 @@ function computePayStatus(total, paymentStr, prepayAmt, settleAmt) {
 function payBlockHTML(total, status) {
   if (total <= 0) return "";
   if (status.isPaid) {
-    return "<div class='r-payblock'><div class='r-payrow'><span class='pr-label'>Оплачено</span><span class='pr-value'>" + total.toLocaleString("uk-UA") + " ₴</span></div></div>";
+    return "<div class='r-payblock'><div class='r-payrow'><span class='pr-label'>Сплачено</span><span class='pr-value'>" + total.toLocaleString("uk-UA") + " ₴</span></div></div>";
   }
   if (status.isPrepay && status.prepayAmt) {
     return "<div class='r-payblock'>" +
