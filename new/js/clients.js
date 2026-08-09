@@ -53,18 +53,64 @@ renderers.clients = function() {
 };
 
 /* ═══════════════ МІНІ-КАРТКА КЛІЄНТА ═══════════════
-   Відкрита картка — лише перегляд (ім'я, телефон, статус, месенджер,
-   кількість замовлень, історія). Редагування — окремий режим,
-   доступний тільки адміну через кнопку «Редагувати». */
+   Двоколонковий вигляд у стилі чека: ліворуч дані клієнта (з місцем
+   під майбутні поля — день народження, адреса), праворуч — історія
+   замовлень рядками як у списку (номер / виріб+кількість / сума),
+   перші 4 з розгортанням решти. Редагування — окремий режим (кнопка,
+   лише адмін). */
+let _ccExpanded = false;
+/* Розбиває "Ім'я клієнта" на перше слово (ім'я) + решту (прізвище/позначення,
+   напр. "Анна Адвокат", "Юлія Магазин взуття") — окремого поля в таблиці немає,
+   тому ділимо за першим пробілом. */
+function splitClientName(fullName) {
+  const parts = (fullName || "").trim().split(/\s+/);
+  if (parts.length <= 1) return { first: fullName || "—", rest: "" };
+  return { first: parts[0], rest: parts.slice(1).join(" ") };
+}
 function openClientCard(phone) {
+  _ccExpanded = false;
+  renderClientCardView(phone);
+}
+function toggleClientHistExpand(phone) {
+  _ccExpanded = !_ccExpanded;
+  renderClientCardView(phone);
+}
+function renderClientCardView(phone) {
   const c = _clientsCache.find(x => x.phone === phone);
   const name = c ? (c.name || "—") : "—";
+  const nameParts = splitClientName(name);
   const r = clientRating(phone);
   const balance = clientBonusBalance(phone);
   const count = c ? c.count : 0;
   const sum = c ? c.sum : 0;
   const msg = clientMessenger(phone);
   const admin = isAdmin();
+  // Майбутні поля — поки немає відповідних колонок у таблиці, тому порожні
+  const birthday = "";
+  const address = "";
+
+  const orders = ORDERS.filter(o => gv(o,"Телефон") === phone && !isOrderDeleted(o));
+  const sorted = [...orders].sort((a,b) => {
+    const da = orderDate(a), db = orderDate(b);
+    if (da && db) return db - da;
+    if (da) return -1;
+    if (db) return 1;
+    return 0;
+  });
+  const VISIBLE = 4;
+  const shown = _ccExpanded ? sorted : sorted.slice(0, VISIBLE);
+  const histRows = shown.map(o => {
+    const num = gv(o,"Номер замовлення");
+    const total = orderTotal(num);
+    const cnt = ITEMS.filter(i => gv(i,"Номер замовлення") === num).length;
+    return "<div class='cc-hist-row' onclick=\"closeClientCard();openOrder('" + num + "')\">" +
+      "<div class='cc-hist-top'><span class='cc-hist-num'>" + num + "</span><span class='cc-hist-sum'>" + total.toLocaleString("uk-UA") + " ₴</span></div>" +
+      "<div class='cc-hist-item'>" + orderItemName(num) + (cnt ? "<span class='olr-count'> · " + cnt + " " + pluralUk(cnt,"річ","речі","речей") + "</span>" : "") + "</div>" +
+    "</div>";
+  }).join("");
+  const moreBtn = sorted.length > VISIBLE
+    ? "<button class='cc-more-btn' onclick=\"toggleClientHistExpand('" + phone.replace(/'/g,"") + "')\">" + (_ccExpanded ? "Згорнути" : "Показати ще (" + (sorted.length - VISIBLE) + ")") + "</button>"
+    : "";
 
   let ov = document.getElementById("client-card-modal");
   if (!ov) {
@@ -73,18 +119,32 @@ function openClientCard(phone) {
     ov.className = "odm-bg";
     document.body.appendChild(ov);
   }
-  ov.innerHTML = "<div class='odm' id='client-card-odm' style='width:380px'>" +
+  ov.innerHTML = "<div class='odm' id='client-card-odm' style='width:520px'>" +
     "<div class='odm-close' onclick='closeClientCard()'>×</div>" +
     "<div class='odm-scroll'>" +
-      "<div class='detail-top'><span class='detail-title' style='font-size:16px'>" + name + "</span></div>" +
-      "<div class='d-pay-row'><span class='pl'>Телефон</span><span class='pv'>" + phone + "</span></div>" +
-      "<div class='d-pay-row'><span class='pl'>Месенджер</span><span class='pv'>" + (msg ? MSG_LABELS[msg] : "—") + "</span></div>" +
-      "<div class='d-pay-row'><span class='pl'>Статус</span><span class='pv'>" + r.label + " " + r.dot + "</span></div>" +
-      "<div class='d-pay-row'><span class='pl'>Замовлень</span><span class='pv'>" + count + "</span></div>" +
-      "<div class='d-pay-row'><span class='pl'>Загальна сума</span><span class='pv'>" + sum.toLocaleString("uk-UA") + " ₴</span></div>" +
-      "<div class='d-pay-total'><span class='pl'>Баланс бонусів</span><span class='pv' style='color:var(--cognac)'>" + balance.toLocaleString("uk-UA") + " балів</span></div>" +
-      "<button class='d-settle-btn' style='margin-top:14px' onclick=\"closeClientCard();openClientHistory('" + phone.replace(/'/g,"") + "',null)\">Історія замовлень</button>" +
-      (admin ? "<button class='detail-edit' style='width:100%;text-align:center;padding:11px;margin-top:8px' onclick=\"openClientEdit('" + phone.replace(/'/g,"") + "')\">Редагувати</button>" : "") +
+      "<div class='cc-head'><div class='cc-name'>" + nameParts.first + "</div>" +
+      (nameParts.rest ? "<div class='cc-name-tag'>" + nameParts.rest + "</div>" : "") +
+      "<div class='cc-substatus'>" + r.label + " " + r.dot + "</div></div>" +
+      "<div class='cc-grid'>" +
+        "<div>" +
+          "<div class='cc-col-label'>Клієнт</div>" +
+          "<div class='cc-field-label'>Телефон</div><div class='cc-field-value'>" + phone + "</div>" +
+          "<div class='cc-field-label'>Месенджер</div><div class='cc-field-value'>" + (msg ? MSG_LABELS[msg] : "—") + "</div>" +
+          (birthday ? "<div class='cc-field-label'>День народження</div><div class='cc-field-value'>" + birthday + "</div>" : "") +
+          (address ? "<div class='cc-field-label'>Адреса (пошта)</div><div class='cc-field-value'>" + address + "</div>" : "") +
+          "<div class='cc-stats-2col'>" +
+            "<div><div class='cc-field-label'>Замовлень</div><div class='cc-field-value'>" + count + "</div></div>" +
+            "<div><div class='cc-field-label'>Сума</div><div class='cc-field-value'>" + sum.toLocaleString("uk-UA") + " ₴</div></div>" +
+          "</div>" +
+          "<div class='cc-field-label'>Баланс бонусів</div><div class='cc-bonus-value'>" + balance.toLocaleString("uk-UA") + " балів</div>" +
+        "</div>" +
+        "<div>" +
+          "<div class='cc-col-label'>Історія замовлень</div>" +
+          "<div class='cc-hist-list'>" + (histRows || "<div class='orders-empty' style='padding:16px 0'>Немає замовлень</div>") + "</div>" +
+          moreBtn +
+        "</div>" +
+      "</div>" +
+      (admin ? "<button class='detail-edit' style='width:100%;text-align:center;padding:11px;margin-top:18px' onclick=\"openClientEdit('" + phone.replace(/'/g,"") + "')\">Редагувати</button>" : "") +
     "</div></div>";
   ov.classList.add("open");
 }
