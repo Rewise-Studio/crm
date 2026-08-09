@@ -695,28 +695,25 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .orders-scroll { overflow-x: visible; }
 .orders-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .olcol { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-.olr { position: relative; padding: 10px 14px; border-bottom: 1px solid var(--line-soft); cursor: pointer; transition: background 0.12s; }
+.olr { position: relative; padding: 12px 15px; border-bottom: 1px solid var(--line-soft); cursor: pointer; transition: background 0.12s; }
 .olr:last-child { border-bottom: none; }
 .olr:hover { background: var(--hover); }
 .olr.important { box-shadow: inset 3px 0 0 #C0392B; }
 .olr.urgent-soon { box-shadow: inset 3px 0 0 var(--st-postponed-fg); }
-.olr-1 { display: flex; align-items: center; gap: 9px; }
+.olr-1 { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
 .olr-num { font-weight: 500; color: var(--leather); font-size: 13px; white-space: nowrap; flex-shrink: 0; }
-.olr-item { flex: 1; min-width: 0; font-size: 13px; color: var(--txt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.olr-1-spacer { flex: 1; }
+.attn-ico { flex-shrink: 0; width: 19px; height: 19px; border-radius: 6px; background: rgba(226,75,74,0.12); color: #E24B4A; display: flex; align-items: center; justify-content: center; }
+.attn-ico svg { width: 11px; height: 11px; }
 .olr-badge { flex-shrink: 0; }
-.olr-pay-badge { flex-shrink: 0; font-size: 9.5px; padding: 3px 8px; border-radius: 10px; font-weight: 500; }
-.olr-pay-badge.paid { background: rgba(47,169,140,0.14); color: #2FA98C; }
-.olr-pay-badge.unpaid { background: rgba(226,75,74,0.12); color: #E24B4A; }
-.olr-notify-ico { flex-shrink: 0; display: inline-flex; align-items: center; }
-.olr-notify-ico.ok { width: 17px; height: 17px; border-radius: 5px; background: #2FA98C; color: #fff; justify-content: center; }
-.olr-notify-ico.ok svg { width: 10px; height: 10px; }
-.olr-notify-ico.warn { font-size: 10px; color: #E24B4A; font-weight: 500; white-space: nowrap; }
-.olr-2 { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 4px; }
-.olr-client { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.olr-client .nm { font-weight: 500; color: var(--txt); font-size: 14px; }
-.olr-client .ph { color: var(--txt-2); font-size: 12px; }
+.olr-2 { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 5px; }
+.olr-who { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.olr-who .nm { font-weight: 500; color: var(--txt); }
+.olr-who .ph { color: var(--txt-2); font-size: 12px; margin-left: 6px; }
+.olr-3 { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 12px; }
+.olr-item { flex: 1; min-width: 0; color: var(--txt-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .olr-mt { color: var(--txt-2); font-size: 12px; white-space: nowrap; flex-shrink: 0; }
-.olr-mt.warn { color: var(--st-postponed-fg); }
+.olr-3.warn .olr-mt { color: var(--st-postponed-fg); }
 @media (orientation: portrait), (max-width: 720px) { .orders-2col { grid-template-columns: 1fr; } }
 .oc-name { font-size: 14px; color: var(--txt); }
 .oc-sub { font-size: 11px; color: var(--txt-3); margin-top: 3px; }
@@ -2850,12 +2847,13 @@ renderers.orders = function() {
   const page = document.getElementById("page-orders");
 
   const periodOrders = ordersInPeriod(periodSel.orders);
-  const counts = { all: periodOrders.length, new:0, work:0, ready:0, issued:0 };
+  const counts = { all: 0, new:0, work:0, ready:0, issued:0 };
   periodOrders.forEach(o => {
     const st = getStatus(gv(o,"Номер замовлення"));
     if (counts[st] !== undefined) counts[st]++;
   });
   const activeCount = periodOrders.filter(o => getStatus(gv(o,"Номер замовлення")) !== "issued").length;
+  counts.all = activeCount;
   const periodNums = new Set(periodOrders.map(o => gv(o,"Номер замовлення")));
   const itemsInWork = ITEMS.filter(i => periodNums.has(gv(i,"Номер замовлення")) && gv(i,"Статус") === "⚙️ В роботі").length;
 
@@ -2917,7 +2915,7 @@ function renderOrdersList() {
   const q = ordersSearch.trim().toLowerCase();
   const filtered = ordersInPeriod(periodSel.orders).filter(o => {
     const num = gv(o,"Номер замовлення");
-    const stOk = ordersFilter.size === 0 || ordersFilter.has(getStatus(num));
+    const stOk = ordersFilter.size === 0 ? getStatus(num) !== "issued" : ordersFilter.has(getStatus(num));
     const payOk = ordersPayFilter === "all" ||
       (ordersPayFilter === "paid" ? isOrderPaid(num) : !isOrderPaid(num));
     const qOk = !q ||
@@ -2941,28 +2939,30 @@ function renderOrdersList() {
     const master = orderMaster(num);
     const total = orderTotal(num);
     const paid = isOrderPaid(num);
-    const payBadge = total > 0 ? "<span class='olr-pay-badge" + (paid ? " paid" : " unpaid") + "'>" + (paid ? "Оплачено" : "Не оплачено") + "</span>" : "";
     const st0 = getStatus(num);
-    let notifyBadge = "";
-    if (st0 === "ready" || st0 === "issued") {
+    let needsAttn = total > 0 && !paid;
+    if (!needsAttn && (st0 === "ready" || st0 === "issued")) {
       const orderItems = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
       const allNotified = orderItems.length > 0 && orderItems.every(i => gv(i,"Сповіщено"));
-      notifyBadge = allNotified
-        ? "<span class='olr-notify-ico ok' title='Клієнта сповіщено'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6L9 17l-5-5'/></svg></span>"
-        : "<span class='olr-notify-ico warn' title='Клієнта ще не сповіщено'>⚠ Сповістити</span>";
+      if (!allNotified) needsAttn = true;
     }
+    const attnIco = needsAttn
+      ? "<span class='attn-ico' title='Потрібна увага — відкрий картку'><svg viewBox='0 0 24 24' fill='currentColor'><path d='M12 2L1 21h22L12 2z'/><path d='M12 9v5M12 17h.01' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg></span>"
+      : "";
     return "<div class='olr" + (warn ? " urgent-soon" : "") + (imp ? " important" : "") + "' data-num=\"" + num + "\" onclick=\"openOrder('" + num + "')\" oncontextmenu=\"toggleImportant('" + num + "',event);return false\">" +
       "<div class='olr-1'>" +
         "<span class='olr-num'>" + num + "</span>" +
-        "<span class='olr-item'>" + orderItemName(num) + "</span>" +
-        "<span class='olr-badge'>" + statusBadge(num) + "</span>" +
-        payBadge +
-        notifyBadge +
+        "<div class='olr-1-spacer'></div>" +
+        attnIco +
         "<button class='ocard-flag" + (imp?" on":"") + "' onclick=\"toggleImportant('" + num + "',event)\" aria-label='Важливо'>" + flagSvg + "</button>" +
       "</div>" +
       "<div class='olr-2'>" +
-        "<span class='olr-client'><span class='nm'>" + (gv(o,"Ім'я клієнта") || "—") + "</span> <span class='ph'>" + gv(o,"Телефон") + "</span></span>" +
-        "<span class='olr-mt" + (warn ? " warn" : "") + "'>" + (master ? master + " · " : "") + term + "</span>" +
+        "<span class='olr-who'><span class='nm'>" + (gv(o,"Ім'я клієнта") || "—") + "</span><span class='ph'>" + gv(o,"Телефон") + "</span></span>" +
+        "<span class='olr-badge'>" + statusBadge(num) + "</span>" +
+      "</div>" +
+      "<div class='olr-3" + (warn ? " warn" : "") + "'>" +
+        "<span class='olr-item'>" + orderItemName(num) + "</span>" +
+        "<span class='olr-mt'>" + (master ? master + " · " : "") + term + "</span>" +
       "</div>" +
     "</div>";
   };
