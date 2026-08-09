@@ -1728,7 +1728,7 @@ async function loadData() {
       fetch(base + encodeURIComponent("Кольори")).catch(() => null)
     ]);
     ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер","Спосіб передоплати","Сума доплати","Спосіб доплати","Сповіщено","Нараховано бонусів","Списано бонусів","Рейтинг вручну","Нотатка майстра","День народження","Пошта"]);
-    ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено","Майстер","Хто видав","Колір","Матеріал","Стан","Доставка","Коментар","Хто сповістив"]);
+    ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено","Майстер","Хто видав","Колір","Матеріал","Стан","Доставка","Коментар","Хто сповістив","Хто відмітив готовність"]);
     PARTNERS = await parsePartners(r3);
     if (!PARTNERS.length) PARTNERS = ["Сергій"];
     if (r4) { try { TASKS = await parseTasks(r4); } catch(e) { TASKS = []; } }
@@ -4732,13 +4732,14 @@ function openOrder(num) {
     const itemTotal = extractAmt(gv(it,"Сума"));
     total += itemTotal;
     const curIdx = itemStatusIndex(gv(it,"Статус"));
+    const foldReady = curIdx === 1; // «В роботі» → наступний крок «Готово» теж стає кнопкою (фіксуємо, хто відмітив)
     const foldIssue = curIdx === 2; // «Готово» → останній крок рейки сам стає кнопкою «Видати»
     let statusRailV = "<div class='d-rail-v'>";
     ITEM_STATUSES.forEach((s, si) => {
       const done = si < curIdx, active = si === curIdx;
-      const isFoldedAction = si === 3 && foldIssue;
+      const isFoldedAction = (si === 2 && foldReady) || (si === 3 && foldIssue);
       const dot = isFoldedAction
-        ? "<div class='d-rail-v-action' onclick=\"openMasterPick('" + num + "'," + idx + ",'issue')\">Видати</div>"
+        ? "<div class='d-rail-v-action' onclick=\"openMasterPick('" + num + "'," + idx + ",'" + (si===2?"ready":"issue") + "')\">" + (si===2?"Готово":"Видати") + "</div>"
         : "<div class='d-rail-v-dot" + (done?" done":"") + (active?" active":"") + "' onclick=\"setItemStatus('" + num + "'," + idx + "," + si + ")\">" + (done ? "✓" : (si+1)) + "</div>";
       statusRailV += "<div class='d-rail-v-step'>" + dot + "<div class='d-rail-v-lbl" + ((active||isFoldedAction)?" active":"") + "'>" + s[1] + "</div></div>";
       if (si < ITEM_STATUSES.length - 1) statusRailV += "<div class='d-rail-v-line" + (si < curIdx ? " done" : "") + "'></div>";
@@ -4755,6 +4756,8 @@ function openOrder(num) {
       (notified ? "Сповіщено " + notified + (notifiedBy ? " · " + notifiedBy : "") : "Позначити, що сповіщено") + "</label>";
 
     const master = gv(it,"Майстер");
+    const readyBy = gv(it,"Хто відмітив готовність");
+    const dReady = gv(it,"Дата готово");
     const issuedBy = gv(it,"Хто видав");
     const dWork = gv(it,"Дата в роботі");
     const dIssue = gv(it,"Дата видачі");
@@ -4764,6 +4767,7 @@ function openOrder(num) {
 
     let historyHTML = "";
     if (master || dWork) historyHTML += "<div class='d-hist-label'>Прийняв в роботу</div><div class='d-hist-value'>" + (master || "—") + (dWork ? " · " + dWork : "") + "</div>";
+    if (readyBy || dReady) historyHTML += "<div class='d-hist-label'>Готово відмітив</div><div class='d-hist-value'>" + (readyBy || "—") + (dReady ? " · " + dReady : "") + "</div>";
     if (notified) historyHTML += "<div class='d-hist-label'>Сповістив</div><div class='d-hist-value'>" + (notifiedBy || "—") + " · " + notified + "</div>";
     if (issuedBy || dIssue) historyHTML += "<div class='d-hist-label'>Видав</div><div class='d-hist-value'>" + (issuedBy || "—") + (dIssue ? " · " + dIssue : "") + "</div>";
     if (!historyHTML) historyHTML = "<div class='d-hist-empty'>Ще не почато</div>";
@@ -5077,7 +5081,7 @@ function clientRating(phone) {
 /* ─── Виконавці: прийняти в роботу / видати з вибором майстра ─── */
 function openMasterPick(num, itemIdx, action) {
   const body = document.getElementById("odm-body");
-  const title = action === "work" ? "Хто приймає в роботу?" : "Хто видає?";
+  const title = action === "work" ? "Хто приймає в роботу?" : action === "ready" ? "Хто відмітив готовність?" : "Хто видає?";
   const names = masterNames();
   const opts = names.length
     ? names.map(m => "<button class='rating-opt' onclick=\"assignMaster('" + num + "'," + itemIdx + ",'" + action + "','" + m.replace(/'/g,"\\'") + "')\">" + m + "</button>").join("")
@@ -5097,9 +5101,10 @@ async function assignMaster(num, itemIdx, action, master) {
   const it = its[itemIdx];
   if (!it) return;
   const nowVal = new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit",year:"numeric"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
-  const status = action === "work" ? "⚙️ В роботі" : "📦 Виданий";
+  const status = action === "work" ? "⚙️ В роботі" : action === "ready" ? "✅ Готово" : "📦 Виданий";
   it["Статус"] = status;
   if (action === "work") { it["Майстер"] = master; it["Дата в роботі"] = nowVal; }
+  else if (action === "ready") { it["Хто відмітив готовність"] = master; it["Дата готово"] = nowVal; }
   else { it["Хто видав"] = master; it["Дата видачі"] = nowVal; }
   // Видача без попереднього сповіщення — закриваємо "хвіст": клієнт і так забрав річ,
   // нема сенсу далі показувати "не сповіщено" по факту вже виданого замовлення.
