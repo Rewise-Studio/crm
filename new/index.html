@@ -101,9 +101,10 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: calc(22px + env(safe-area-inset-top)) 0 16px;
+  padding: calc(22px + env(safe-area-inset-top)) 0 calc(16px + env(safe-area-inset-bottom));
   gap: 3px;
   height: 100vh;
+  height: 100dvh;
   position: sticky;
   top: 0;
   flex-shrink: 0;
@@ -588,10 +589,12 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .pay-status-row .pv.due { color: var(--cognac); font-weight: 600; }
 
 .d-issue-mini { flex-shrink: 0; background: var(--cognac); border: none; border-radius: 7px; color: #fff; font-family: 'Commissioner', sans-serif; font-size: 11px; padding: 7px 12px; cursor: pointer; white-space: nowrap; }
-.d-work-mini { flex-shrink: 0; background: transparent; border: 1px solid var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 11px; padding: 7px 12px; cursor: pointer; white-space: nowrap; }
+.d-work-mini { flex-shrink: 0; background: transparent; border: 1px solid var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 11px; padding: 7px 12px; cursor: pointer; white-space: nowrap; margin-top: 8px; }
 .status-row { display: flex; align-items: center; gap: 12px; margin: 8px 0 4px; }
-.issue-order-btn { width: 100%; background: var(--cognac); border: none; border-radius: 8px; color: #fff; font-family: 'Commissioner', sans-serif; font-size: 12.5px; padding: 13px; cursor: pointer; }
+.issue-order-btn { width: 100%; background: var(--cognac); border: none; border-radius: 8px; color: #fff; font-family: 'Commissioner', sans-serif; font-size: 12.5px; padding: 12px; cursor: pointer; }
 .issue-order-btn:disabled { background: var(--st-issued-bg); color: var(--txt-3); cursor: not-allowed; }
+.d-btn-secondary { width: 100%; background: var(--surface); border: 1px solid var(--cognac-border); border-radius: 8px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 12.5px; padding: 12px; cursor: pointer; margin-top: 0; }
+.d-btn-secondary:hover { background: var(--accent-soft); }
 
 #rw-toast {
   position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
@@ -608,17 +611,32 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 
 .d-item { padding: 14px 0; border-bottom: 1px solid var(--line); }
 .d-item:last-child { border-bottom: none; padding-bottom: 2px; }
-.d-item-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 5px; }
-.d-item-head > div:first-child { flex: 1; min-width: 0; }
+.d-item-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; flex-wrap: wrap; }
 .d-item-name { font-size: 14px; color: var(--txt); }
 .d-item-num { font-family: 'Tenor Sans', serif; font-size: 10px; color: var(--cognac); letter-spacing: 0.12em; }
-.d-item-price { font-size: 14px; color: var(--txt); white-space: nowrap; flex-shrink: 0; margin-left: 10px; }
+.d-item-price { font-size: 13px; color: var(--txt); white-space: nowrap; margin-left: 2px; }
 .d-item-detail { font-size: 12px; color: var(--txt-3); margin-bottom: 4px; }
 .d-item-svc { font-size: 12px; color: var(--txt-2); margin-bottom: 11px; }
 .d-notify-check { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 12px; color: var(--txt-2); cursor: pointer; user-select: none; }
 .d-check { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--cognac-border); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; transition: all 0.15s; }
 .d-check.on { background: #2FA98C; border-color: #2FA98C; }
 .d-notify-check:hover .d-check { border-color: var(--cognac); }
+
+/* Виріб: вертикальна рейка статусу (ліворуч) + компактна історія (праворуч) */
+.d-item-2col { display: grid; grid-template-columns: 1fr 132px; gap: 16px; align-items: start; }
+.d-rail-v { display: flex; align-items: center; }
+.d-rail-v-step { display: flex; flex-direction: column; align-items: center; flex: 1; }
+.d-rail-v-dot { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; border: 1.5px solid var(--line); color: var(--txt-3); cursor: pointer; background: var(--surface); }
+.d-rail-v-dot.done { background: var(--cognac); color: #fff; border-color: var(--cognac); }
+.d-rail-v-dot.active { border-color: var(--cognac); color: var(--cognac); }
+.d-rail-v-lbl { font-size: 8.5px; color: var(--txt-3); margin-top: 3px; text-align: center; }
+.d-rail-v-lbl.active { color: var(--txt); font-weight: 500; }
+.d-rail-v-line { height: 1px; background: var(--line); flex: 1; margin-bottom: 17px; }
+.d-rail-v-line.done { background: var(--cognac); }
+.d-rail-v-action { min-width: 38px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--cognac); color: #fff; font-size: 9.5px; font-weight: 500; display: flex; align-items: center; justify-content: center; white-space: nowrap; cursor: pointer; }
+.d-hist-label { font-size: 10px; color: var(--txt-3); }
+.d-hist-value { font-size: 11.5px; color: var(--txt); margin: 1px 0 8px; }
+.d-hist-empty { font-size: 10px; color: var(--txt-3); }
 
 .d-pay-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
 .d-pay-row .pl { color: var(--txt-2); }
@@ -637,10 +655,10 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .settle-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 5; border-radius: 14px; }
 .settle-card { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 22px; width: 340px; max-width: 90%; box-shadow: 0 16px 48px rgba(0,0,0,0.3); }
 
-.d-notify { display: flex; gap: 8px; flex-wrap: wrap; }
-.d-notify-btn { background: transparent; border: 1px solid var(--cognac-border); border-radius: 8px; padding: 9px 14px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
+.d-notify { display: flex; gap: 6px; flex-wrap: nowrap; }
+.d-notify-btn { flex: 1; min-width: 0; background: transparent; border: 1px solid var(--cognac-border); border-radius: 7px; padding: 8px 4px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 10.5px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; }
 .d-notify-btn:hover { background: var(--accent-soft); }
-.d-notify-btn svg { width: 14px; height: 14px; stroke-width: 1.8; }
+.d-notify-btn svg { width: 12px; height: 12px; stroke-width: 1.8; flex-shrink: 0; }
 
 /* ═══════════════ ВКЛАДКА ЗАМОВЛЕННЯ ═══════════════ */
 .filters {
@@ -795,14 +813,14 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .cc-stats-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 10px; padding-top: 8px; border-top: 1px solid var(--line-soft); }
 .cc-stats-2col .cc-field-value { margin-bottom: 0; }
 .cc-bonus-value { font-family: 'Tenor Sans', serif; font-size: 16px; color: var(--cognac); margin-top: 2px; }
-.cc-hist-list { display: flex; flex-direction: column; }
-.cc-hist-row { padding: 8px 0; border-bottom: 1px solid var(--line-soft); cursor: pointer; }
-.cc-hist-row:last-child { border-bottom: none; }
+.cc-hist-list { display: flex; flex-direction: column; gap: 8px; }
+.cc-hist-row { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; transition: border-color 0.15s; }
+.cc-hist-row:hover { border-color: var(--cognac-border); }
 .cc-hist-row:hover .cc-hist-num { color: var(--cognac); }
 .cc-hist-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 11.5px; }
 .cc-hist-num { font-family: 'Tenor Sans', serif; color: var(--txt-3); letter-spacing: .03em; transition: color 0.12s; }
 .cc-hist-sum { font-weight: 500; color: var(--txt); }
-.cc-hist-item { font-size: 12.5px; color: var(--txt); margin-top: 2px; }
+.cc-hist-item { font-size: 12.5px; color: var(--txt); margin-top: 3px; }
 .cc-more-btn { width: 100%; margin-top: 8px; background: none; border: 1px dashed var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 11.5px; padding: 8px; cursor: pointer; }
 
 /* ═══════════════ ВКЛАДКИ КЛІЄНТИ / ФІНАНСИ / СТАТИСТИКА ═══════════════ */
@@ -1274,6 +1292,7 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
   .grp-switch { padding: 14px 18px 0; }
   .filters { padding: 0 18px 12px; }
   .period-tabs { padding: 0 18px; }
+  .d-item-2col { grid-template-columns: 1fr; gap: 10px; }
   .order-row {
     grid-template-columns: 52px 1.4fr 1fr 82px;
     padding: 13px 18px;
@@ -1708,8 +1727,8 @@ async function loadData() {
       fetch(base + encodeURIComponent("Майстри")).catch(() => null),
       fetch(base + encodeURIComponent("Кольори")).catch(() => null)
     ]);
-    ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер","Спосіб передоплати","Сума доплати","Спосіб доплати","Сповіщено","Нараховано бонусів","Списано бонусів","Рейтинг вручну","Нотатка майстра"]);
-    ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено","Майстер","Хто видав","Колір","Матеріал","Стан","Доставка","Коментар"]);
+    ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер","Спосіб передоплати","Сума доплати","Спосіб доплати","Сповіщено","Нараховано бонусів","Списано бонусів","Рейтинг вручну","Нотатка майстра","День народження","Пошта"]);
+    ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено","Майстер","Хто видав","Колір","Матеріал","Стан","Доставка","Коментар","Хто сповістив"]);
     PARTNERS = await parsePartners(r3);
     if (!PARTNERS.length) PARTNERS = ["Сергій"];
     if (r4) { try { TASKS = await parseTasks(r4); } catch(e) { TASKS = []; } }
@@ -2338,6 +2357,18 @@ function clientMessenger(phone) {
   const orders = ORDERS.filter(o => gv(o,"Телефон") === phone && gv(o,"Месенджер"));
   if (!orders.length) return "";
   return gv(orders[orders.length - 1], "Месенджер");
+}
+/* Те саме для дня народження і пошти клієнта — поля пишуться так само,
+   як месенджер, в останнє замовлення цього телефону (колонки 19/20). */
+function clientBirthday(phone) {
+  const orders = ORDERS.filter(o => gv(o,"Телефон") === phone && gv(o,"День народження"));
+  if (!orders.length) return "";
+  return gv(orders[orders.length - 1], "День народження");
+}
+function clientMailAddress(phone) {
+  const orders = ORDERS.filter(o => gv(o,"Телефон") === phone && gv(o,"Пошта"));
+  if (!orders.length) return "";
+  return gv(orders[orders.length - 1], "Пошта");
 }
 
 /* Автопідстановка клієнта за історією замовлень */
@@ -4701,44 +4732,51 @@ function openOrder(num) {
     const itemTotal = extractAmt(gv(it,"Сума"));
     total += itemTotal;
     const curIdx = itemStatusIndex(gv(it,"Статус"));
-    let statusRail = "<div class='cr-rail d-status-rail'>";
+    const foldIssue = curIdx === 2; // «Готово» → останній крок рейки сам стає кнопкою «Видати»
+    let statusRailV = "<div class='d-rail-v'>";
     ITEM_STATUSES.forEach((s, si) => {
-      const done = si < curIdx, current = si === curIdx;
-      const cls = (current ? "active " : "") + (done ? "done" : "");
-      statusRail += "<div class='cr-rstep " + cls + "' onclick=\"setItemStatus('" + num + "'," + idx + "," + si + ")\">" +
-        "<div class='cr-rdot'>" + (done ? "✓" : (si+1)) + "</div><div class='cr-rlbl'>" + s[1] + "</div></div>";
-      if (si < ITEM_STATUSES.length - 1) statusRail += "<div class='cr-rline " + (si < curIdx ? "done" : "") + "'></div>";
+      const done = si < curIdx, active = si === curIdx;
+      const isFoldedAction = si === 3 && foldIssue;
+      const dot = isFoldedAction
+        ? "<div class='d-rail-v-action' onclick=\"openMasterPick('" + num + "'," + idx + ",'issue')\">Видати</div>"
+        : "<div class='d-rail-v-dot" + (done?" done":"") + (active?" active":"") + "' onclick=\"setItemStatus('" + num + "'," + idx + "," + si + ")\">" + (done ? "✓" : (si+1)) + "</div>";
+      statusRailV += "<div class='d-rail-v-step'>" + dot + "<div class='d-rail-v-lbl" + ((active||isFoldedAction)?" active":"") + "'>" + s[1] + "</div></div>";
+      if (si < ITEM_STATUSES.length - 1) statusRailV += "<div class='d-rail-v-line" + (si < curIdx ? " done" : "") + "'></div>";
     });
-    statusRail += "</div>";
+    statusRailV += "</div>";
 
     const iname = [gv(it,"Тип"), gv(it,"Бренд")].filter(Boolean).join(" · ") || "Виріб";
     const itemNum = gv(it,"Номер виробу") || (num + "-" + (idx+1));
     const notified = gv(it,"Сповіщено");
+    const notifiedBy = gv(it,"Хто сповістив");
     const itemNote = gv(it,"Коментар");
     const notifyCheck = "<label class='d-notify-check' onclick=\"toggleNotified('" + itemNum + "'," + idx + ",event)\">" +
       "<span class='d-check" + (notified ? " on" : "") + "'>" + (notified ? "✓" : "") + "</span>" +
-      (notified ? "Сповіщено " + notified : "Позначити, що сповіщено") + "</label>";
+      (notified ? "Сповіщено " + notified + (notifiedBy ? " · " + notifiedBy : "") : "Позначити, що сповіщено") + "</label>";
 
     const master = gv(it,"Майстер");
     const issuedBy = gv(it,"Хто видав");
     const dWork = gv(it,"Дата в роботі");
     const dIssue = gv(it,"Дата видачі");
     const issued = gv(it,"Статус") === "📦 Виданий";
-    const miniBtn = issued ? "" :
-      (master ? "<button class='d-issue-mini' onclick=\"openMasterPick('" + num + "'," + idx + ",'issue')\">Видати →</button>"
-              : "<button class='d-work-mini' onclick=\"openMasterPick('" + num + "'," + idx + ",'work')\">Прийняти</button>");
+    // «Видати» тепер вбудовано в останній крок рейки (коли foldIssue) — окрема кнопка лишається тільки для «Прийняти»
+    const miniBtn = (!issued && !master) ? "<button class='d-work-mini' onclick=\"openMasterPick('" + num + "'," + idx + ",'work')\">Прийняти</button>" : "";
 
-    let execHTML = "";
-    if (master || dWork) execHTML += "<div class='d-exec-row'><span class='pl'>Прийняв в роботу</span><span class='pv'>" + (master || "—") + (dWork ? " · " + dWork : "") + "</span></div>";
-    if (issuedBy || dIssue) execHTML += "<div class='d-exec-row'><span class='pl'>Видав</span><span class='pv'>" + (issuedBy || "—") + (dIssue ? " · " + dIssue : "") + "</span></div>";
+    let historyHTML = "";
+    if (master || dWork) historyHTML += "<div class='d-hist-label'>Прийняв в роботу</div><div class='d-hist-value'>" + (master || "—") + (dWork ? " · " + dWork : "") + "</div>";
+    if (notified) historyHTML += "<div class='d-hist-label'>Сповістив</div><div class='d-hist-value'>" + (notifiedBy || "—") + " · " + notified + "</div>";
+    if (issuedBy || dIssue) historyHTML += "<div class='d-hist-label'>Видав</div><div class='d-hist-value'>" + (issuedBy || "—") + (dIssue ? " · " + dIssue : "") + "</div>";
+    if (!historyHTML) historyHTML = "<div class='d-hist-empty'>Ще не почато</div>";
 
     return "<div class='d-item'>" +
-      "<div class='d-item-head'><div><span class='d-item-num'>№" + (idx+1) + "</span> <span class='d-item-name'>" + iname + "</span></div>" +
+      "<div class='d-item-head'><span class='d-item-num'>№" + (idx+1) + "</span><span class='d-item-name'>" + iname + "</span>" +
       "<span class='d-item-price'>" + (itemTotal ? itemTotal.toLocaleString("uk-UA") + " ₴" : "—") + "</span></div>" +
       "<div class='d-item-svc'>" + gv(it,"Послуги") + "</div>" +
       (itemNote ? "<div class='d-item-note'>Коментар: " + itemNote + "</div>" : "") +
-      "<div class='status-row'>" + statusRail + miniBtn + "</div>" +
-      execHTML +
+      "<div class='d-item-2col'>" +
+        "<div>" + statusRailV + miniBtn + "</div>" +
+        "<div>" + historyHTML + "</div>" +
+      "</div>" +
       notifyCheck +
       "</div>";
   }).join("");
@@ -4759,7 +4797,7 @@ function openOrder(num) {
 
   let payStatusRows;
   if (payStatus.isPaid) {
-    payStatusRows = "<div class='pay-status-row'><span class='pl'>Оплачено</span><span class='pv'>" + total.toLocaleString("uk-UA") + " ₴</span></div>";
+    payStatusRows = "<div class='pay-status-row'><span class='pl'>Сплачено</span><span class='pv'>" + total.toLocaleString("uk-UA") + " ₴</span></div>";
   } else if (payStatus.isPrepay) {
     payStatusRows = "<div class='pay-status-row'><span class='pl'>Передплата</span><span class='pv'>" + prepayAmt.toLocaleString("uk-UA") + " ₴" + (prepayMethod ? " · " + prepayMethod : "") + "</span></div>" +
       "<div class='pay-status-row'><span class='pl'>Залишок</span><span class='pv due'>" + toPay.toLocaleString("uk-UA") + " ₴</span></div>";
@@ -4794,7 +4832,7 @@ function openOrder(num) {
     itemsBlock +
     "<div class='detail-grid' style='margin-top:12px'>" +
       "<button class='issue-order-btn" + (allIssuedNow ? "" : "") + "' " + (allIssuedNow ? "disabled" : "onclick=\"issueWholeOrder('" + num + "')\"") + ">" + (allIssuedNow ? "Замовлення видано" : "Видати замовлення") + "</button>" +
-      "<button class='d-settle-btn' onclick=\"openReceiptModal('" + num + "')\">Переглянути чек</button>" +
+      "<button class='d-btn-secondary' onclick=\"openReceiptModal('" + num + "')\">Переглянути чек</button>" +
     "</div>" +
     "<div class='detail-grid' style='margin-top:12px;margin-bottom:0'>" +
       "<div class='dblock'><div class='dblock-label'>Сповістити клієнта</div>" +
@@ -4803,7 +4841,7 @@ function openOrder(num) {
         "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','remind')\">" + copyIcon() + "Нагадування</button>" +
         "<button class='d-notify-btn' onclick=\"copyNotify('" + num + "','accepted')\">" + copyIcon() + "Прийнято</button>" +
       "</div></div>" +
-      "<div class='dblock'><div class='dblock-label'>Замовлення</div>" +
+      "<div class='dblock'><div class='dblock-label'>Керування замовленням</div>" +
       "<div style='display:flex;gap:8px'>" +
         "<button class='detail-edit' style='flex:1;text-align:center;padding:11px' onclick=\"openEditOrder('" + num + "')\">Редагувати</button>" +
         "<button class='detail-edit admin-only' style='flex:1;text-align:center;padding:11px;color:#E24B4A;border-color:rgba(226,75,74,0.3)' onclick=\"openDeleteOrderConfirm('" + num + "')\">Видалити</button>" +
@@ -5108,33 +5146,92 @@ async function toggleNotified(itemNum, itemIdx, ev) {
   const it = ITEMS.find(i => gv(i,"Номер виробу") === itemNum);
   if (!it) return;
   const currently = !!gv(it,"Сповіщено");
-  if (currently && !isAdmin()) { toast("Зняти позначку сповіщення може лише адміністратор"); return; }
-  const nowVal = currently ? "" : new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
-  it["Сповіщено"] = nowVal;
+  if (currently) {
+    if (!isAdmin()) { toast("Зняти позначку сповіщення може лише адміністратор"); return; }
+    it["Сповіщено"] = ""; it["Хто сповістив"] = "";
+    if (detailOrderNum) openOrder(detailOrderNum);
+    try {
+      await fetch(API_URL.replace("/order","/notify"), {
+        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ item_num: itemNum, notified: false })
+      });
+    } catch(e) { console.error("notify unmark failed", e); }
+    return;
+  }
+  pickNotifier('item', itemNum);
+}
+async function confirmToggleNotified(itemNum, who) {
+  closeSettle();
+  const it = ITEMS.find(i => gv(i,"Номер виробу") === itemNum);
+  if (!it) return;
+  const nowVal = new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
+  it["Сповіщено"] = nowVal; it["Хто сповістив"] = who;
   if (detailOrderNum) openOrder(detailOrderNum);
   try {
     await fetch(API_URL.replace("/order","/notify"), {
       method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ item_num: itemNum, notified: !currently })
+      body: JSON.stringify({ item_num: itemNum, notified: true, notified_by: who })
     });
   } catch(e) { console.error("notify mark failed", e); }
 }
 
 async function markAllNotified(num, notified) {
-  if (!notified && !isAdmin()) { toast("Зняти позначку сповіщення може лише адміністратор"); return; }
+  if (!notified) {
+    if (!isAdmin()) { toast("Зняти позначку сповіщення може лише адміністратор"); return; }
+    const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+    its.forEach(it => { it["Сповіщено"] = ""; it["Хто сповістив"] = ""; });
+    if (detailOrderNum) openOrder(detailOrderNum);
+    for (const it of its) {
+      const itemNum = gv(it,"Номер виробу");
+      try {
+        await fetch(API_URL.replace("/order","/notify"), {
+          method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ item_num: itemNum, notified: false })
+        });
+      } catch(e) { console.error("notify-all unmark failed for", itemNum, e); }
+    }
+    return;
+  }
+  pickNotifier('order', num);
+}
+async function confirmMarkAllNotified(num, who) {
+  closeSettle();
   const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
-  const nowVal = notified ? new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"}) : "";
-  its.forEach(it => it["Сповіщено"] = nowVal);
+  const nowVal = new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
+  its.forEach(it => { it["Сповіщено"] = nowVal; it["Хто сповістив"] = who; });
   if (detailOrderNum) openOrder(detailOrderNum);
   for (const it of its) {
     const itemNum = gv(it,"Номер виробу");
     try {
       await fetch(API_URL.replace("/order","/notify"), {
         method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ item_num: itemNum, notified: notified })
+        body: JSON.stringify({ item_num: itemNum, notified: true, notified_by: who })
       });
     } catch(e) { console.error("notify-all failed for", itemNum, e); }
   }
+}
+
+/* Спільний попап вибору «хто відзначає» сповіщення — той самий стиль,
+   що й вибір майстра при видачі (confirmIssueWholeOrder). kind: 'item' | 'order' */
+function pickNotifier(kind, id) {
+  const names = masterNames();
+  const body = document.getElementById("odm-body");
+  const wrap = document.createElement("div");
+  wrap.className = "settle-overlay";
+  const opts = names.length
+    ? names.map(m => "<button class='rating-opt' onclick=\"pickNotifierConfirm('" + kind + "','" + String(id).replace(/'/g,"\\'") + "','" + m.replace(/'/g,"\\'") + "')\">" + m + "</button>").join("")
+    : "<div class='d-bonus-hint'>Додайте майстрів у лист «Майстри»</div>";
+  wrap.innerHTML =
+    "<div class='settle-card'>" +
+      "<div class='dblock-label'>Хто сповістив клієнта?</div>" +
+      "<div class='rating-opts'>" + opts + "</div>" +
+      "<button onclick='closeSettle()' style='width:100%;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:11px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px'>Скасувати</button>" +
+    "</div>";
+  body.appendChild(wrap);
+}
+function pickNotifierConfirm(kind, id, who) {
+  if (kind === "item") confirmToggleNotified(id, who);
+  else if (kind === "order") confirmMarkAllNotified(id, who);
 }
 function openSettle(num, toPay) {
   settleState = { num: num, amount: toPay, method: "" };
