@@ -10,7 +10,7 @@ function escHtml(s) {
    Повертає { isPrepay, prepayAmt, toPay, isPaid } — використовується
    і у формі створення (NO), і в готових замовленнях (ORDERS). */
 function computePayStatus(total, paymentStr, prepayAmt, settleAmt) {
-  const isPrepay = (paymentStr || "").includes("Передоплата");
+  const isPrepay = (paymentStr || "").includes("Передплата") || (paymentStr || "").includes("Передоплата");
   const paidTotal = (isPrepay ? (prepayAmt || 0) : 0) + (settleAmt || 0);
   const toPay = Math.max(0, total - paidTotal);
   return { isPrepay, prepayAmt: prepayAmt || 0, toPay, isPaid: total > 0 && toPay <= 0 };
@@ -23,7 +23,7 @@ function payBlockHTML(total, status) {
   }
   if (status.isPrepay && status.prepayAmt) {
     return "<div class='r-payblock'>" +
-      "<div class='r-payrow'><span class='pr-label'>Передоплата</span><span class='pr-value'>" + status.prepayAmt.toLocaleString("uk-UA") + " ₴</span></div>" +
+      "<div class='r-payrow'><span class='pr-label'>Передплата</span><span class='pr-value'>" + status.prepayAmt.toLocaleString("uk-UA") + " ₴</span></div>" +
       "<div class='r-payrow'><span class='pr-label'>Залишок</span><span class='pr-value pr-due'>" + status.toPay.toLocaleString("uk-UA") + " ₴</span></div>" +
       "</div>";
   }
@@ -83,8 +83,8 @@ function updateReceipt() {
   const clientHTML = receiptClientHTML(NO.client, NO.phone, term, delivery);
 
   const status = computePayStatus(total,
-    NO.payment === "Передоплата" ? "Передоплата" : "",
-    NO.payment === "Передоплата" ? parseInt(NO.prepay) || 0 : 0,
+    NO.payment === "Передплата" ? "Передплата" : "",
+    NO.payment === "Передплата" ? parseInt(NO.prepay) || 0 : 0,
     0);
 
   receipt.innerHTML =
