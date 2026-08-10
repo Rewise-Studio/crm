@@ -142,15 +142,12 @@ function orderReceiptHTML(num) {
   const status = computePayStatus(total, payStr, prepayAmt, settleAmt);
 
   const clientHTML = receiptClientHTML(client, phone, term, delivery);
-  const bonusBalance = (phone && typeof clientBonusBalance === "function") ? clientBonusBalance(phone) : 0;
-  const bonusLine = bonusBalance > 0 ? "<div class='r-bonus-line'>Баланс бонусів: <b>" + bonusBalance.toLocaleString("uk-UA") + "</b> балів</div>" : "";
 
   return "<div id='order-receipt'>" +
     receiptHeaderHTML(num, created) +
     clientHTML +
     "<div class='r-items'>" + itemsHTML + "</div>" +
     (total > 0 ? "<hr class='r-divider'><div class='r-total'><span class='rt-label'>Разом</span><span class='rt-amount'>" + total.toLocaleString("uk-UA") + " ₴</span></div>" + payBlockHTML(total, status) : "") +
-    bonusLine +
     (total > 0 ? "<div class='r-footer'>" + footerText(status) + "</div><div class='r-disclaimer'>Документ не є фіскальним чеком</div>" : "") +
     "</div>";
 }
