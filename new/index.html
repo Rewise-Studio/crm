@@ -328,6 +328,7 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .ic-svcrow { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-bottom: 1px solid var(--line-soft); }
 .ic-svcrow:last-child { border-bottom: none; }
 .ic-svc-grip { color: var(--field-border); font-size: 12px; flex-shrink: 0; }
+.ic-svcnum { font-size: 12px; color: var(--txt-3); flex-shrink: 0; }
 .ic-svcname { flex: 1; min-width: 0; font-size: 12px; color: var(--txt); overflow-wrap: anywhere; }
 .ic-svcprice { font-size: 12px; color: var(--cognac); white-space: nowrap; flex-shrink: 0; cursor: pointer; border-bottom: 1px dashed transparent; transition: border-color 0.15s; }
 .ic-svcprice:hover { border-bottom-color: var(--cognac-border); }
@@ -474,6 +475,7 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .r-client-2col { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; margin-bottom: 16px; }
 .r-ccol:last-child { text-align: right; }
 .r-crow { display: flex; align-items: center; padding: 5px 0 0; font-size: 12px; }
+.r-ccol:last-child .r-crow { justify-content: flex-end; }
 .rc-label { color: rgba(42,38,33,0.5); }
 .rc-value-2col { font-size: 12.5px; font-weight: 500; color: #2A2621; margin-bottom: 6px; }
 .r-item { padding: 10px 0; border-bottom: 1px solid rgba(58,50,40,0.08); }
@@ -1324,9 +1326,10 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 @media (max-width: 950px) {
   .create-wrap { flex-direction: column; }
   .create-left { width: 100%; padding: 6px 24px 32px 24px; overflow-y: visible; }
-  .create-right { width: 100%; padding: 6px 24px 32px; border-top: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; }
-  .create-right-sticky { position: static; width: 100%; max-width: 520px; }
-  #receipt { max-width: 520px; }
+  .create-right { display: none; }
+  .cr-create-mobile { display: block; }
+  .cf-note-desktop { display: none; }
+  .cf-note-mobile { display: block; }
 }
 
 @media (orientation: landscape) and (max-height: 900px) and (max-width: 1200px) {
@@ -1347,8 +1350,10 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 
   .create-wrap { flex-direction: column; }
   .create-left { width: 100%; padding: 4px 18px 20px; overflow-y: visible; }
-  .create-right { width: 100%; padding: 4px 18px 30px; border-top: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; }
-  .create-right-sticky { position: static; width: 100%; max-width: 520px; }
+  .create-right { display: none; }
+  .cr-create-mobile { display: block; }
+  .cf-note-desktop { display: none; }
+  .cf-note-mobile { display: block; }
   .cr-grid { grid-template-columns: 1fr; }
 
   .orders-scroll { padding: 12px 16px 24px; }
@@ -1388,10 +1393,23 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .cr-nav{display:flex;align-items:center;gap:10px;margin-top:18px}
 .cr-nav-next{background:var(--leather);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-family:'Commissioner',sans-serif;cursor:pointer}
 .cr-confirm{display:flex;flex-direction:column}
+.cr-confirm-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.cr-confirm-date{font-size:11px;color:var(--txt-3)}
 .cr-cf{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
 .cr-cf .k{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--txt-3)}
 .cr-cf .v{font-size:14px;color:var(--txt);text-align:right}
+.cr-cf-item{padding-bottom:2px}
+.cr-cf-item .k{font-size:13px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--txt)}
+.cr-cf-svc{padding:6px 0 6px 14px;border-bottom:1px dashed var(--line)}
+.cr-cf-svc .k{font-size:12.5px;letter-spacing:0;text-transform:none;color:var(--txt-2)}
+.cr-cf-svc .v{font-size:12.5px;color:var(--cognac);font-weight:500}
+.cr-cf-note{font-size:11px;font-style:italic;color:var(--txt-3);padding:0 0 8px 14px}
+.cr-cf-total{border-bottom:none;padding-top:14px}
+.cr-cf-total .k{font-size:13px;letter-spacing:0;text-transform:none;color:var(--txt-2)}
+.cr-cf-total .v{font-size:20px;font-weight:500;color:var(--txt)}
 .cr-confirm-note{font-size:12px;color:var(--txt-2);margin-top:14px}
+.cr-create-mobile{display:none;width:100%;margin-top:16px}
+.cf-note-mobile{display:none}
 </style>
 <style>
   /* ── Компактні рядки речей (крок ②) ── */
@@ -2309,17 +2327,42 @@ renderers.create = function() {
     (createStep<4 ? "<button class='cr-nav-next' onclick='setCreateStep("+(createStep+1)+")'>Далі →</button>" : "") +
     "</div>";
 
+  var _cfNow = new Date();
+  var _cfPad = function(n){ return String(n).length<2 ? "0"+n : String(n); };
+  var _cfDateStr = _cfPad(_cfNow.getDate())+"."+_cfPad(_cfNow.getMonth()+1)+"."+_cfNow.getFullYear() + " · " + _cfPad(_cfNow.getHours())+":"+_cfPad(_cfNow.getMinutes());
+
+  var _cfItemsHTML = "", _cfTotal = 0, _cfSvcCount = 0;
+  (NO.items||[]).forEach(function(item, idx){
+    if (!item.services || !item.services.length) return;
+    var _label = [item.model, item.brand].filter(Boolean).join(" · ");
+    var _svcs = item.services.map(function(s){
+      _cfTotal += s.price; _cfSvcCount++;
+      return "<div class='cr-cf cr-cf-svc'><span class='k'>" + s.name + "</span><span class='v'>" + s.price.toLocaleString("uk-UA") + " ₴</span></div>";
+    }).join("");
+    var _noteHTML = item.note ? "<div class='cr-cf-note'>Коментар: " + (item.note||"").replace(/&/g,"&amp;").replace(/</g,"&lt;") + "</div>" : "";
+    _cfItemsHTML += "<div class='cr-cf cr-cf-item'><span class='k'>№" + (idx+1) + (_label ? " " + _label : "") + "</span></div>" + _svcs + _noteHTML;
+  });
+
+  var _cfPayDisplay = NO.payment || "—";
+  if (NO.payment === "Передплата" && NO.prepay) _cfPayDisplay = "Передплата: " + parseInt(NO.prepay).toLocaleString("uk-UA") + " ₴";
+
   var crConfirm = "<div class='cr-box'>" +
-    "<div class='cr-block-label first'>Перевірте замовлення</div>" +
+    "<div class='cr-confirm-head'><div class='cr-block-label first' style='margin:0'>Перевірте замовлення</div><div class='cr-confirm-date'>" + _cfDateStr + "</div></div>" +
     "<div class='cr-confirm'>" +
-      "<div class='cr-cf'><span class='k'>Клієнт</span><span class='v'>" + ((NO.client||"—")) + " · " + (NO.phone||"") + "</span></div>" +
+      "<div class='cr-cf'><span class='k'>Клієнт</span><span class='v'>" + (NO.client||"—") + "</span></div>" +
+      "<div class='cr-cf'><span class='k'>Телефон</span><span class='v'>" + (NO.phone||"—") + "</span></div>" +
       "<div class='cr-cf'><span class='k'>Приймає</span><span class='v'>" + (NO.manager||"—") + "</span></div>" +
-      "<div class='cr-cf'><span class='k'>Речей</span><span class='v'>" + ((NO.items&&NO.items.length)||0) + " шт</span></div>" +
-      "<div class='cr-cf'><span class='k'>Оплата</span><span class='v'>" + (NO.payment||"—") + "</span></div>" +
+      "<div class='cr-cf'><span class='k'>Речей</span><span class='v'>" + ((NO.items&&NO.items.length)||0) + "</span></div>" +
+      _cfItemsHTML +
+      "<div class='cr-cf'><span class='k'>Послуг</span><span class='v'>" + _cfSvcCount + "</span></div>" +
       "<div class='cr-cf'><span class='k'>Термін</span><span class='v'>" + (NO.deadline||"—") + "</span></div>" +
       "<div class='cr-cf'><span class='k'>Отримання</span><span class='v'>" + (NO.delivery||"—") + "</span></div>" +
+      "<div class='cr-cf'><span class='k'>Оплата</span><span class='v'>" + _cfPayDisplay + "</span></div>" +
+      "<div class='cr-cf cr-cf-total'><span class='k'>Разом</span><span class='v'>" + _cfTotal.toLocaleString("uk-UA") + " ₴</span></div>" +
     "</div>" +
-    "<div class='cr-confirm-note'>Чек — праворуч. Якщо все вірно, тисніть «Створити замовлення».</div>" +
+    "<div class='cr-confirm-note cf-note-desktop'>Чек — праворуч. Якщо все вірно, тисніть «Створити замовлення».</div>" +
+    "<div class='cr-confirm-note cf-note-mobile'>Перевірте деталі. Чек з'явиться на екрані після створення замовлення.</div>" +
+    "<button class='cr-create-btn cr-create-mobile' onclick='submitOrder()'>Створити замовлення</button>" +
   "</div>";
 
   page.innerHTML =
@@ -2362,7 +2405,8 @@ renderers.create = function() {
                 "</div>" +
                 (NO.payment==='Передплата' ?
                   "<input class='cr-input' id='cr-prepay' type='number' placeholder='Сума передоплати, ₴' value=\"" + (NO.prepay||"") + "\" oninput='NO.prepay=this.value'>" +
-                  crSelect("paymethod", NO.prepayMethod, ["Готівка","Картка","ФОП"], "setPayMethodVal", {placeholder:"Спосіб передоплати", up:true}) : "") +
+                  crSelect("paymethod", NO.prepayMethod, ["Готівка","Картка","ФОП"], "setPayMethodVal", {placeholder:"Спосіб передоплати", up:true}) +
+                  (NO.prepayMethod === "Картка" && payConfigured() ? "<div class='settle-card-req' style='margin-top:10px'>" + payPanelHTML() + "</div>" : "") : "") +
               "</div>" +
               "<div class='cr-col'>" +
                 "<div class='cr-block-label first'>Термін</div>" +
@@ -2610,6 +2654,7 @@ function toggleOp(id, op) {
   if (!it.model) { toast("Спочатку оберіть вид виробу"); return; }
   const p = opPriceFor(it, op);
   if (!p) { toast("Немає ціни для «" + op + "» цього виду/розміру"); return; }
+  it.services = it.services.filter(s => s.kind !== "core"); // один рівень одразу — наступний включає попередній
   it.services.push({ kind:"core", op:op, name: coreLineName(it, op), price: parseInt(p.price)||0 });
   renderItems(); updateReceipt();
 }
@@ -2677,7 +2722,7 @@ function addManualSvc(id) {
 function buildItemBody(item, idx) {
     const catData = PRICE[item.category]; if (!catData) return "";
     const catOpts = Object.keys(PRICE).map(k => "<option value='"+k+"'"+(k===item.category?" selected":"")+">"+PRICE[k].label+"</option>").join("");
-    const svcRows = item.services.map((s,si) => "<div class='ic-svcrow'><span class='ic-svcname'>"+s.name+"</span><span class='ic-svcprice' onclick='editSvcPrice("+item.id+","+si+",this)'>"+s.price+" ₴</span><button class='ic-svcdel' onclick='removeSvc("+item.id+","+si+")'>×</button></div>").join("");
+    const svcRows = item.services.map((s,si) => "<div class='ic-svcrow'><span class='ic-svcnum'>"+(si+1)+".</span><span class='ic-svcname'>"+s.name+"</span><span class='ic-svcprice' onclick='editSvcPrice("+item.id+","+si+",this)'>"+s.price+" ₴</span><button class='ic-svcdel' onclick='removeSvc("+item.id+","+si+")'>×</button></div>").join("");
     const modelVal = (item.model||"").replace(/"/g,"&quot;");
     const brandVal = (item.brand||"").replace(/"/g,"&quot;");
     const isBag = item.category === "bags";
@@ -2721,7 +2766,8 @@ function buildItemBody(item, idx) {
         sizeMatRow +
         "<div class='ic-oplabel'>Швидкі послуги</div>" +
         "<div class='ic-oprow'>"+opsHTML+"</div>" +
-        (opsHintTxt ? "<div class='ic-op-hint'>" + opsHintTxt + "</div>" : "");
+        (opsHintTxt ? "<div class='ic-op-hint'>" + opsHintTxt + "</div>" : "") +
+        "<div class='ic-op-hint'>Оберіть один рівень — кожен наступний вже включає попередній</div>";
     }
 
     // Модель — показуємо в обох режимах (у ремонті це просто підпис)
@@ -2766,7 +2812,7 @@ function buildItemBody(item, idx) {
             "</div>" +
           "</div>" : "") +
       "</div>" +
-      (item.services.length ? "<div class='ic-otherlabel' style='margin-top:14px;padding-top:0;border-top:none'>Обрані послуги</div>" : "") +
+      (item.services.length ? "<div class='ic-otherlabel' style='margin-top:14px;padding-top:0;border-top:none'>Обрані послуги ("+item.services.length+")</div>" : "") +
       "<div class='ic-svclist'>"+svcRows+"</div>" +
       "<button type='button' class='ic-add-svc-btn" + (item.addSvcOpen?" open":"") + "' onclick='toggleAddSvc("+item.id+")'>" + (item.addSvcOpen?"− Приховати":"+ Додати ще одну послугу") + "</button>" +
       (item.addSvcOpen ?
@@ -2995,9 +3041,12 @@ async function submitOrder() {  if (!NO.manager) { alert("Оберіть при�
       saveNewBrands(validItems);
       saveNewColors(validItems);
       try { localStorage.removeItem("rw_draft"); } catch(e) {}
+      const createdNum = result.order_num || "";
       NO = { manager: NO.manager, client:"", phone:"", messenger:"", items:[], payment:"", prepay:"", prepayMethod:"", deadline:"", delivery:"Самовивіз" };
       itemCounter = 0;
-      setTimeout(() => { loadData(); showPage("orders"); }, 1200);
+      await loadData();
+      showPage("orders");
+      if (createdNum) openReceiptModal(createdNum);
     } else {
       alert("Помилка: " + result.message); btn.textContent = "Створити замовлення"; btn.disabled = false;
     }
