@@ -676,6 +676,20 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .settle-methods .cr-pill { flex: 1; text-align: center; }
 .settle-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 5; border-radius: 14px; }
 .settle-card { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 22px; width: 340px; max-width: 90%; box-shadow: 0 16px 48px rgba(0,0,0,0.3); }
+.settle-card-req { background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; margin: 10px 0; }
+.settle-card-req > div { margin-top: 0 !important; }
+
+/* ── Списання бонусів (поруч із кнопкою оплати, без окремого модального вікна) ── */
+.d-bonus-spend-btn { background: #fff; border: 1px solid #2FA98C; border-radius: 8px; color: #2FA98C; font-family: 'Commissioner', sans-serif; font-size: 12px; padding: 11px 14px; cursor: pointer; white-space: nowrap; }
+.d-bonus-spend-btn:hover { background: rgba(47,169,140,0.08); }
+.bonus-calc { background: var(--surface); border: 1px solid rgba(47,169,140,0.3); border-radius: 9px; padding: 12px 14px; margin-top: 10px; }
+.bonus-spend-input { border-color: rgba(47,169,140,0.4) !important; }
+.bonus-calc-preview { background: rgba(47,169,140,0.07); border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
+.bcp-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--txt-2); margin-bottom: 4px; }
+.bcp-row.spend { color: #2FA98C; }
+.bcp-row.total { font-size: 14px; color: var(--txt); font-weight: 500; padding-top: 6px; border-top: 1px solid rgba(47,169,140,0.2); margin-bottom: 0; }
+.d-bonus-apply-btn { flex: 2; background: #2FA98C; border: none; border-radius: 8px; color: #fff; font-family: 'Commissioner', sans-serif; font-size: 12.5px; padding: 10px; cursor: pointer; }
+.bonus-spent-note { font-size: 10.5px; color: #2FA98C; text-align: right; margin-top: 2px; }
 
 .d-notify { display: flex; gap: 6px; flex-wrap: nowrap; }
 .d-notify-btn { flex: 1; min-width: 0; background: transparent; border: 1px solid var(--cognac-border); border-radius: 7px; padding: 8px 4px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 10.5px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; }
@@ -4889,6 +4903,12 @@ function openOrder(num) {
       (settleAmt ? "<div class='pay-status-row'><span class='pl'>Доплачено</span><span class='pv'>" + settleAmt.toLocaleString("uk-UA") + " ₴" + (settleMethod ? " · " + settleMethod : "") + "</span></div>" : "");
   }
 
+  // Бонуси: чи є що списати на цей чек (тільки якщо це фінальний платіж і ще не списано)
+  const bonusBalance = clientBonusBalance(phone);
+  const alreadySpent = extractAmt(gv(o,"Списано бонусів"));
+  const isFinalPayment = toPay > 0 && (prepayAmt + toPay) >= total;
+  const spendEligible = isFinalPayment && bonusBalance >= BONUS_MIN_SPEND && !alreadySpent;
+
   const payBlock = "<div class='dblock'>" +
     "<div class='dblock-label'>Виконання та оплата</div>" +
     "<div class='info-2col'>" +
@@ -4901,8 +4921,14 @@ function openOrder(num) {
     "</div>" +
     "<div class='d-pay-total'><span class='pl'>Сума</span><span class='pv'>" + total.toLocaleString("uk-UA") + " ₴</span></div>" +
     "<div class='pay-status-rows'>" + payStatusRows + "</div>" +
-    (toPay > 0 ? "<button class='d-settle-btn' style='margin-top:10px' onclick=\"openSettle('" + num + "'," + toPay + ")\">Прийняти доплату " + toPay.toLocaleString("uk-UA") + " ₴</button>" : "") +
-    (toPay > 0 && payConfigured() ? "<button class='d-settle-btn' style='margin-top:8px' onclick='openPayQR()'>Реквізити для оплати</button>" : "") +
+    (alreadySpent ? "<div class='bonus-spent-note'>списано " + alreadySpent.toLocaleString("uk-UA") + " балів</div>" : "") +
+    (toPay > 0 ? "<div id='pay-actions-wrap' style='margin-top:10px'>" +
+      "<div id='pay-actions-row' style='display:grid;grid-template-columns:" + (spendEligible ? "1fr auto" : "1fr") + ";gap:8px'>" +
+        "<button class='d-settle-btn' style='margin-top:0' onclick=\"openSettle('" + num + "'," + toPay + ")\">Прийняти доплату " + toPay.toLocaleString("uk-UA") + " ₴</button>" +
+        (spendEligible ? "<button class='d-bonus-spend-btn' onclick=\"toggleBonusCalc('" + num + "')\">Списати бонуси</button>" : "") +
+      "</div>" +
+      "<div id='bonus-calc-panel'></div>" +
+    "</div>" : "") +
     "</div>";
 
   modalBody.innerHTML =
@@ -5378,6 +5404,68 @@ function pickNotifierConfirm(kind, id, who) {
   if (kind === "item") confirmToggleNotified(id, who);
   else if (kind === "order") confirmMarkAllNotified(id, who);
 }
+/* ═══════ ІНЛАЙН-ПАНЕЛЬ СПИСАННЯ БОНУСІВ (поруч із кнопкою оплати) ═══════
+   На відміну від попередньої версії — не окреме модальне вікно, а розгортання
+   прямо в картці, з наочним розрахунком «Було → Списано → Нова сума». */
+function toggleBonusCalc(num) {
+  const panel = document.getElementById("bonus-calc-panel");
+  if (!panel) return;
+  if (panel.innerHTML) { panel.innerHTML = ""; return; }
+  const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
+  if (!o) return;
+  const phone = gv(o,"Телефон");
+  const total = orderTotal(num);
+  const payStatus = computePayStatus(total, gv(o,"Оплата"), extractAmt(gv(o,"Оплата")), extractAmt(gv(o,"Сума доплати")));
+  const toPay = payStatus.toPay;
+  const balance = clientBonusBalance(phone);
+  const maxByOrder = Math.floor(total * BONUS_SPEND_CAP / 100);
+  const maxSpend = Math.min(balance, maxByOrder, toPay);
+  panel.innerHTML =
+    "<div class='bonus-calc'>" +
+      "<div class='dblock-label' style='color:#2FA98C'>Списати бонуси</div>" +
+      "<div style='font-size:11px;color:var(--txt-3);margin-bottom:8px'>Доступно " + balance.toLocaleString("uk-UA") + " балів · максимум для цього чека (" + BONUS_SPEND_CAP + "%): " + maxByOrder.toLocaleString("uk-UA") + "</div>" +
+      "<input class='cr-input bonus-spend-input' id='bonus-spend-amt' type='number' value='" + maxSpend + "' max='" + maxSpend + "' min='0' oninput=\"updateBonusCalcPreview(" + toPay + ")\">" +
+      "<div id='bonus-calc-preview'></div>" +
+      "<div style='display:flex;gap:8px;margin-top:10px'>" +
+        "<button onclick='toggleBonusCalc(\"" + num + "\")' style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:10px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px'>Скасувати</button>" +
+        "<button class='d-bonus-apply-btn' onclick=\"applyBonusSpend('" + num + "'," + maxSpend + "," + toPay + ")\">Застосувати</button>" +
+      "</div>" +
+    "</div>";
+  updateBonusCalcPreview(toPay);
+}
+function updateBonusCalcPreview(toPay) {
+  const input = document.getElementById("bonus-spend-amt");
+  const prev = document.getElementById("bonus-calc-preview");
+  if (!input || !prev) return;
+  let amt = parseInt(input.value || "0");
+  const max = parseInt(input.getAttribute("max") || "0");
+  if (amt > max) amt = max;
+  if (amt < 0) amt = 0;
+  const newAmt = Math.max(0, toPay - amt);
+  prev.innerHTML =
+    "<div class='bonus-calc-preview'>" +
+      "<div class='bcp-row'><span>Було</span><span>" + toPay.toLocaleString("uk-UA") + " ₴</span></div>" +
+      "<div class='bcp-row spend'><span>Списано бонусами</span><span>− " + amt.toLocaleString("uk-UA") + " ₴</span></div>" +
+      "<div class='bcp-row total'><span>Нова сума до сплати</span><span>" + newAmt.toLocaleString("uk-UA") + " ₴</span></div>" +
+    "</div>";
+}
+async function applyBonusSpend(num, maxSpend, toPay) {
+  let amt = parseInt(document.getElementById("bonus-spend-amt").value || "0");
+  if (amt > maxSpend) amt = maxSpend;
+  if (amt < 0) amt = 0;
+  const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
+  if (o && amt > 0) o["Списано бонусів"] = String(amt);
+  openOrder(num);
+  if (amt > 0) {
+    try {
+      await fetch(API_URL.replace("/order","/bonus"), {
+        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ order_num: num, spent: amt })
+      });
+    } catch(e) { console.error("bonus spend failed", e); }
+  }
+}
+
 function openSettle(num, toPay) {
   settleState = { num: num, amount: toPay, method: "" };
   const body = document.getElementById("odm-body");
@@ -5392,6 +5480,7 @@ function openSettle(num, toPay) {
         "<button class='cr-pill' onclick=\"setSettleMethod('Картка',this)\">Картка</button>" +
         "<button class='cr-pill' onclick=\"setSettleMethod('ФОП',this)\">ФОП</button>" +
       "</div>" +
+      "<div id='settle-card-info'></div>" +
       "<div style='display:flex;gap:8px;margin-top:6px'>" +
         "<button class='cr-btn' onclick='closeSettle()' style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:11px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px'>Скасувати</button>" +
         "<button class='d-settle-btn' style='flex:2;margin-top:0' onclick='confirmSettle()'>Підтвердити</button>" +
@@ -5433,6 +5522,8 @@ function setSettleMethod(m, btn) {
   settleState.method = m;
   btn.parentElement.querySelectorAll(".cr-pill").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
+  const infoBox = document.getElementById("settle-card-info");
+  if (infoBox) infoBox.innerHTML = (m === "Картка" && payConfigured()) ? "<div class='settle-card-req'>" + payPanelHTML() + "</div>" : "";
 }
 function closeSettle() {
   const ov = document.querySelector(".settle-overlay");
@@ -5454,70 +5545,17 @@ async function confirmSettle() {
     });
   } catch(e) { console.error("settle failed", e); }
 
-  // Якщо це фінальний платіж (замовлення тепер повністю оплачене) — пропонуємо бонуси одним потоком
+  // Якщо це фінальний платіж (замовлення тепер повністю оплачене) — пропонуємо нарахувати бонуси.
+  // Списання вже відбулось (якщо клієнт погодився) ДО прийняття оплати — startSettleFlow.
   if (o) {
     const total = orderTotal(num);
     const payStr = gv(o,"Оплата");
     const prepayAmt = extractAmt(payStr);
     const status = computePayStatus(total, payStr, prepayAmt, amt);
-    if (status.isPaid) startPostPaymentBonusFlow(num);
+    if (status.isPaid) promptAccrueStep(num, total);
   }
 }
 
-/* ═══════ ПОТІК БОНУСІВ ПІСЛЯ ФІНАЛЬНОЇ ОПЛАТИ ═══════
-   Спочатку пропонуємо списати наявний баланс (якщо є), одразу після —
-   нарахувати нові бали. Кожен крок можна пропустити. */
-function startPostPaymentBonusFlow(num) {
-  const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
-  if (!o) return;
-  const phone = gv(o,"Телефон");
-  const total = orderTotal(num);
-  const balance = clientBonusBalance(phone);
-  const spent = extractAmt(gv(o,"Списано бонусів"));
-  if (balance >= BONUS_MIN_SPEND && !spent) {
-    promptSpendStep(num, balance, total);
-  } else {
-    promptAccrueStep(num, total);
-  }
-}
-function promptSpendStep(num, balance, total) {
-  const maxByOrder = Math.floor(total * BONUS_SPEND_CAP / 100);
-  const maxSpend = Math.min(balance, maxByOrder);
-  const body = document.getElementById("odm-body");
-  const wrap = document.createElement("div");
-  wrap.className = "settle-overlay";
-  wrap.innerHTML =
-    "<div class='settle-card'>" +
-      "<div class='dblock-label'>Списати бонуси?</div>" +
-      "<div style='font-size:12px;color:var(--txt-2);margin-bottom:10px'>Доступно: " + balance + " · макс. для цього чека (" + BONUS_SPEND_CAP + "%): " + maxByOrder + "</div>" +
-      "<input class='cr-input' id='spend-amt' type='number' value='" + maxSpend + "' max='" + maxSpend + "'>" +
-      "<div style='display:flex;gap:8px;margin-top:10px'>" +
-        "<button onclick=\"skipSpendStep('" + num + "'," + total + ")\" style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:11px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px'>Пропустити</button>" +
-        "<button class='d-settle-btn' style='flex:2;margin-top:0' onclick=\"confirmSpendStep('" + num + "'," + maxSpend + "," + total + ")\">Списати</button>" +
-      "</div>" +
-    "</div>";
-  body.appendChild(wrap);
-}
-async function confirmSpendStep(num, maxSpend, total) {
-  let amt = parseInt(document.getElementById("spend-amt").value || "0");
-  if (amt > maxSpend) amt = maxSpend;
-  if (amt > 0) {
-    const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
-    if (o) o["Списано бонусів"] = String(amt);
-    try {
-      await fetch(API_URL.replace("/order","/bonus"), {
-        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ order_num: num, spent: amt })
-      });
-    } catch(e) { console.error("spend failed", e); }
-  }
-  closeSettle();
-  promptAccrueStep(num, total);
-}
-function skipSpendStep(num, total) {
-  closeSettle();
-  promptAccrueStep(num, total);
-}
 function promptAccrueStep(num, total) {
   if (detailOrderNum) openOrder(detailOrderNum);
   const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
