@@ -4184,6 +4184,12 @@ function renderParamsEditor() {
       "<div class='task-field-label'>Отримувач (необовʼязково)</div>" +
       "<input class='cr-input' id='set-pay-holder' placeholder=\"Ім'я одержувача\" value=\"" + esc(PAY.holder) + "\">" +
       "<button class='cr-create-btn' onclick='savePayReqs()'>Зберегти</button>" +
+      "<div style='margin-top:14px;padding:10px 12px;background:var(--surface-2);border-radius:8px;font-size:11px;color:var(--txt-3);font-family:monospace;line-height:1.6'>" +
+        "PAY.card зараз у застосунку: «" + (PAY.card || "(порожньо)") + "»<br>" +
+        "SETTINGS['Картка'] з останнього завантаження: «" + (SETTINGS["Картка"] !== undefined ? SETTINGS["Картка"] : "(ключа взагалі немає в мапі)") + "»<br>" +
+        "payConfigured(): " + (typeof payConfigured === "function" ? payConfigured() : "?") +
+      "</div>" +
+      "<button style='margin-top:8px;width:100%;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:9px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px' onclick='(async()=>{await loadData();renderers.settings();})()'>Перечитати з таблиці зараз</button>" +
     "</div>" +
     "<div class='stat-panel' style='max-width:560px'>" +
       "<div class='stat-panel-label'>Планування завантаження</div>" +
