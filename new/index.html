@@ -512,6 +512,7 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
   padding: 40px 20px; overflow-y: auto;
 }
 .odm-bg.open { display: flex; }
+#receipt-modal.odm-bg { background: rgba(42,38,33,0.22); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .odm {
   background: var(--bg); border-radius: 14px;
   width: 900px; max-width: 100%;
@@ -1319,6 +1320,9 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
   .nav-item svg { width: 20px; height: 20px; }
 }
 
+.cr-create-mobile{display:none;width:100%;margin-top:16px}
+.cf-note-mobile{display:none}
+
 /* Планшет: даємо контенту більше простору, щоб колонки не тиснули */
 @media (max-width: 1100px) {
   .stat-cols { grid-template-columns: 1fr 1fr; }
@@ -1408,8 +1412,6 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .cr-cf-total .k{font-size:13px;letter-spacing:0;text-transform:none;color:var(--txt-2)}
 .cr-cf-total .v{font-size:20px;font-weight:500;color:var(--txt)}
 .cr-confirm-note{font-size:12px;color:var(--txt-2);margin-top:14px}
-.cr-create-mobile{display:none;width:100%;margin-top:16px}
-.cf-note-mobile{display:none}
 </style>
 <style>
   /* ── Компактні рядки речей (крок ②) ── */
@@ -1852,7 +1854,7 @@ async function parseSettings(res) {
       const c = row.c || [];
       const k = c[0] && c[0].v != null ? String(c[0].v).trim() : "";
       const v = c[1] && c[1].v != null ? String(c[1].v).trim() : "";
-      if (k) map[k] = v;
+      if (k && (v !== "" || map[k] === undefined)) map[k] = v;
     });
     SETTINGS = map;
     const num = (key, fallback) => {
@@ -2247,6 +2249,61 @@ function rwSelClose() { document.querySelectorAll(".rw-sel.open").forEach(w => w
 /* Обробники полів форми */
 function setPayVal(v) { NO.payment = v; renderers.create(); }
 function setPayMethodVal(v) { NO.prepayMethod = v; renderers.create(); }
+
+/* Списання бонусів під час створення замовлення — та сама логіка, що й у «Прийняти оплату» */
+function newOrderTotal() {
+  return (NO.items||[]).reduce(function(s,it){ return s + (it.services||[]).reduce(function(s2,x){return s2+x.price;},0); }, 0);
+}
+function bonusBlockHTML() {
+  const balance = NO.phone ? clientBonusBalance(NO.phone) : 0;
+  const total = newOrderTotal();
+  if (balance < BONUS_MIN_SPEND || total <= 0) return "";
+  const maxByOrder = Math.floor(total * BONUS_SPEND_CAP / 100);
+  const maxSpend = Math.min(balance, maxByOrder, total);
+  if (!NO.bonusOpen) {
+    return "<button class='d-bonus-spend-btn' style='margin-top:10px;width:100%' onclick='toggleNewOrderBonus()'>Списати бонуси (" + balance.toLocaleString("uk-UA") + ")</button>";
+  }
+  const spent = Math.min(NO.bonusSpent || maxSpend, maxSpend);
+  const newAmt = Math.max(0, total - spent);
+  return "<div class='bonus-calc'>" +
+      "<div class='dblock-label' style='color:#2FA98C'>Списати бонуси</div>" +
+      "<div style='font-size:11px;color:var(--txt-3);margin-bottom:8px'>Доступно " + balance.toLocaleString("uk-UA") + " балів · максимум для цього чека (" + BONUS_SPEND_CAP + "%): " + maxByOrder.toLocaleString("uk-UA") + "</div>" +
+      "<input class='cr-input bonus-spend-input' id='no-bonus-amt' type='number' value='" + spent + "' max='" + maxSpend + "' min='0' oninput='setNewOrderBonusAmt(this.value,\"" + total + "\",\"" + maxSpend + "\")'>" +
+      "<div id='no-bonus-preview'>" +
+        "<div class='bonus-calc-preview'>" +
+          "<div class='bcp-row'><span>Було</span><span>" + total.toLocaleString("uk-UA") + " ₴</span></div>" +
+          "<div class='bcp-row spend'><span>Списано бонусами</span><span>− " + spent.toLocaleString("uk-UA") + " ₴</span></div>" +
+          "<div class='bcp-row total'><span>Нова сума</span><span>" + newAmt.toLocaleString("uk-UA") + " ₴</span></div>" +
+        "</div>" +
+      "</div>" +
+      "<button style='width:100%;margin-top:8px;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:9px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px' onclick='toggleNewOrderBonus()'>Згорнути</button>" +
+    "</div>";
+}
+function toggleNewOrderBonus() {
+  NO.bonusOpen = !NO.bonusOpen;
+  if (NO.bonusOpen && !NO.bonusSpent) {
+    const balance = NO.phone ? clientBonusBalance(NO.phone) : 0;
+    const total = newOrderTotal();
+    NO.bonusSpent = Math.min(balance, Math.floor(total * BONUS_SPEND_CAP / 100), total);
+  }
+  renderers.create();
+}
+function setNewOrderBonusAmt(v, total, maxSpend) {
+  let amt = parseInt(v || "0");
+  total = parseInt(total); maxSpend = parseInt(maxSpend);
+  if (isNaN(amt) || amt < 0) amt = 0;
+  if (amt > maxSpend) amt = maxSpend;
+  NO.bonusSpent = amt;
+  const prev = document.getElementById("no-bonus-preview");
+  if (!prev) return;
+  const newAmt = Math.max(0, total - amt);
+  prev.innerHTML =
+    "<div class='bonus-calc-preview'>" +
+      "<div class='bcp-row'><span>Було</span><span>" + total.toLocaleString("uk-UA") + " ₴</span></div>" +
+      "<div class='bcp-row spend'><span>Списано бонусами</span><span>− " + amt.toLocaleString("uk-UA") + " ₴</span></div>" +
+      "<div class='bcp-row total'><span>Нова сума</span><span>" + newAmt.toLocaleString("uk-UA") + " ₴</span></div>" +
+    "</div>";
+}
 function setDelivery(v) { NO.delivery = v; }
 function setDeliveryPill(v, btn) {
   var active = NO.delivery === v;
@@ -2359,9 +2416,13 @@ renderers.create = function() {
       "<div class='cr-cf'><span class='k'>Отримання</span><span class='v'>" + (NO.delivery||"—") + "</span></div>" +
       "<div class='cr-cf'><span class='k'>Оплата</span><span class='v'>" + _cfPayDisplay + "</span></div>" +
       "<div class='cr-cf cr-cf-total'><span class='k'>Разом</span><span class='v'>" + _cfTotal.toLocaleString("uk-UA") + " ₴</span></div>" +
+      (NO.bonusSpent > 0 ?
+        "<div class='cr-cf'><span class='k'>Списано бонусами</span><span class='v' style='color:#2FA98C'>− " + NO.bonusSpent.toLocaleString("uk-UA") + " ₴</span></div>" +
+        "<div class='cr-cf cr-cf-total'><span class='k'>До сплати</span><span class='v'>" + Math.max(0,_cfTotal-NO.bonusSpent).toLocaleString("uk-UA") + " ₴</span></div>"
+        : "") +
     "</div>" +
-    "<div class='cr-confirm-note cf-note-desktop'>Чек — праворуч. Якщо все вірно, тисніть «Створити замовлення».</div>" +
-    "<div class='cr-confirm-note cf-note-mobile'>Перевірте деталі. Чек з'явиться на екрані після створення замовлення.</div>" +
+    "<div class='cr-confirm-note cf-note-desktop'>Чек праворуч — це просто обкладинка для клієнта. Перевіряйте інформацію у списку вище.</div>" +
+    "<div class='cr-confirm-note cf-note-mobile'>Чек з'явиться після створення — це просто обкладинка для клієнта. Перевіряйте інформацію у списку вище.</div>" +
     "<button class='cr-create-btn cr-create-mobile' onclick='submitOrder()'>Створити замовлення</button>" +
   "</div>";
 
@@ -2407,6 +2468,7 @@ renderers.create = function() {
                   "<input class='cr-input' id='cr-prepay' type='number' placeholder='Сума передоплати, ₴' value=\"" + (NO.prepay||"") + "\" oninput='NO.prepay=this.value'>" +
                   crSelect("paymethod", NO.prepayMethod, ["Готівка","Картка","ФОП"], "setPayMethodVal", {placeholder:"Спосіб передоплати", up:true}) +
                   (NO.prepayMethod === "Картка" && payConfigured() ? "<div class='settle-card-req' style='margin-top:10px'>" + payPanelHTML() + "</div>" : "") : "") +
+                bonusBlockHTML() +
               "</div>" +
               "<div class='cr-col'>" +
                 "<div class='cr-block-label first'>Термін</div>" +
@@ -3013,6 +3075,7 @@ async function submitOrder() {  if (!NO.manager) { alert("Оберіть при�
     delivery: NO.delivery || "Самовивіз",
     prepayMethod: NO.payment === "Передплата" ? (NO.prepayMethod || "") : "",
     prepay: NO.payment === "Передплата" && NO.prepay ? parseInt(NO.prepay) : 0,
+    bonusSpent: NO.bonusSpent > 0 ? parseInt(NO.bonusSpent) : 0,
     items: validItems.map(item => {
       const total = item.services.reduce((s,x)=>s+x.price,0);
       const catLabel = PRICE[item.category] ? PRICE[item.category].label : item.category;
@@ -4014,7 +4077,7 @@ function openReceiptModal(num) {
     document.body.appendChild(ov);
   }
   ov.innerHTML =
-    "<div class='odm' style='width:420px'>" +
+    "<div class='odm' style='width:520px;max-width:94vw'>" +
       "<div class='odm-close' onclick='closeReceiptModal()'>×</div>" +
       "<div class='odm-scroll'>" +
         orderReceiptHTML(num) +
