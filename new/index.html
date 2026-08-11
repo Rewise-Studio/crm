@@ -4240,9 +4240,25 @@ async function savePayReqs() {
   const holder = document.getElementById("set-pay-holder").value.trim();
   PAY.card = card;
   PAY.holder = holder;
-  const ok = await priceApi("/settings/update", { items: { "Картка": card, "Отримувач": holder } });
-  if (ok) { await loadData(); renderers.settings(); }
-  toast(ok ? "Реквізити збережено" : "Не вдалося зберегти");
+  let ok = false, detail = "";
+  try {
+    const res = await fetch(API_URL.replace("/order", "/settings/update"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ items: { "Картка": card, "Отримувач": holder } })
+    });
+    const r = await res.json();
+    ok = r.status === "ok";
+    detail = r.message || "";
+  } catch(e) { detail = e.message || String(e); }
+  if (ok) {
+    await loadData();
+    renderers.settings();
+    const check = PAY.card === card;
+    toast(check ? "Реквізити збережено (перевірено на сервері)" : "Сервер прийняв запит, але при перечитуванні номер не збігається — перевір лист «Налаштування»");
+  } else {
+    toast("Не вдалося зберегти" + (detail ? ": " + detail : ""));
+    alert("Помилка збереження реквізитів:\n" + (detail || "невідома помилка, деталей немає у відповіді сервера"));
+  }
 }
 
 async function savePlanning() {
