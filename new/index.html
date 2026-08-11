@@ -1847,6 +1847,12 @@ async function parseSettings(res) {
     if (!json.table || !json.table.rows) return;
     // Ключ у колонці A, значення у B. Шапка теж може бути парою — читаємо все.
     const map = {};
+    const cellStr = (cell) => {
+      if (!cell) return "";
+      if (cell.v != null) return String(cell.v).trim();
+      if (cell.f != null) return String(cell.f).trim();
+      return "";
+    };
     if (json.table.cols && json.table.cols[0] && json.table.cols[0].label) {
       const k = String(json.table.cols[0].label).trim();
       const v = json.table.cols[1] ? String(json.table.cols[1].label).trim() : "";
@@ -1854,8 +1860,8 @@ async function parseSettings(res) {
     }
     json.table.rows.forEach(row => {
       const c = row.c || [];
-      const k = c[0] && c[0].v != null ? String(c[0].v).trim() : "";
-      const v = c[1] && c[1].v != null ? String(c[1].v).trim() : "";
+      const k = cellStr(c[0]);
+      const v = cellStr(c[1]);
       if (k && (v !== "" || map[k] === undefined)) map[k] = v;
     });
     SETTINGS = map;
