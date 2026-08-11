@@ -2354,6 +2354,7 @@ let createStep = 1;
 function setCreateStep(n){ if(n<1)n=1; if(n>4)n=4; createStep = n; renderers.create(); }
 renderers.create = function() {
   const page = document.getElementById("page-create");
+  if (NO.payment === "Передплата" && !NO.prepayTouched) NO.prepay = newOrderTotal();
 
   let draftBar = "";
   try {
@@ -2465,7 +2466,7 @@ renderers.create = function() {
                   "<button class='cr-pill cr-pill-wide" + (NO.payment==='Післяплата'?' active':'') + "' onclick=\"setPay('Післяплата',this)\">Післяплата</button>" +
                 "</div>" +
                 (NO.payment==='Передплата' ?
-                  "<input class='cr-input' id='cr-prepay' type='number' placeholder='Сума передоплати, ₴' value=\"" + (NO.prepay||"") + "\" oninput='NO.prepay=this.value'>" +
+                  "<input class='cr-input' id='cr-prepay' type='number' placeholder='Сума передоплати, ₴' value=\"" + (NO.prepayTouched ? (NO.prepay||"") : newOrderTotal()) + "\" oninput='NO.prepay=this.value; NO.prepayTouched=true;'>" +
                   crSelect("paymethod", NO.prepayMethod, ["Готівка","Картка","ФОП"], "setPayMethodVal", {placeholder:"Спосіб передоплати", up:true}) +
                   (NO.prepayMethod === "Картка" && payConfigured() ? "<div class='settle-card-req' style='margin-top:10px'>" + payPanelHTML() + "</div>" : "") : "") +
                 bonusBlockHTML() +
@@ -2613,6 +2614,7 @@ function pickClient(phone) {
 
 function setPay(type, btn) {
   NO.payment = (NO.payment === type) ? "" : type;
+  if (NO.payment === "Передплата" && !NO.prepay) NO.prepay = newOrderTotal() || "";
   renderers.create();
 }
 function setPrepayMethod(m, btn) {
@@ -3093,14 +3095,14 @@ async function submitOrder() {  if (!NO.manager) { alert("Оберіть при�
     })
   };
 
-  const btn = document.querySelector(".cr-create-btn");
-  btn.textContent = "Збереження...";
-  btn.disabled = true;
+  const btns = document.querySelectorAll(".cr-create-btn.cr-create-mobile, .cr-create-btn.cr-create-under");
+  const setBtnState = (text, disabled) => btns.forEach(b => { b.textContent = text; b.disabled = disabled; });
+  setBtnState("Збереження...", true);
   try {
     const res = await fetch(API_URL, { method:"POST", mode:"cors", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload) });
     const result = await res.json();
     if (result.status === "ok") {
-      btn.textContent = "✓ " + (result.order_num || "Збережено");
+      setBtnState("✓ " + (result.order_num || "Збережено"), true);
       saveNewBrands(validItems);
       saveNewColors(validItems);
       try { localStorage.removeItem("rw_draft"); } catch(e) {}
@@ -3111,10 +3113,10 @@ async function submitOrder() {  if (!NO.manager) { alert("Оберіть при�
       showPage("orders");
       if (createdNum) openReceiptModal(createdNum);
     } else {
-      alert("Помилка: " + result.message); btn.textContent = "Створити замовлення"; btn.disabled = false;
+      alert("Помилка: " + result.message); setBtnState("Створити замовлення", false);
     }
   } catch(e) {
-    alert("Помилка збереження: " + e.message); btn.textContent = "Створити замовлення"; btn.disabled = false;
+    alert("Помилка збереження: " + e.message); setBtnState("Створити замовлення", false);
   }
 }
 
@@ -5657,9 +5659,27 @@ function payPanelHTML() {
   if (PAY.holder) info += "<div style='font-size:12px;color:var(--txt-2);margin-bottom:8px'>" + PAY.holder + "</div>";
   if (PAY.card) {
     info += "<div style='font-size:15px;color:var(--txt)'>" + (PAY.cardLabel || "Картка") + ": <b style='letter-spacing:0.03em'>" + PAY.card + "</b></div>" +
-      "<button onclick=\"copyToClipboard('" + PAY.card.replace(/\s/g,"") + "')\" style='margin-top:12px;background:none;border:1px solid var(--cognac-border);border-radius:8px;color:var(--cognac);font-family:Commissioner,sans-serif;font-size:13px;padding:9px 16px;cursor:pointer'>Скопіювати номер</button>";
+      "<div style='display:flex;gap:8px;justify-content:center;margin-top:12px'>" +
+        "<button onclick=\"copyToClipboard('" + PAY.card.replace(/\s/g,"") + "')\" style='background:none;border:1px solid var(--cognac-border);border-radius:8px;color:var(--cognac);font-family:Commissioner,sans-serif;font-size:13px;padding:9px 16px;cursor:pointer'>Скопіювати номер</button>" +
+        "<button onclick=\"openCardQR()\" style='background:none;border:1px solid var(--cognac-border);border-radius:8px;color:var(--cognac);font-family:Commissioner,sans-serif;font-size:13px;padding:9px 16px;cursor:pointer'>QR-код</button>" +
+      "</div>";
   }
   return "<div style='margin-top:8px;text-align:center'>" + info + "</div>";
+}
+
+/* Великий QR з номером картки — щоб клієнт відсканував з планшета */
+function openCardQR() {
+  if (!PAY.card) { toast("Спочатку додайте номер картки в налаштуваннях"); return; }
+  const body = document.getElementById("odm-body");
+  const data = PAY.card.replace(/\s/g,"");
+  body.innerHTML =
+    "<div class='detail-top'><span class='detail-title'>QR для оплати</span></div>" +
+    "<div style='text-align:center;padding:14px 0 4px'>" +
+      "<img src='https://api.qrserver.com/v1/create-qr-code/?size=340x340&data=" + encodeURIComponent(data) + "' style='width:280px;height:280px;border-radius:10px;border:1px solid var(--line)' alt='QR картки'>" +
+      "<div style='margin-top:16px;font-size:18px;letter-spacing:0.04em;font-weight:500'>" + PAY.card + "</div>" +
+      (PAY.holder ? "<div style='font-size:13px;color:var(--txt-2);margin-top:4px'>" + PAY.holder + "</div>" : "") +
+    "</div>";
+  document.getElementById("odm-bg").classList.add("open");
 }
 
 /* Окреме вікно з QR — не залежить від способу оплати */
