@@ -1805,13 +1805,12 @@ async function loadData() {
     const _cb = "&_=" + Date.now();
     const base = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&sheet=";
     const gv = (name) => fetch(base + encodeURIComponent(name) + _cb, { cache: "no-store" });
-    const [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11] = await Promise.all([
+    const [r1, r2, r3, r4, r5, r7, r8, r9, r10, r11] = await Promise.all([
       gv("Замовлення"),
       gv("Вироби"),
       gv("Партнери"),
       gv("Задачі").catch(() => null),
       gv("Виготовлення").catch(() => null),
-      gv("Налаштування").catch(() => null),
       gv("Види").catch(() => null),
       gv("Бренди").catch(() => null),
       gv("Майстри").catch(() => null),
@@ -1824,7 +1823,11 @@ async function loadData() {
     if (!PARTNERS.length) PARTNERS = ["Сергій"];
     if (r4) { try { TASKS = await parseTasks(r4); } catch(e) { TASKS = []; } }
     if (r5) { try { TAILOR = await parseTailor(r5); } catch(e) { TAILOR = []; } }
-    if (r6) { try { await parseSettings(r6); } catch(e) {} }
+    try {
+      const sres = await fetch(API_URL.replace("/order", "/settings/get"), { cache: "no-store" });
+      const sjson = await sres.json();
+      if (sjson.status === "ok") applySettings(sjson.items || {});
+    } catch(e) { console.error("settings/get failed", e); }
     if (r7) { try { VYDY = await parseVydy(r7); } catch(e) { VYDY = []; } }
     if (r8) { try { BRANDS = await parseBrands(r8); } catch(e) { BRANDS = []; } }
     if (r9) { try { MASTERS = await parseMasters(r9); } catch(e) { MASTERS = []; } }
@@ -1838,33 +1841,9 @@ async function loadData() {
   if (renderers[currentPage]) renderers[currentPage]();
 }
 
-async function parseSettings(res) {
+function applySettings(map) {
   try {
-    const text = await res.text();
-    const start = text.indexOf("{"), end = text.lastIndexOf("}");
-    if (start === -1) return;
-    const json = JSON.parse(text.substring(start, end + 1));
-    if (!json.table || !json.table.rows) return;
-    // Ключ у колонці A, значення у B. Шапка теж може бути парою — читаємо все.
-    const map = {};
-    const cellStr = (cell) => {
-      if (!cell) return "";
-      if (cell.v != null) return String(cell.v).trim();
-      if (cell.f != null) return String(cell.f).trim();
-      return "";
-    };
-    if (json.table.cols && json.table.cols[0] && json.table.cols[0].label) {
-      const k = String(json.table.cols[0].label).trim();
-      const v = json.table.cols[1] ? String(json.table.cols[1].label).trim() : "";
-      if (k) map[k] = v;
-    }
-    json.table.rows.forEach(row => {
-      const c = row.c || [];
-      const k = cellStr(c[0]);
-      const v = cellStr(c[1]);
-      if (k && (v !== "" || map[k] === undefined)) map[k] = v;
-    });
-    SETTINGS = map;
+    SETTINGS = map || {};
     const num = (key, fallback) => {
       const raw = map[key];
       const n = parseInt(String(raw).replace(/[^\d]/g,""));
@@ -1888,8 +1867,9 @@ async function parseSettings(res) {
     if (map["Статус зелений"] !== undefined && map["Статус зелений"]) RATING_META.green.label = map["Статус зелений"];
     if (map["Статус жовтий"] !== undefined && map["Статус жовтий"]) RATING_META.yellow.label = map["Статус жовтий"];
     if (map["Статус червоний"] !== undefined && map["Статус червоний"]) RATING_META.red.label = map["Статус червоний"];
-  } catch(e) { console.error("settings parse error", e); }
+  } catch(e) { console.error("applySettings error", e); }
 }
+
 
 async function parseTailor(res) {
   try {
@@ -5960,7 +5940,7 @@ function toast(msg) {
 }
 
 showPage("orders");
-loadData();
+loadData().then(() => { if (renderers[currentPage]) renderers[currentPage](); });
 loadPrice();
 
 /* ═══════════════ ПРЕДЗАПОВНЕННЯ З URL (для Siri/Команд) ═══════════════
