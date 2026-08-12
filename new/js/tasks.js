@@ -94,11 +94,18 @@ function clearTaskOrder() { taskAddOrder = ""; renderers.tasks(); }
 
 async function addTask() {
   const input = document.getElementById("task-input");
-  const text = input.value.trim();
-  if (!text) return;
+  let text = input.value.trim();
+  const order = taskAddOrder;
+  if (!text) {
+    if (order) {
+      text = "Нагадування по замовленню " + order;
+    } else {
+      toast("Введи, що потрібно зробити");
+      return;
+    }
+  }
   const deadlineRaw = document.getElementById("task-deadline-input").value;
   const deadline = deadlineRaw ? formatDeadlineDate(deadlineRaw) : "";
-  const order = taskAddOrder;
   const created = new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit",year:"numeric"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
   TASKS.push({ "Текст": text, "Замовлення": order, "Статус": "ні", "Створено": created, "Виконано": "", "Дедлайн": deadline });
   input.value = "";
