@@ -512,6 +512,7 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
   padding: 40px 20px; overflow-y: auto;
 }
 .odm-bg.open { display: flex; }
+.odm-bg.odm-center { align-items: center; }
 #receipt-modal.odm-bg { background: rgba(42,38,33,0.22); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .odm {
   background: var(--bg); border-radius: 14px;
@@ -789,6 +790,7 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .olr-num { font-weight: 500; color: var(--leather); font-size: 13px; white-space: nowrap; flex-shrink: 0; }
 .olr-1-spacer { flex: 1; }
 .attn-ico { flex-shrink: 0; width: 19px; height: 19px; border-radius: 6px; background: rgba(226,75,74,0.12); color: #E24B4A; display: flex; align-items: center; justify-content: center; }
+.attn-ico.attn-warn { background: rgba(239,159,39,0.15); color: #EF9F27; }
 .attn-ico svg { width: 11px; height: 11px; }
 .olr-badge { flex-shrink: 0; }
 .olr-2 { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 5px; }
@@ -1798,6 +1800,22 @@ function serviceStatusIndex(status) {
   if (status === "✅ Готово") return 2;
   if (status === "⚙️ В роботі") return 1;
   return 0;
+}
+/* Чи є в замовленні виріб, де одна послуга вже почата/готова, а інша ще ні */
+function orderHasStalledServices(num) {
+  const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+  const active = its.filter(it => gv(it,"Статус") !== "📦 Виданий");
+  if (!active.length) return false;
+  // Рівень речей: одна вже в роботі/готова, інша ще навіть не почата
+  const itemIdxs = active.map(it => itemStatusIndex(gv(it,"Статус")));
+  if (Math.max(...itemIdxs) >= 1 && Math.min(...itemIdxs) === 0) return true;
+  // Рівень послуг всередині однієї речі
+  return active.some(it => {
+    const svcs = servicesOfItem(gv(it,"Номер виробу"));
+    if (svcs.length < 2) return false;
+    const idxs = svcs.map(sv => serviceStatusIndex(gv(sv,"Статус")));
+    return Math.max(...idxs) >= 1 && Math.min(...idxs) === 0;
+  });
 }
 
 async function loadData() {
@@ -3227,8 +3245,11 @@ function renderOrdersList() {
       const allNotified = orderItems.length > 0 && orderItems.every(i => gv(i,"Сповіщено"));
       if (!allNotified) needsAttn = true;
     }
+    const needsWarn = !needsAttn && orderHasStalledServices(num);
     const attnIco = needsAttn
       ? "<span class='attn-ico' title='Потрібна увага — відкрий картку'><svg viewBox='0 0 24 24' fill='currentColor'><path d='M12 2L1 21h22L12 2z'/><path d='M12 9v5M12 17h.01' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg></span>"
+      : needsWarn
+      ? "<span class='attn-ico attn-warn' title='Не всі речі/послуги взяті в роботу'><svg viewBox='0 0 24 24' fill='currentColor'><path d='M12 2L1 21h22L12 2z'/><path d='M12 9v5M12 17h.01' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg></span>"
       : "";
     return "<div class='olr" + (warn ? " urgent-soon" : "") + (imp ? " important" : "") + "' data-num=\"" + num + "\" onclick=\"openOrder('" + num + "')\" oncontextmenu=\"toggleImportant('" + num + "',event);return false\">" +
       "<div class='olr-1'>" +
@@ -5279,7 +5300,11 @@ async function confirmIssueWholeOrder(num, master) {
 }
 
 function backToOrders() {
-  document.getElementById("odm-bg").classList.remove("open");
+  const bg = document.getElementById("odm-bg");
+  bg.classList.remove("open");
+  bg.classList.remove("odm-center");
+  const odmEl = bg.querySelector(".odm");
+  if (odmEl) odmEl.style.width = "";
   detailOrderNum = null;
 }
 function odmCloseBg(e) { if (e.target === document.getElementById("odm-bg")) backToOrders(); }
@@ -5690,7 +5715,10 @@ function openCardQR() {
       "<div style='margin-top:16px;font-size:18px;letter-spacing:0.04em;font-weight:500'>" + PAY.card + "</div>" +
       (PAY.holder ? "<div style='font-size:13px;color:var(--txt-2);margin-top:4px'>" + PAY.holder + "</div>" : "") +
     "</div>";
-  document.getElementById("odm-bg").classList.add("open");
+  const bg = document.getElementById("odm-bg");
+  bg.querySelector(".odm").style.width = "380px";
+  bg.classList.add("odm-center");
+  bg.classList.add("open");
 }
 
 /* Окреме вікно з QR — не залежить від способу оплати */
