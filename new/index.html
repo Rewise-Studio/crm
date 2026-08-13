@@ -2446,7 +2446,7 @@ renderers.create = function() {
             "<div class='cr-pills' id='cr-mgr'></div>" +
             "<div class='cr-block-label'>Клієнт</div>" +
             "<div class='cr-client-row'>" +
-              "<input class='cr-input' id='cr-phone' type='tel' inputmode='tel' style='flex:1;min-width:150px' placeholder='+380...' value=\"" + (NO.phone||"+380 ") + "\" oninput='onPhoneInput(this.value)' onfocus='this.setSelectionRange(this.value.length,this.value.length)'>" +
+              "<input class='cr-input' id='cr-phone' type='tel' inputmode='tel' style='flex:1;min-width:150px' placeholder='+380...' value=\"" + (NO.phone||"+380 ") + "\" oninput='onPhoneInput(this.value)'>" +
               "<div class='cr-client-suggest' style='flex:1;min-width:150px'>" +
                 "<input class='cr-input' id='cr-client' placeholder=\"Ім'я або магазин\" autocomplete='off' value=\"" + (NO.client||"").replace(/"/g,"&quot;") + "\" oninput='onClientInput(this.value)'>" +
                 "<div class='cr-suggest-dd' id='cr-suggest'></div>" +
