@@ -180,7 +180,7 @@ function openClientEdit(phone) {
       "<div class='detail-top'><span class='detail-title' style='font-size:16px'>Редагування — " + name + "</span></div>" +
       "<div class='edit-form'>" +
         "<div class='cr-block-label first'>Телефон</div>" +
-        "<input class='cr-input' value=\"" + phone.replace(/"/g,"&quot;") + "\" onblur=\"saveClientPhone('" + phone.replace(/'/g,"") + "',this.value)\">" +
+        "<input class='cr-input' type='tel' inputmode='tel' value=\"" + phone.replace(/"/g,"&quot;") + "\" onblur=\"saveClientPhone('" + phone.replace(/'/g,"") + "',this.value)\">" +
         "<div class='cr-block-label'>Прізвище / позначення</div>" +
         "<input class='cr-input' placeholder='напр. Адвокат, Магазин взуття' value=\"" + nameParts.rest.replace(/"/g,"&quot;") + "\" onblur=\"saveClientNameTag('" + phone.replace(/'/g,"") + "','" + nameParts.first.replace(/'/g,"") + "',this.value)\">" +
         "<div class='cr-block-label'>Месенджер</div>" +
