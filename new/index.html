@@ -1324,6 +1324,19 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 
 .cr-create-mobile{display:none;width:100%;margin-top:16px}
 .cf-note-mobile{display:none}
+.kp-bg { display:none; position:fixed; inset:0; z-index:9999; background:rgba(42,38,33,0.35); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; }
+.kp-bg.open { display:flex; }
+.kp-modal { background:var(--surface); border-radius:18px; padding:18px 18px 20px; width:320px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
+.kp-modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.kp-modal-title { font-size:15px; font-weight:500; color:var(--txt); }
+.kp-close { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:22px; color:var(--txt-2); cursor:pointer; }
+.kp-close:active { background:var(--hover); }
+.kp-display { border:1px solid var(--field-border); border-radius:10px; padding:14px 16px; font-size:20px; letter-spacing:0.03em; min-height:26px; margin-bottom:14px; background:var(--surface-2); color:var(--txt); text-align:center; }
+.kp-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+.kp-key { padding:18px 0; font-size:23px; font-weight:500; background:var(--surface-2); border:1px solid var(--field-border); border-radius:12px; color:var(--txt); cursor:pointer; font-family:'Commissioner',sans-serif; }
+.kp-key:active { background:var(--leather); color:#fff; transform:scale(0.96); }
+.kp-del { color:var(--txt-2); }
+.kp-done { width:100%; margin-top:12px; background:var(--leather); color:#fff; border:none; border-radius:12px; padding:14px; font-size:15px; font-weight:500; font-family:'Commissioner',sans-serif; cursor:pointer; }
 
 /* Планшет: даємо контенту більше простору, щоб колонки не тиснули */
 @media (max-width: 1100px) {
@@ -2446,7 +2459,7 @@ renderers.create = function() {
             "<div class='cr-pills' id='cr-mgr'></div>" +
             "<div class='cr-block-label'>Клієнт</div>" +
             "<div class='cr-client-row'>" +
-              "<input class='cr-input' id='cr-phone' type='tel' inputmode='tel' style='flex:1;min-width:150px' placeholder='+380...' value=\"" + (NO.phone||"+380 ") + "\" oninput='onPhoneInput(this.value)'>" +
+              "<input class='cr-input' id='cr-phone' readonly style='flex:1;min-width:150px;cursor:pointer' placeholder='+380...' value=\"" + (NO.phone||"+380 ") + "\" onclick='openPhoneKeypad(NO.phone||\"+380 \", function(v){ onPhoneInput(v); var el=document.getElementById(\"cr-phone\"); if(el) el.value=v; }, function(v){ onPhoneInput(v); var el=document.getElementById(\"cr-phone\"); if(el) el.value=v; })'>" +
               "<div class='cr-client-suggest' style='flex:1;min-width:150px'>" +
                 "<input class='cr-input' id='cr-client' placeholder=\"Ім'я або магазин\" autocomplete='off' value=\"" + (NO.client||"").replace(/"/g,"&quot;") + "\" oninput='onClientInput(this.value)'>" +
                 "<div class='cr-suggest-dd' id='cr-suggest'></div>" +
@@ -3659,7 +3672,7 @@ function renderEditForm() {
     "<div class='edit-form'>" +
       "<div class='cr-block-label first'>Клієнт</div>" +
       "<input class='cr-input' id='edit-client' value=\"" + e.client.replace(/"/g,"&quot;") + "\" oninput='editState.client=this.value'>" +
-      "<input class='cr-input' id='edit-phone' type='tel' inputmode='tel' value=\"" + e.phone + "\" oninput='editState.phone=this.value'>" +
+      "<input class='cr-input' id='edit-phone' readonly style='cursor:pointer' value=\"" + e.phone + "\" onclick='openPhoneKeypad(editState.phone||\"+380 \", function(v){ editState.phone=v; var el=document.getElementById(\"edit-phone\"); if(el) el.value=v; }, function(v){ editState.phone=v; var el=document.getElementById(\"edit-phone\"); if(el) el.value=v; })'>" +
       "<div class='cr-msg-pick' id='edit-msg'>" + msgPick + "</div>" +
       "<div class='cr-block-label'>Термін</div>" +
       "<input class='cr-input' id='edit-deadline' value=\"" + e.deadline.replace(/"/g,"&quot;") + "\" oninput='editState.deadline=this.value'>" +
@@ -5996,5 +6009,6 @@ loadPrice();
 <script src="js/tasks.js?v=1"></script>
 <script src="js/tailor.js?v=1"></script>
 <script src="js/clients.js?v=1"></script>
+<script src="js/keypad.js?v=1"></script>
 </body>
 </html>
