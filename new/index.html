@@ -1584,7 +1584,10 @@ const PAY = {
   card:      "",         // заповнюється з налаштувань
   cardLabel: "Картка",
   holder:    "",         // імʼя одержувача (необовʼязково)
-  qrLink:    "",
+  qrLink:    "",         // посилання bank.gov.ua/qr/... для ФОП
+  fopName:   "",         // отримувач (розшифровано з qrLink)
+  fopIban:   "",         // IBAN (розшифровано з qrLink)
+  fopCode:   "",         // ЄДРПОУ/ІПН (розшифровано з qrLink)
   qrImg:     ""
 };
 
@@ -1894,11 +1897,35 @@ function applySettings(map) {
     BONUS_SPEND_CAP = num("Ліміт списання %", BONUS_SPEND_CAP);
     if (map["Картка"] !== undefined) PAY.card = String(map["Картка"]).trim();
     if (map["Отримувач"] !== undefined) PAY.holder = String(map["Отримувач"]).trim();
+    if (map["ФОП QR"] !== undefined) { PAY.qrLink = String(map["ФОП QR"]).trim(); decodeFopQr(); }
     DAILY_CAP = num("Норма на день", DAILY_CAP);
     if (map["Статус зелений"] !== undefined && map["Статус зелений"]) RATING_META.green.label = map["Статус зелений"];
     if (map["Статус жовтий"] !== undefined && map["Статус жовтий"]) RATING_META.yellow.label = map["Статус жовтий"];
     if (map["Статус червоний"] !== undefined && map["Статус червоний"]) RATING_META.red.label = map["Статус червоний"];
   } catch(e) { console.error("applySettings error", e); }
+}
+
+/* Розшифровує посилання bank.gov.ua/qr/BASE64 у реквізити ФОП.
+   Формат НБУ (BCD/EPC): рядки через \n — [BCD, версія, кодування, тип, порожньо, Отримувач, IBAN, порожньо, Код, ...] */
+function decodeFopQr() {
+  PAY.fopName = ""; PAY.fopIban = ""; PAY.fopCode = "";
+  if (!PAY.qrLink) return;
+  try {
+    let b64 = PAY.qrLink.split("/qr/")[1] || "";
+    if (!b64) return;
+    b64 = b64.replace(/-/g,"+").replace(/_/g,"/");
+    while (b64.length % 4) b64 += "=";
+    const bytes = atob(b64);
+    const decoded = decodeURIComponent(escape(bytes));
+    const lines = decoded.split("\n");
+    PAY.fopName = (lines[5] || "").trim();
+    PAY.fopIban = (lines[6] || "").trim();
+    PAY.fopCode = (lines[8] || "").trim();
+  } catch(e) { console.error("decodeFopQr failed", e); }
+}
+function fopConfigured() { return !!(PAY.qrLink && PAY.fopIban); }
+function ibanPretty(iban) {
+  return (iban || "").replace(/(.{4})/g, "$1 ").trim();
 }
 
 
@@ -2487,7 +2514,8 @@ renderers.create = function() {
                 (NO.payment==='Передплата' ?
                   "<input class='cr-input' id='cr-prepay' type='number' placeholder='Сума передоплати, ₴' value=\"" + (NO.prepayTouched ? (NO.prepay||"") : newOrderTotal()) + "\" oninput='NO.prepay=this.value; NO.prepayTouched=true;'>" +
                   crSelect("paymethod", NO.prepayMethod, ["Готівка","Картка","ФОП"], "setPayMethodVal", {placeholder:"Спосіб передоплати", up:true}) +
-                  (NO.prepayMethod === "Картка" && payConfigured() ? "<div class='settle-card-req' style='margin-top:10px'>" + payPanelHTML() + "</div>" : "") : "") +
+                  (NO.prepayMethod === "Картка" && payConfigured() ? "<div class='settle-card-req' style='margin-top:10px'>" + payPanelHTML() + "</div>" : "") +
+                  (NO.prepayMethod === "ФОП" && fopConfigured() ? "<div class='settle-card-req' style='margin-top:10px'>" + fopPanelHTML() + "</div>" : "") : "") +
                 bonusBlockHTML() +
               "</div>" +
               "<div class='cr-col'>" +
@@ -4193,17 +4221,18 @@ function renderParamsEditor() {
     "<div class='stat-panel' style='max-width:560px'>" +
       "<div class='stat-panel-label'>Реквізити для оплати</div>" +
       "<div class='param-hint' style='margin-bottom:12px'>Показуються кнопкою «Реквізити для оплати» у картці замовлення. Зберігаються в таблиці, а не в коді — тож на всіх пристроях однакові.</div>" +
-      "<div class='task-field-label'>Номер картки</div>" +
+      "<div class='task-field-label'>Номер картки (для своїх)</div>" +
       "<input class='cr-input' id='set-pay-card' placeholder='0000 0000 0000 0000' value=\"" + esc(PAY.card) + "\">" +
-      "<div class='task-field-label'>Отримувач (необовʼязково)</div>" +
+      "<div class='task-field-label'>Отримувач картки (необовʼязково)</div>" +
       "<input class='cr-input' id='set-pay-holder' placeholder=\"Ім'я одержувача\" value=\"" + esc(PAY.holder) + "\">" +
+      "<div class='task-field-label' style='margin-top:14px'>Посилання ФОП QR (bank.gov.ua/qr/...)</div>" +
+      "<input class='cr-input' id='set-pay-fopqr' placeholder='https://bank.gov.ua/qr/...' value=\"" + esc(PAY.qrLink) + "\">" +
+      (fopConfigured() ?
+        "<div style='margin-top:8px;padding:10px 12px;background:var(--surface-2);border-radius:8px;font-size:11px;color:var(--txt-2);line-height:1.6'>" +
+          "З посилання зчитано:<br><b>" + esc(PAY.fopName) + "</b><br>" + esc(ibanPretty(PAY.fopIban)) +
+          (PAY.fopCode ? "<br>Код: " + esc(PAY.fopCode) : "") +
+        "</div>" : "") +
       "<button class='cr-create-btn' onclick='savePayReqs()'>Зберегти</button>" +
-      "<div style='margin-top:14px;padding:10px 12px;background:var(--surface-2);border-radius:8px;font-size:11px;color:var(--txt-3);font-family:monospace;line-height:1.6'>" +
-        "PAY.card зараз у застосунку: «" + (PAY.card || "(порожньо)") + "»<br>" +
-        "SETTINGS['Картка'] з останнього завантаження: «" + (SETTINGS["Картка"] !== undefined ? SETTINGS["Картка"] : "(ключа взагалі немає в мапі)") + "»<br>" +
-        "payConfigured(): " + (typeof payConfigured === "function" ? payConfigured() : "?") +
-      "</div>" +
-      "<button style='margin-top:8px;width:100%;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:9px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px' onclick='(async()=>{await loadData();renderers.settings();})()'>Перечитати з таблиці зараз</button>" +
     "</div>" +
     "<div class='stat-panel' style='max-width:560px'>" +
       "<div class='stat-panel-label'>Планування завантаження</div>" +
@@ -4264,13 +4293,16 @@ async function saveParams() {
 async function savePayReqs() {
   const card = document.getElementById("set-pay-card").value.trim();
   const holder = document.getElementById("set-pay-holder").value.trim();
+  const fopqr = document.getElementById("set-pay-fopqr").value.trim();
   PAY.card = card;
   PAY.holder = holder;
+  PAY.qrLink = fopqr;
+  decodeFopQr();
   let ok = false, detail = "";
   try {
     const res = await fetch(API_URL.replace("/order", "/settings/update"), {
       method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ items: { "Картка": card, "Отримувач": holder } })
+      body: JSON.stringify({ items: { "Картка": card, "Отримувач": holder, "ФОП QR": fopqr } })
     });
     const r = await res.json();
     ok = r.status === "ok";
@@ -4279,8 +4311,7 @@ async function savePayReqs() {
   if (ok) {
     await loadData();
     renderers.settings();
-    const check = PAY.card === card;
-    toast(check ? "Реквізити збережено (перевірено на сервері)" : "Сервер прийняв запит, але при перечитуванні номер не збігається — перевір лист «Налаштування»");
+    toast("Реквізити збережено");
   } else {
     toast("Не вдалося зберегти" + (detail ? ": " + detail : ""));
     alert("Помилка збереження реквізитів:\n" + (detail || "невідома помилка, деталей немає у відповіді сервера"));
@@ -5734,6 +5765,54 @@ function openCardQR() {
   bg.classList.add("open");
 }
 
+/* Панель ФОП: дві кнопки — Реквізити (текст) і QR-код (по центру) */
+function fopPanelHTML() {
+  return "<div style='margin-top:8px;text-align:center'>" +
+    "<div style='font-size:12px;color:var(--txt-2);margin-bottom:8px'>Оплата на рахунок ФОП</div>" +
+    "<div style='display:flex;gap:8px;justify-content:center'>" +
+      "<button onclick=\"openFopReq()\" style='flex:1;background:none;border:1px solid var(--cognac-border);border-radius:8px;color:var(--cognac);font-family:Commissioner,sans-serif;font-size:13px;padding:10px;cursor:pointer'>Реквізити</button>" +
+      "<button onclick=\"openFopQR()\" style='flex:1;background:none;border:1px solid var(--cognac-border);border-radius:8px;color:var(--cognac);font-family:Commissioner,sans-serif;font-size:13px;padding:10px;cursor:pointer'>QR-код</button>" +
+    "</div>" +
+  "</div>";
+}
+
+/* Текстові реквізити ФОП — для копіювання (віддалена оплата) */
+function openFopReq() {
+  if (!fopConfigured()) { toast("Спочатку додайте посилання ФОП QR у налаштуваннях"); return; }
+  const body = document.getElementById("odm-body");
+  body.innerHTML =
+    "<div class='detail-top'><span class='detail-title'>Реквізити ФОП</span></div>" +
+    "<div style='padding:8px 0'>" +
+      "<div style='font-size:11px;color:var(--txt-3)'>Отримувач</div>" +
+      "<div style='font-size:14px;margin-bottom:12px'>" + PAY.fopName + "</div>" +
+      "<div style='font-size:11px;color:var(--txt-3)'>IBAN</div>" +
+      "<div style='font-size:15px;letter-spacing:0.03em;margin-bottom:6px'>" + ibanPretty(PAY.fopIban) + "</div>" +
+      "<button onclick=\"copyToClipboard('" + PAY.fopIban + "')\" style='background:none;border:1px solid var(--cognac-border);border-radius:8px;color:var(--cognac);font-family:Commissioner,sans-serif;font-size:13px;padding:8px 16px;cursor:pointer;margin-bottom:12px'>Скопіювати IBAN</button>" +
+      (PAY.fopCode ? "<div style='font-size:11px;color:var(--txt-3)'>Код ЄДРПОУ/ІПН</div><div style='font-size:14px'>" + PAY.fopCode + "</div>" : "") +
+    "</div>";
+  const bg = document.getElementById("odm-bg");
+  bg.querySelector(".odm").style.width = "380px";
+  bg.classList.add("odm-center");
+  bg.classList.add("open");
+}
+
+/* Великий QR ФОП по центру — кодує посилання НБУ (читає будь-який банк) */
+function openFopQR() {
+  if (!fopConfigured()) { toast("Спочатку додайте посилання ФОП QR у налаштуваннях"); return; }
+  const body = document.getElementById("odm-body");
+  body.innerHTML =
+    "<div class='detail-top'><span class='detail-title'>QR для оплати</span></div>" +
+    "<div style='text-align:center;padding:14px 0 4px'>" +
+      "<img src='https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=" + encodeURIComponent(PAY.qrLink) + "' style='width:280px;height:280px;border-radius:10px;border:1px solid var(--line)' alt='QR ФОП'>" +
+      "<div style='margin-top:16px;font-size:15px;font-weight:500'>" + (PAY.fopName || "Оплата на рахунок ФОП") + "</div>" +
+      "<div style='font-size:12px;color:var(--txt-3);margin-top:4px'>Будь-який банківський застосунок</div>" +
+    "</div>";
+  const bg = document.getElementById("odm-bg");
+  bg.querySelector(".odm").style.width = "380px";
+  bg.classList.add("odm-center");
+  bg.classList.add("open");
+}
+
 /* Окреме вікно з QR — не залежить від способу оплати */
 function openPayQR() {
   if (!payConfigured()) { toast("QR ще не налаштовано"); return; }
@@ -5754,7 +5833,7 @@ function setSettleMethod(m, btn) {
   btn.parentElement.querySelectorAll(".cr-pill").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
   const infoBox = document.getElementById("settle-card-info");
-  if (infoBox) infoBox.innerHTML = (m === "Картка" && payConfigured()) ? "<div class='settle-card-req'>" + payPanelHTML() + "</div>" : "";
+  if (infoBox) infoBox.innerHTML = (m === "Картка" && payConfigured()) ? "<div class='settle-card-req'>" + payPanelHTML() + "</div>" : (m === "ФОП" && fopConfigured()) ? "<div class='settle-card-req'>" + fopPanelHTML() + "</div>" : "";
 }
 function closeSettle() {
   const ov = document.querySelector(".settle-overlay");
