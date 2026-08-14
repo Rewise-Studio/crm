@@ -46,7 +46,7 @@ renderers.clients = function() {
     "<div class='page-header'><div class='page-title'>Клієнти</div>" +
       "<button class='btn-primary' onclick='openSummaryReceipt()'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'><path d='M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z'/><path d='M9 12h6M9 16h6M9 8h3'/></svg>Зведений чек</button>" +
     "</div>" +
-    "<div class='clients-search-wrap'><input class='clients-search' id='clients-search' placeholder='Пошук за номером телефону або імʼям…' value=\"" + (clientSearch||"").replace(/"/g,"&quot;") + "\" oninput='clientSearch=this.value; document.getElementById(\"clients-list\").innerHTML=buildClientRows();'></div>" +
+    "<div class='clients-search-wrap'><input class='clients-search' id='clients-search' inputmode='tel' placeholder='Пошук за номером телефону або імʼям…' value=\"" + (clientSearch||"").replace(/"/g,"&quot;") + "\" oninput='clientSearch=this.value; document.getElementById(\"clients-list\").innerHTML=buildClientRows();'></div>" +
     "<div class='tab-scroll'>" +
       "<div class='clients-list' id='clients-list'>" + rows + "</div>" +
     "</div>";
@@ -180,7 +180,7 @@ function openClientEdit(phone) {
       "<div class='detail-top'><span class='detail-title' style='font-size:16px'>Редагування — " + name + "</span></div>" +
       "<div class='edit-form'>" +
         "<div class='cr-block-label first'>Телефон</div>" +
-        "<input class='cr-input' type='tel' inputmode='tel' value=\"" + phone.replace(/"/g,"&quot;") + "\" onblur=\"saveClientPhone('" + phone.replace(/'/g,"") + "',this.value)\">" +
+        "<input class='cr-input' readonly style='cursor:pointer' id='client-card-phone' value=\"" + phone.replace(/"/g,"&quot;") + "\" onclick=\"openPhoneKeypad('" + phone.replace(/'/g,"") + "', function(v){ var el=document.getElementById('client-card-phone'); if(el) el.value=v; }, function(v){ saveClientPhone('" + phone.replace(/'/g,"") + "', v); })\">" +
         "<div class='cr-block-label'>Прізвище / позначення</div>" +
         "<input class='cr-input' placeholder='напр. Адвокат, Магазин взуття' value=\"" + nameParts.rest.replace(/"/g,"&quot;") + "\" onblur=\"saveClientNameTag('" + phone.replace(/'/g,"") + "','" + nameParts.first.replace(/'/g,"") + "',this.value)\">" +
         "<div class='cr-block-label'>Месенджер</div>" +
