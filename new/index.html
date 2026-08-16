@@ -229,6 +229,17 @@ body {
 .cr-box-full { grid-column: 1 / -1; }
 .cr-mgr-center { justify-content: center; }
 .cr-client-row { display: flex; gap: 8px; align-items: flex-start; }
+
+/* ═══ Телефон: форма створення в один стовпчик, нічого не вилазить ═══ */
+@media (max-width: 620px) {
+  .cr-client-row { flex-direction: column; gap: 10px; }
+  .cr-client-row > * { width: 100% !important; flex: none !important; min-width: 0 !important; }
+  .cr-msg-pick { width: 100%; }
+  .cr-msg-icons { justify-content: flex-start; }
+  .cr-payterm { grid-template-columns: 1fr; }
+  .cr-input { font-size: 16px; }
+  .cr-pill { font-size: 14px; padding: 11px 14px; }
+}
 .cr-msg-icons { display: flex; gap: 6px; flex-shrink: 0; margin: 0; }
 .cr-msg-ico-btn { width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; }
 .cr-msg-ico-btn .msg-ico { margin: 0; }
@@ -451,6 +462,18 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 #page-create .add-item-btn { padding: 9px; margin-top: 7px; }
 #page-create .ic-op-tile { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; }
 @media (max-width: 820px) { .cr-bottom3 { grid-template-columns: 1fr; } .cr-bottom3 .cr-col + .cr-col { border-left: none; padding-left: 0; border-top: 1px solid var(--line-soft); padding-top: 14px; } .ic-row3 { flex-wrap: wrap; } }
+
+/* ═══ Телефон: картка речі — усе в один стовпчик, кнопки не налазять ═══ */
+@media (max-width: 620px) {
+  .ic-row3 { flex-direction: column; gap: 12px; }
+  .ic-row3 .ic-field { width: 100%; flex: none; }
+  .ic-oprow { flex-direction: column; }
+  .ic-oprow > * { width: 100%; }
+  .ic-segrow { flex-wrap: wrap; }
+  .ic-mini, .ic-input { font-size: 16px; }
+  #page-create .ic-row3 .ic-mini, .iw-body .ic-row3 .ic-mini { height: 44px; }
+  #page-create .ic-catseg .ic-seg, .iw-body .ic-catseg .ic-seg { height: 44px; }
+}
 
 .add-item-btn { width: 100%; background: transparent; border: 1.5px dashed var(--cognac); border-radius: 8px; color: var(--cognac); padding: 14px; font-family: 'Commissioner', sans-serif; font-size: 13px; letter-spacing: 0.04em; cursor: pointer; transition: all 0.15s; margin-top: 10px; }
 .add-item-btn:hover { background: var(--accent-soft); }
