@@ -231,7 +231,6 @@ body {
 .cr-client-row { display: flex; gap: 8px; align-items: flex-start; }
 
 /* ═══ Телефон: форма створення в один стовпчик, нічого не вилазить ═══ */
-.cr-q { display: none; }
 @media (max-width: 620px) {
   .cr-client-row { flex-direction: column; gap: 10px; }
   .cr-client-row > * { width: 100% !important; flex: none !important; min-width: 0 !important; }
@@ -239,24 +238,9 @@ body {
   .cr-msg-icons { justify-content: flex-start; }
   .cr-payterm { grid-template-columns: 1fr; }
   .cr-input { font-size: 16px; }
-  .cr-pill { font-size: 15px; padding: 15px 14px; }
-
-  /* Крок 3: три колонки стають трьома під-екранами (по одному) */
-  .cr-bottom3 { display: block; }
-  .cr-bottom3 .cr-col { display: none; }
-  .cr-bottom3.paysub-1 .cr-col[data-paysub='1'],
-  .cr-bottom3.paysub-2 .cr-col[data-paysub='2'],
-  .cr-bottom3.paysub-3 .cr-col[data-paysub='3'] { display: block; }
-  .cr-col + .cr-col { border-left: none !important; padding-left: 0 !important; }
-
-  .cr-q { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
-  .cr-q-ico { width: 48px; height: 48px; border-radius: 13px; background: var(--cognac-bg, rgba(160,132,92,0.12)); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .cr-q-ico i { font-size: 24px; color: var(--cognac); }
-  .cr-q-title { font-size: 18px; font-weight: 500; }
-  .cr-q-sub { font-size: 13px; color: var(--txt-2); margin-top: 2px; }
-  .cr-bottom3 .cr-block-label.first { display: none; }
-  .cr-bottom3 .cr-pills { display: flex; flex-direction: column; gap: 12px; }
-  .cr-bottom3 .cr-pill { text-align: left; padding: 18px; font-size: 16px; border-radius: 13px; }
+  .cr-pill { font-size: 15px; padding: 13px 14px; }
+  .cr-bottom3 { grid-template-columns: 1fr; }
+  .cr-bottom3 .cr-col + .cr-col { border-left: 1px solid var(--line-soft) !important; padding-left: 16px !important; }
 }
 .cr-msg-icons { display: flex; gap: 6px; flex-shrink: 0; margin: 0; }
 .cr-msg-ico-btn { width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; }
@@ -389,8 +373,8 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 
 .ic-oplabel, .ic-otherlabel { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cognac); margin: 14px 0 8px; }
 .ic-otherlabel { color: var(--txt-3); margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line-soft); }
-.ic-oprow { display: flex; gap: 8px; flex-wrap: wrap; }
-.ic-op-tile { position: relative; flex: 1; min-width: 110px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px 14px; border-radius: 9px; border: 1px solid var(--field-border); background: transparent; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+.ic-oprow { display: flex; gap: 12px; flex-wrap: wrap; }
+.ic-op-tile { position: relative; flex: 1; min-width: 110px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 14px 16px; border-radius: 10px; border: 1px solid var(--field-border); background: transparent; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
 .ic-op-tile:hover { border-color: var(--cognac); }
 .ic-op-tile .ic-op-price { font-size: 12px; font-weight: 400; color: var(--cognac); }
 .ic-op-tile.on { background: var(--cognac); border-color: var(--cognac); color: #fff; }
@@ -398,7 +382,7 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .ic-op-tile.off { opacity: 0.4; cursor: default; pointer-events: none; }
 .ic-op-check { position: absolute; top: 8px; right: 10px; font-size: 11px; }
 .ic-op-hint { font-size: 11px; color: var(--txt-3); margin-top: 8px; }
-.ic-segrow { display: flex; gap: 6px; }
+.ic-segrow { display: flex; gap: 10px; }
 .ic-moderow { margin: 4px 0 14px; }
 .ic-moderow .ic-seg { padding: 11px 0; font-size: 13px; }
 .ic-seg { flex: 1; padding: 9px 0; border-radius: 7px; border: 1px solid var(--field-border); background: transparent; color: var(--txt-2); font-family: 'Commissioner', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.15s; }
@@ -410,8 +394,9 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .ic-catseg { display: flex; gap: 6px; }
 .ic-catseg .ic-seg { padding: 9px 6px; }
 /* ── низ у три колонки: оплата · термін · спосіб отримання ── */
-.cr-bottom3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; align-items: start; }
-.cr-bottom3 .cr-col + .cr-col { border-left: 1px solid var(--line-soft); padding-left: 22px; }
+.cr-bottom3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; align-items: start; }
+.cr-bottom3 .cr-col { background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 12px; padding: 16px 16px 18px; }
+.cr-bottom3 .cr-col + .cr-col { border-left: 1px solid var(--line-soft); padding-left: 16px; }
 .cr-opt-note { text-transform: none; letter-spacing: 0; color: var(--txt-3); font-size: 11px; font-weight: 300; }
 .cr-optrow .cr-pill { opacity: 0.5; border-style: dashed; }
 .cr-optrow .cr-pill:hover { opacity: 0.9; }
@@ -490,7 +475,7 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .iw-body .ic-svclist { margin: 4px 0; }
 .iw-body .ic-add-svc-btn { margin-top: 12px; }
 #page-create .ic-op-tile { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; }
-@media (max-width: 820px) { .cr-bottom3 { grid-template-columns: 1fr; } .cr-bottom3 .cr-col + .cr-col { border-left: none; padding-left: 0; border-top: 1px solid var(--line-soft); padding-top: 14px; } .ic-row3 { flex-wrap: wrap; } }
+@media (max-width: 820px) { .cr-bottom3 { grid-template-columns: 1fr; } .cr-bottom3 .cr-col + .cr-col { border-left: 1px solid var(--line-soft); padding-left: 16px; padding-top: 16px; } .ic-row3 { flex-wrap: wrap; } }
 
 /* ═══ Телефон: картка речі — усе в один стовпчик, кнопки не налазять ═══ */
 @media (max-width: 620px) {
@@ -2459,19 +2444,7 @@ function pickColor(id, c) {
 }
 
 let createStep = 1;
-let paySub = 1; // під-екран кроку 3 на телефоні: 1=Оплата, 2=Термін, 3=Отримання
-function isPhone(){ return window.matchMedia && window.matchMedia("(max-width: 620px)").matches; }
-function setCreateStep(n){ if(n<1)n=1; if(n>4)n=4; createStep = n; if(n!==3) paySub=1; renderers.create(); }
-function crNext(){
-  // На телефоні крок 3 гортає під-екрани оплати, і лише з останнього йде на підтвердження
-  if (createStep===3 && isPhone() && paySub<3){ paySub++; renderers.create(); return; }
-  setCreateStep(createStep+1);
-}
-function crBack(){
-  if (createStep===3 && isPhone() && paySub>1){ paySub--; renderers.create(); return; }
-  setCreateStep(createStep-1);
-}
-function setPaySub(n){ paySub=n; renderers.create(); }
+function setCreateStep(n){ if(n<1)n=1; if(n>4)n=4; createStep = n; renderers.create(); }
 renderers.create = function() {
   const page = document.getElementById("page-create");
   if (NO.payment === "Передплата" && !NO.prepayTouched) NO.prepay = newOrderTotal();
@@ -2500,9 +2473,9 @@ renderers.create = function() {
   crRail += "</div>";
 
   var crNav = "<div class='cr-nav'>" +
-    (createStep>1 ? "<button class='cr-head-btn' onclick='crBack()'>← Назад</button>" : "") +
+    (createStep>1 ? "<button class='cr-head-btn' onclick='setCreateStep("+(createStep-1)+")'>← Назад</button>" : "") +
     "<div style='flex:1'></div>" +
-    (createStep<4 ? "<button class='cr-nav-next' onclick='crNext()'>Далі →</button>" : "") +
+    (createStep<4 ? "<button class='cr-nav-next' onclick='setCreateStep("+(createStep+1)+")'>Далі →</button>" : "") +
     "</div>";
 
   var _cfNow = new Date();
@@ -2578,9 +2551,8 @@ renderers.create = function() {
           "</div>" +
           "<div class='cr-step" + (createStep===3?" on":"") + "' data-cstep='3'>" +
           "<div class='cr-box'>" +
-            "<div class='cr-bottom3 paysub-" + paySub + "'>" +
-              "<div class='cr-col' data-paysub='1'>" +
-                "<div class='cr-q'><div class='cr-q-ico'><i class='ti ti-cash'></i></div><div class='cr-q-txt'><div class='cr-q-title'>Як оплачує клієнт?</div><div class='cr-q-sub'>Оберіть тип оплати</div></div></div>" +
+            "<div class='cr-bottom3'>" +
+              "<div class='cr-col'>" +
                 "<div class='cr-block-label first'>Оплата</div>" +
                 "<div class='cr-pills'>" +
                   "<button class='cr-pill cr-pill-wide" + (NO.payment==='Передплата'?' active':'') + "' onclick=\"setPay('Передплата',this)\">Передплата</button>" +
@@ -2593,8 +2565,7 @@ renderers.create = function() {
                   (NO.prepayMethod === "ФОП" && fopConfigured() ? "<div class='settle-card-req' style='margin-top:10px'>" + fopPanelHTML() + "</div>" : "") : "") +
                 bonusBlockHTML() +
               "</div>" +
-              "<div class='cr-col' data-paysub='2'>" +
-                "<div class='cr-q'><div class='cr-q-ico'><i class='ti ti-calendar'></i></div><div class='cr-q-txt'><div class='cr-q-title'>Коли буде готово?</div><div class='cr-q-sub'>Термін виконання</div></div></div>" +
+              "<div class='cr-col'>" +
                 "<div class='cr-block-label first'>Термін</div>" +
                 "<div class='cr-pills' id='cr-deadline' style='position:relative'>" +
                   "<button class='cr-pill" + (NO.deadline==='⚡ Терміново'?' active':'') + "' onclick=\"setDeadline('⚡ Терміново',this)\">Терміново</button>" +
@@ -2605,8 +2576,7 @@ renderers.create = function() {
                 "</div>" +
                 "<div class='cr-deadline-hint' id='cr-deadline-hint'></div>" +
               "</div>" +
-              "<div class='cr-col' data-paysub='3'>" +
-                "<div class='cr-q'><div class='cr-q-ico'><i class='ti ti-package'></i></div><div class='cr-q-txt'><div class='cr-q-title'>Як забирає?</div><div class='cr-q-sub'>Спосіб отримання</div></div></div>" +
+              "<div class='cr-col'>" +
                 "<div class='cr-block-label first'>Спосіб отримання <span class='cr-opt-note'>необов'язково</span></div>" +
                 "<div class='cr-pills cr-optrow' id='cr-deliv'>" +
                   DELIVERY_OPTS.map(function(o){return "<button class='cr-pill" + (NO.delivery===o?' active':'') + "' onclick=\"setDeliveryPill('" + o.replace(/'/g,"\\'") + "',this)\">" + o + "</button>";}).join("") +
