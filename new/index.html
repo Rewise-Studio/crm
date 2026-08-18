@@ -597,7 +597,7 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .cc-link { cursor: pointer; }
 .cc-link:hover { color: var(--cognac); text-decoration: underline; text-decoration-color: var(--cognac-border); }
 .d-client-sub { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--txt-2); margin-top: 2px; }
-.d-msg-ico { width: 16px; height: 16px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.d-msg-ico { width: 16px; height: 16px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border: none; padding: 0; cursor: pointer; }
 .d-msg-ico svg { width: 10px; height: 10px; fill: #fff; }
 .d-client-notify { flex-shrink: 0; display: flex; align-items: center; gap: 6px; background: none; border: 1px solid var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 11px; padding: 6px 10px; cursor: pointer; white-space: nowrap; }
 .d-client-notify.on { background: #2FA98C; border-color: #2FA98C; color: #fff; }
@@ -918,6 +918,40 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .ptab.active { background: var(--cognac); color: #fff; border-color: var(--cognac); }
 
 .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; padding: 0 28px; }
+
+/* Плитки-фільтри сторінки "Замовлення" — окремі класи, щоб не чіпати статичні
+   stat-card на інших сторінках (фінанси, клієнти), які лишаються некликабельними. */
+.ord-tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 16px; padding: 0 28px; }
+.ord-tile { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 14px; cursor: pointer; transition: all .15s; text-align: left; font-family: inherit; width: 100%; }
+.ord-tile:hover { border-color: var(--cognac-border); box-shadow: 0 3px 12px rgba(160,132,92,.12); }
+.ord-tile.on { border-color: var(--cognac); background: var(--cognac-light); }
+.ord-tile.on .ord-tile-value { color: var(--leather); }
+.ord-tile-label { font-size: 10px; color: var(--txt-3); letter-spacing: .04em; margin-bottom: 7px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ord-tile-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.ord-tile-value { font-family: 'Tenor Sans', serif; font-size: 21px; color: var(--txt); }
+.ord-tile-value.accent { color: var(--cognac); }
+.ord-tile-sub { font-size: 11px; color: var(--txt-3); white-space: nowrap; }
+.ord-tile-sub b { color: var(--txt-2); font-weight: 600; }
+
+.page-head-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.seg-pill { display: flex; border: 1px solid var(--line); border-radius: 20px; overflow: hidden; background: var(--surface); flex-shrink: 0; }
+.seg-btn { border: none; background: none; color: var(--txt-2); font-size: 12px; padding: 7px 12px; cursor: pointer; font-family: inherit; white-space: nowrap; border-right: 1px solid var(--line); }
+.seg-btn:last-child { border-right: none; }
+.seg-btn.on { background: var(--cognac); color: #fff; }
+.pill-toggle { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--txt-2); font-size: 12px; padding: 7px 13px 7px 11px; border-radius: 20px; cursor: pointer; font-family: inherit; white-space: nowrap; flex-shrink: 0; }
+.pill-toggle:hover { border-color: var(--cognac-border); }
+.pill-toggle .pill-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); transition: background .15s; display: inline-block; }
+.pill-toggle.on { border-color: var(--cognac-border); background: var(--cognac-light); color: var(--leather); }
+.pill-toggle.on .pill-dot { background: var(--cognac); }
+
+@media (max-width: 620px) {
+  .ord-tiles { grid-template-columns: repeat(3, 1fr); gap: 7px; padding: 0 18px; }
+  .ord-tile { padding: 11px 10px; }
+  .ord-tile-label { font-size: 9px; }
+  .ord-tile-value { font-size: 17px; }
+  .ord-tile-sub { font-size: 10px; }
+  .page-head-right { width: 100%; justify-content: space-between; }
+}
 .stat-card { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 16px 18px; }
 .stat-card .sc-label { font-size: 10px; color: var(--txt-3); letter-spacing: 0.05em; margin-bottom: 8px; text-transform: uppercase; }
 .stat-card .sc-value { font-family: 'Tenor Sans', serif; font-size: 22px; color: var(--txt); }
@@ -1842,7 +1876,7 @@ const DEFAULT_COLORS = ["Чорний","Коричневий","Коньяк","Б
 const MATERIALS = ["Шкіра","Замша","Нубук","Текстиль","Лак","Комбінований"];
 const CONDITIONS = ["Новий стан","Гарний стан","Незначні потертості","Потертості","Пошкодження","Сильний знос"];
 const DELIVERY_OPTS = ["Самовивіз","Нова пошта","Кур'єр"];
-let ordersFilter = new Set(), ordersSearch = "", ordersPayFilter = "all";
+let ordersFilter = new Set(), ordersSearch = "", ordersPayFilter = "all", ordersShowItems = true;
 let dataLoaded = false;
 
 function gv(obj, ...keys) {
@@ -2351,6 +2385,24 @@ const MSG_ICONS = {
 };
 const MSG_COLORS = { telegram: "#2AABEE", whatsapp: "#25D366", viber: "#7360F2" };
 const MSG_LABELS = { telegram: "Telegram", whatsapp: "WhatsApp", viber: "Viber" };
+
+/* Відкриття месенджера напряму в застосунку, без веб-кроку.
+   WhatsApp і Viber мають власні URL-схеми — вони відкривають застосунок надійно.
+   Telegram офіційної схеми під номер телефону не має: пробуємо застосунок,
+   і якщо за 1.2с сторінка лишилась видимою (застосунок не відкрився) —
+   підстраховуємось звичайним посиланням t.me. */
+function openMessenger(key, phoneClean) {
+  if (key === "whatsapp") { window.location.href = "whatsapp://send?phone=" + phoneClean; return; }
+  if (key === "viber") { window.location.href = "viber://chat?number=%2B" + phoneClean; return; }
+  let landed = false;
+  const markLanded = function () { landed = true; };
+  document.addEventListener("visibilitychange", markLanded, { once: true });
+  window.location.href = "tg://resolve?phone=" + phoneClean;
+  setTimeout(function () {
+    document.removeEventListener("visibilitychange", markLanded);
+    if (!landed) window.location.href = "https://t.me/+" + phoneClean;
+  }, 1200);
+}
 
 function firstCategory() { const k = Object.keys(PRICE); return k.length ? k[0] : ""; }
 function firstDept(cat) { if (!PRICE[cat]) return ""; const k = Object.keys(PRICE[cat].departments); return k.length ? k[0] : ""; }
@@ -3301,12 +3353,27 @@ renderers.orders = function() {
   const activeCount = periodOrders.filter(o => getStatus(gv(o,"Номер замовлення")) !== "issued").length;
   counts.all = activeCount;
   const periodNums = new Set(periodOrders.map(o => gv(o,"Номер замовлення")));
-  const itemsInWork = ITEMS.filter(i => periodNums.has(gv(i,"Номер замовлення")) && gv(i,"Статус") === "⚙️ В роботі").length;
 
-  const tabs = FILTER_DEFS.map(([k,label]) => {
+  // Виробів по кожному статусу — рахуємо за власним статусом виробу (чесна цифра,
+  // не намагається повторити складну логіку статусу замовлення).
+  const itemCounts = { new:0, work:0, ready:0, issued:0 };
+  ITEMS.filter(i => periodNums.has(gv(i,"Номер замовлення"))).forEach(i => {
+    const ist = gv(i,"Статус");
+    if (ist === "🆕 Новий") itemCounts.new++;
+    else if (ist === "⚙️ В роботі") itemCounts.work++;
+    else if (ist === "✅ Готово") itemCounts.ready++;
+    else if (ist === "📦 Виданий") itemCounts.issued++;
+  });
+
+  const tilesHTML = FILTER_DEFS.map(([k,label]) => {
     const active = k === "all" ? ordersFilter.size === 0 : ordersFilter.has(k);
-    return "<button class='ftab" + (active ? " active" : "") + "' onclick=\"setOrdersFilter('" + k + "')\">" +
-      label + "<b>" + (counts[k] || 0) + "</b></button>";
+    const orderVal = k === "all" ? activeCount : (counts[k] || 0);
+    const itemVal = k === "all" ? null : itemCounts[k];
+    const sub = (ordersShowItems && itemVal !== null) ? "<span class='ord-tile-sub'>виробів <b>" + itemVal + "</b></span>" : "";
+    return "<button class='ord-tile" + (active ? " on" : "") + "' onclick=\"setOrdersFilter('" + k + "')\">" +
+      "<div class='ord-tile-label'>" + label + "</div>" +
+      "<div class='ord-tile-row'><span class='ord-tile-value" + (k==="all"?" accent":"") + "'>" + orderVal + "</span>" + sub + "</div>" +
+    "</button>";
   }).join("");
 
   const payCounts = { all: 0, paid: 0, unpaid: 0 };
@@ -3316,30 +3383,28 @@ renderers.orders = function() {
     payCounts.all++;
     if (isOrderPaid(num)) payCounts.paid++; else payCounts.unpaid++;
   });
-  const payTabs = PAY_FILTER_DEFS.map(([k,label]) =>
-    "<button class='ftab" + (ordersPayFilter === k ? " active" : "") + "' onclick=\"setOrdersPayFilter('" + k + "')\">" +
-    label + "<b>" + (payCounts[k] || 0) + "</b></button>"
-  ).join("");
+  const payPillHTML = "<div class='seg-pill'>" + PAY_FILTER_DEFS.map(([k,label]) =>
+    "<button class='seg-btn" + (ordersPayFilter === k ? " on" : "") + "' onclick=\"setOrdersPayFilter('" + k + "')\">" + label + "</button>"
+  ).join("") + "</div>";
+
+  const itemsPillHTML = "<button class='pill-toggle" + (ordersShowItems ? " on" : "") + "' onclick='toggleOrdersItemsSub()'>" +
+    "<span class='pill-dot'></span>Виробів</button>";
 
   page.innerHTML =
     groupSwitcher("worklist") +
     "<div class='page-header'>" +
       "<div class='page-title'>Замовлення на ремонт</div>" +
-      "<button class='btn-primary' onclick=\"showPage('create')\"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='5' x2='12' y2='19'/><line x1='5' y1='12' x2='19' y2='12'/></svg>Нове замовлення</button>" +
+      "<div class='page-head-right'>" + payPillHTML + itemsPillHTML +
+        "<button class='btn-primary' onclick=\"showPage('create')\"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='5' x2='12' y2='19'/><line x1='5' y1='12' x2='19' y2='12'/></svg>Нове замовлення</button>" +
+      "</div>" +
     "</div>" +
-    "<div class='stat-cards'>" +
-      statCard("Активних замовлень", activeCount, true) +
-      statCard("Виробів в роботі", itemsInWork) +
-      statCard("Готові до видачі", counts.ready) +
-      statCard("Видано замовлень", counts.issued) +
-    "</div>" +
+    "<div class='ord-tiles'>" + tilesHTML + "</div>" +
     periodTabsHTML("orders") +
-    "<div class='filters'>" + tabs +
+    "<div class='filters'>" +
       "<div class='filters-right'><div class='search-box'>" +
         "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>" +
         "<input type='text' placeholder='Пошук...' value=\"" + ordersSearch.replace(/"/g,"&quot;") + "\" oninput='onOrdersSearch(this.value)'></div></div>" +
     "</div>" +
-    "<div class='filters filters-secondary'>" + payTabs + "</div>" +
     "<div class='orders-scroll' id='orders-scroll'></div>";
 
   renderOrdersList();
@@ -3358,6 +3423,7 @@ function setOrdersFilter(k) {
   renderers.orders();
 }
 function setOrdersPayFilter(k) { ordersPayFilter = k; renderers.orders(); }
+function toggleOrdersItemsSub() { ordersShowItems = !ordersShowItems; renderers.orders(); }
 function onOrdersSearch(v) { ordersSearch = v; renderOrdersList(); }
 
 function renderOrdersList() {
@@ -5097,13 +5163,16 @@ function openOrder(num) {
   const rating = clientRating(phone);
 
   // Клієнт: контакт + єдиний переважний месенджер (іконкою)
+  // Виber та WhatsApp — власні URL-схеми (відкривають застосунок напряму, без веб-кроку).
+  // Telegram не має офіційної схеми під номер телефону — пробуємо застосунок,
+  // і якщо він не відкрився за ~1.2с, самі підстраховуємось звичайним посиланням.
   const commLinks = {
     telegram: "https://t.me/+" + phoneClean,
-    whatsapp: "https://wa.me/" + phoneClean,
+    whatsapp: "whatsapp://send?phone=" + phoneClean,
     viber: "viber://chat?number=%2B" + phoneClean
   };
   const msgKey = activeMsg && commLinks[activeMsg] ? activeMsg : "telegram";
-  const msgIcoHTML = "<a class='d-msg-ico' style='background:" + MSG_COLORS[msgKey] + "' href='" + commLinks[msgKey] + "' target='_blank' rel='noopener' onclick='event.stopPropagation()'>" + MSG_ICONS[msgKey] + "</a>";
+  const msgIcoHTML = "<button class='d-msg-ico' style='background:" + MSG_COLORS[msgKey] + "' onclick=\"event.stopPropagation();openMessenger('" + msgKey + "','" + phoneClean + "')\">" + MSG_ICONS[msgKey] + "</button>";
 
   const allNotified = its.length > 0 && its.every(it => gv(it,"Сповіщено"));
   const notifyBtn = its.length ? "<label class='d-client-notify" + (allNotified?" on":"") + "' onclick=\"event.preventDefault();markAllNotified('" + num + "'," + (allNotified?"false":"true") + ")\"><span class='d-check" + (allNotified?" on":"") + "'>" + (allNotified?"✓":"") + "</span>Сповіщено</label>" : "";
