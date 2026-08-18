@@ -65,8 +65,9 @@ return “<div class=‘pl-scard’ onclick="this.classList.toggle(‘pl-lit’)
 /* Будує лише HTML карток за поточним пошуком/фільтром (без поля пошуку) */
 function plBuildCards() {
 const cats = Object.keys(PRICE);
+if (!cats.length) return “<div class='orders-empty'>Прайс порожній</div>”;
+if (!plCat || !PRICE[plCat]) plCat = cats[0];
 const q = plSearch.trim().toLowerCase();
-const depts = Object.keys(PRICE[plCat].departments);
 let cardsHTML = “”;
 if (q) {
 cats.forEach(catKey => Object.keys(PRICE[catKey].departments).forEach(dept => {
@@ -76,8 +77,9 @@ if (s.name.toLowerCase().includes(q) || dept.toLowerCase().includes(q)) cardsHTM
 });
 }));
 } else {
+const depts = Object.keys(PRICE[plCat].departments);
 (plDept ? [plDept] : depts).forEach(dept => {
-PRICE[plCat].departments[dept].forEach(s => { if (s.active !== false) cardsHTML += plCardFor(s); });
+(PRICE[plCat].departments[dept] || []).forEach(s => { if (s.active !== false) cardsHTML += plCardFor(s); });
 });
 }
 return cardsHTML ? “<div class='pl-cards'>” + cardsHTML + “</div>” : “<div class='orders-empty'>Нічого не знайдено</div>”;
