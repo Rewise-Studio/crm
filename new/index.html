@@ -3309,9 +3309,11 @@ renderers.orders = function() {
       label + "<b>" + (counts[k] || 0) + "</b></button>";
   }).join("");
 
-  const payCounts = { all: periodOrders.length, paid: 0, unpaid: 0 };
+  const payCounts = { all: 0, paid: 0, unpaid: 0 };
   periodOrders.forEach(o => {
     const num = gv(o,"Номер замовлення");
+    if (!statusVisible(num)) return;
+    payCounts.all++;
     if (isOrderPaid(num)) payCounts.paid++; else payCounts.unpaid++;
   });
   const payTabs = PAY_FILTER_DEFS.map(([k,label]) =>
@@ -3343,6 +3345,12 @@ renderers.orders = function() {
   renderOrdersList();
 };
 
+/* Єдине правило видимості за статусом: якщо фільтр не обрано — ховаємо видані,
+   якщо обрано конкретні статуси — показуємо тільки їх. Використовується і у
+   списку замовлень, і у підрахунку лічильників оплати, щоб вони завжди збігались. */
+function statusVisible(num) {
+  return ordersFilter.size === 0 ? getStatus(num) !== "issued" : ordersFilter.has(getStatus(num));
+}
 function setOrdersFilter(k) {
   if (k === "all") { ordersFilter.clear(); }
   else if (ordersFilter.has(k)) { ordersFilter.delete(k); }
@@ -3361,7 +3369,7 @@ function renderOrdersList() {
   const q = ordersSearch.trim().toLowerCase();
   const filtered = ordersInPeriod(periodSel.orders).filter(o => {
     const num = gv(o,"Номер замовлення");
-    const stOk = ordersFilter.size === 0 ? getStatus(num) !== "issued" : ordersFilter.has(getStatus(num));
+    const stOk = statusVisible(num);
     const payOk = ordersPayFilter === "all" ||
       (ordersPayFilter === "paid" ? isOrderPaid(num) : !isOrderPaid(num));
     const qOk = !q ||
