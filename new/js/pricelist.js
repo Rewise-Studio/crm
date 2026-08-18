@@ -87,6 +87,7 @@ return cardsHTML ? “<div class='pl-cards'>” + cardsHTML + “</div>” : “
 
 renderers.pricelist = function() {
 const page = document.getElementById(“page-pricelist”);
+try {
 if (!priceLoaded) {
 page.innerHTML = “<div class='page-header'><div class='page-title'>Прайс</div></div>” +
 “<div class='orders-loading'>Завантаження…</div>”;
@@ -121,6 +122,10 @@ page.innerHTML =
 “<div id='pl-filters-wrap'>” + (q ? “” : “<div class='pl-filters'>” + filters + “</div>”) + “</div>” +
 “<div id='pl-results'>” + plBuildCards() + “</div>” +
 “</div></div>”;
+} catch(e) {
+page.innerHTML = “<div class='page-header'><div class='page-title'>Прайс</div></div>” +
+“<div style='padding:20px;color:#E24B4A;font-size:13px'>Помилка прайсу: “ + (e.message || e) + “</div>”;
+}
 };
 
 function setPlCat(k) { plCat = k; plDept = “”; renderers.pricelist(); }
