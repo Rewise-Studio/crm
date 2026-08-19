@@ -1511,6 +1511,25 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .card-inner{max-width:560px;margin:0 auto}
 .n-sec{margin-bottom:18px}
 .n-sec-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--cognac);margin-bottom:10px;font-weight:600}
+
+/* Рейл-орієнтир усередині картки речі (Вид/Послуги/Деталі) */
+.n-item-layout{display:flex;gap:14px;align-items:flex-start}
+.n-item-content{flex:1;min-width:0}
+.n-rail{display:flex;flex-direction:column;align-items:center;width:44px;flex-shrink:0;padding-top:2px}
+.n-rail-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0}
+.n-rail-dot{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:'Tenor Sans',serif;font-size:11px;color:var(--txt-3);cursor:pointer;transition:.18s;flex-shrink:0}
+.n-rail-dot.active{border-color:var(--cognac);background:var(--cognac);color:#fff}
+.n-rail-dot.done{border-color:#639922;color:#639922}
+.n-rail-lbl{font-size:8.5px;color:var(--txt-3);text-align:center;letter-spacing:.02em;white-space:nowrap}
+.n-rail-line{width:1.5px;flex:1;background:var(--line);margin:5px 0;min-height:26px}
+.n-rail-line.done{background:#639922}
+
+@media (max-width:620px){
+  .n-item-layout{flex-direction:column}
+  .n-rail{flex-direction:row;width:100%;padding-top:0;margin-bottom:16px;align-items:flex-start}
+  .n-rail-step{flex:0 0 auto}
+  .n-rail-line{width:auto;flex:1;height:1.5px;min-height:0;margin:12px 4px 0}
+}
 .n-div{height:1px;background:var(--line);margin:16px 0}
 .n-client{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .n-cname{font-size:16px;font-weight:600}
@@ -3032,7 +3051,7 @@ function buildItemBody(item, idx) {
     // ── Секція «Вид виробу» ──
     const catSeg = Object.keys(PRICE).map(function(k){return "<button class='ic-seg"+(k===item.category?" on":"")+"' onclick='changeCategory("+item.id+",\""+k+"\")'>"+PRICE[k].label+"</button>";}).join("");
     const modelSection =
-      "<div class='n-sec'>" +
+      "<div class='n-sec' id='n-sec-model-"+item.id+"'>" +
         "<div class='n-sec-label'>Вид виробу</div>" +
         "<div class='ic-segrow ic-catseg'>"+catSeg+"</div>" +
         "<div class='ic-row3' style='margin-top:10px'>" +
@@ -3089,7 +3108,7 @@ function buildItemBody(item, idx) {
 
     // ── Секція «Послуги» ──
     const svcSection =
-      "<div class='n-sec'>" +
+      "<div class='n-sec' id='n-sec-svc-"+item.id+"'>" +
         "<div class='n-sec-label'>Послуги</div>" +
         modeRow +
         careBlock +
@@ -3112,7 +3131,7 @@ function buildItemBody(item, idx) {
 
     // ── Секція «Деталі речі» ──
     const detailsSection =
-      "<div class='n-sec'>" +
+      "<div class='n-sec' id='n-sec-details-"+item.id+"'>" +
         "<button type='button' class='ic-details-toggle' onclick='toggleItemDetails(" + item.id + ")'>" +
           (item.detailsOpen ? "− " : "+ ") + "Деталі речі (колір, матеріал, стан, коментар)</button>" +
         (item.detailsOpen ?
@@ -3132,12 +3151,36 @@ function buildItemBody(item, idx) {
           "</div>" : "") +
       "</div>";
 
+    // ── Вертикальний рейл — орієнтир по трьох секціях ──
+    const doneModel = !!item.model;
+    const doneSvc = item.services.length > 0;
+    const doneDetails = !!(item.color || item.matNote || item.condition || (item.note && item.note.trim()));
+    const railSteps = [
+      { label: "Вид", done: doneModel, anchor: "n-sec-model-"+item.id },
+      { label: "Послуги", done: doneSvc, anchor: "n-sec-svc-"+item.id },
+      { label: "Деталі", done: doneDetails, anchor: "n-sec-details-"+item.id }
+    ];
+    let railActive = railSteps.findIndex(function(s){ return !s.done; });
+    if (railActive === -1) railActive = railSteps.length - 1;
+    const railHTML = "<div class='n-rail'>" + railSteps.map(function(s, i){
+      const cls = (i===railActive ? " active" : "") + (s.done ? " done" : "");
+      const dot = "<div class='n-rail-dot"+cls+"' onclick=\"var _t=document.getElementById('"+s.anchor+"'); if(_t) _t.scrollIntoView({behavior:'smooth',block:'start'});\">" + (s.done ? "✓" : (i+1)) + "</div>";
+      const lbl = "<div class='n-rail-lbl'>"+s.label+"</div>";
+      const line = i < railSteps.length-1 ? "<div class='n-rail-line"+(s.done?" done":"")+"'></div>" : "";
+      return "<div class='n-rail-step'>"+dot+lbl+"</div>"+line;
+    }).join("") + "</div>";
+
     return (
-      modelSection +
-      "<div class='n-div'></div>" +
-      svcSection +
-      "<div class='n-div'></div>" +
-      detailsSection
+      "<div class='n-item-layout'>" +
+        railHTML +
+        "<div class='n-item-content'>" +
+          modelSection +
+          "<div class='n-div'></div>" +
+          svcSection +
+          "<div class='n-div'></div>" +
+          detailsSection +
+        "</div>" +
+      "</div>"
     );
 }
 
