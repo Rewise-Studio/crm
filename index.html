@@ -336,24 +336,27 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .ic-mini::placeholder { color: var(--txt-3); }
 .ic-select option { background: var(--surface-2); color: var(--txt); }
 
+.svc-count { font-size: 12px; color: var(--txt-2); margin-bottom: 8px; }
+.svc-count b { color: var(--cognac); }
 .ic-svclist { margin-top: 4px; border: 1px solid var(--line-soft); border-radius: 9px; overflow: hidden; }
 .ic-svclist:empty { display: none; }
-.ic-svcrow { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-bottom: 1px solid var(--line-soft); }
+.ic-svcrow { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line-soft); }
 .ic-svcrow:last-child { border-bottom: none; }
 .ic-svc-grip { color: var(--field-border); font-size: 12px; flex-shrink: 0; }
 .ic-svcnum { font-size: 12px; color: var(--txt-3); flex-shrink: 0; }
-.ic-svcname { flex: 1; min-width: 0; font-size: 12px; color: var(--txt); overflow-wrap: anywhere; }
-.ic-svcprice { font-size: 12px; color: var(--cognac); white-space: nowrap; flex-shrink: 0; cursor: pointer; border-bottom: 1px dashed transparent; transition: border-color 0.15s; }
+.ic-svcname { flex: 1; min-width: 0; font-size: 13.5px; color: var(--txt); overflow-wrap: anywhere; }
+.ic-svcprice { font-size: 13.5px; font-weight: 600; color: var(--cognac); white-space: nowrap; flex-shrink: 0; cursor: pointer; border-bottom: 1px dashed transparent; transition: border-color 0.15s; }
 .ic-svcprice:hover { border-bottom-color: var(--cognac-border); }
 .ic-svcprice-input { width: 68px; background: var(--field-bg); border: 1px solid var(--cognac); border-radius: 5px; padding: 4px 7px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 12px; font-weight: 300; outline: none; text-align: right; }
-.ic-svcdel { background: none; border: none; color: var(--txt-3); cursor: pointer; font-size: 14px; padding: 0; transition: color 0.15s; }
+.ic-svcdel { width: 30px; height: 30px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: none; border: 1px solid transparent; border-radius: 50%; color: var(--txt-3); cursor: pointer; font-size: 20px; line-height: 1; transition: all 0.15s; }
+.ic-svcdel:hover { background: #FBEAE9; border-color: #E5B9B6; color: #C0463E; }
 .ic-svcdel:hover { color: var(--st-postponed-fg); }
 
 .ic-search-row { display: flex; gap: 8px; margin-top: 10px; }
 .ic-search-cat { flex: 0 0 118px; background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 6px; padding: 9px 6px; color: var(--txt-2); font-family: 'Commissioner', sans-serif; font-size: 11.5px; font-weight: 300; outline: none; }
 .ic-search-row .ic-search-wrap { flex: 1; margin-top: 0; }
 .ic-search-wrap { position: relative; margin-top: 10px; }
-.ic-search { width: 100%; background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 6px; padding: 9px 11px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 12px; font-weight: 300; outline: none; }
+.ic-search { width: 100%; background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 6px; padding: 11px 12px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 13.5px; font-weight: 300; outline: none; }
 .ic-search:focus { border-color: var(--cognac); }
 .ic-search::placeholder { color: var(--txt-3); }
 .ic-dd { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--surface-2); border: 1px solid var(--field-border); border-radius: 6px; max-height: 210px; overflow-y: auto; z-index: 30; display: none; box-shadow: var(--receipt-shadow); }
@@ -1974,22 +1977,36 @@ function orderHasStalledServices(num) {
 }
 
 async function loadData() {
+  const failedSheets = [];
   try {
     const _cb = "&_=" + Date.now();
     const base = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&sheet=";
-    const gv = (name) => fetch(base + encodeURIComponent(name) + _cb, { cache: "no-store" });
+    // Повторна спроба при збої мережі/навантаженні Google — до 3 разів на кожен лист,
+    // перш ніж здатися. Захищає від разових обривів під час одночасної загрузки 11 запитів.
+    function fetchWithRetry(url, opts, tries) {
+      tries = tries || 3;
+      return fetch(url, opts).then(function(res) {
+        if (!res.ok && tries > 1) return fetchWithRetry(url, opts, tries - 1);
+        return res;
+      }).catch(function(err) {
+        if (tries > 1) return fetchWithRetry(url, opts, tries - 1);
+        throw err;
+      });
+    }
+    const gv = (name) => fetchWithRetry(base + encodeURIComponent(name) + _cb, { cache: "no-store" });
+    const gvSafe = (name) => gv(name).catch(function() { failedSheets.push(name); return null; });
     const [r1, r2, r3, r4, r5, r7, r8, r9, r10, r11, sres] = await Promise.all([
       gv("Замовлення"),
       gv("Вироби"),
       gv("Партнери"),
-      gv("Задачі").catch(() => null),
-      gv("Виготовлення").catch(() => null),
-      gv("Види").catch(() => null),
-      gv("Бренди").catch(() => null),
-      gv("Майстри").catch(() => null),
-      gv("Кольори").catch(() => null),
-      gv("Послуги").catch(() => null),
-      fetch(API_URL.replace("/order", "/settings/get"), { cache: "no-store" }).catch(() => null)
+      gvSafe("Задачі"),
+      gvSafe("Виготовлення"),
+      gvSafe("Види"),
+      gvSafe("Бренди"),
+      gvSafe("Майстри"),
+      gvSafe("Кольори"),
+      gvSafe("Послуги"),
+      fetchWithRetry(API_URL.replace("/order", "/settings/get"), { cache: "no-store" }).catch(() => null)
     ]);
     ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер","Спосіб передоплати","Сума доплати","Спосіб доплати","Сповіщено","Нараховано бонусів","Списано бонусів","Рейтинг вручну","Нотатка майстра","День народження","Пошта"]);
     ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено","Майстер","Хто видав","Колір","Матеріал","Стан","Доставка","Коментар","Хто сповістив"]);
@@ -2014,6 +2031,9 @@ async function loadData() {
     dataLoaded = true;
   }
   if (renderers[currentPage]) renderers[currentPage]();
+  if (failedSheets.length && typeof toast === "function") {
+    toast("Не вдалося завантажити: " + failedSheets.join(", ") + ". Оновіть сторінку.");
+  }
 }
 
 function applySettings(map) {
@@ -2160,7 +2180,7 @@ function modelsFor(category) {
 }
 
 /* Три «модельні» операції — ціна тягнеться з прайсу за тарифом/розміром */
-const CORE_OPS = ["Чищення", "Фарбування", "Реставрація"];
+const CORE_OPS = ["Базовий догляд", "Чищення", "Фарбування", "Реставрація"];
 /* Знайти рядок прайсу: назва містить операцію + усі токени (тариф / розмір+матеріал) */
 function findCorePrice(category, op, tokens) {
   const cat = PRICE[category]; if (!cat) return null;
@@ -2415,6 +2435,16 @@ function itemServices(item) {
 }
 /* Плоский список УСІХ активних послуг по всій базі (всі категорії, всі відділи) —
    для глобального пошуку в «Додати ще одну послугу», щоб не прив'язуватись до відділу. */
+/* Унікальні "відділи" (типи послуг: Чищення/Ремонт/Пошиття...) з усього прайсу —
+   для фільтра в пошуку послуги. Береться динамічно з реальних даних, нічого
+   не прописано вручну, тому оновлюється сам, коли прайс міняється. */
+function allDepartments() {
+  const set = new Set();
+  Object.keys(PRICE).forEach(cat => {
+    Object.keys(PRICE[cat].departments).forEach(d => set.add(d));
+  });
+  return Array.from(set);
+}
 function allServicesFlat() {
   const out = [];
   Object.keys(PRICE).forEach(cat => {
@@ -2967,9 +2997,8 @@ function renderSvcDD(id, query, catFilter) {
   const dd = document.getElementById("ic-dd-"+id);
   if (!it || !dd) return;
   let services = allServicesFlat();
-  if (catFilter && PRICE[catFilter]) {
-    const lbl = PRICE[catFilter].label;
-    services = services.filter(s => s.category === lbl);
+  if (catFilter) {
+    services = services.filter(s => s.department === catFilter);
   }
   const q = query.trim().toLowerCase();
   if (!q) { dd.innerHTML = "<div class='ic-opt'><span class='o-empty'>Почніть вводити назву послуги</span></div>"; return; }
@@ -2993,13 +3022,42 @@ function addManualSvc(id) {
 
 function buildItemBody(item, idx) {
     const catData = PRICE[item.category]; if (!catData) return "";
-    const catOpts = Object.keys(PRICE).map(k => "<option value='"+k+"'"+(k===item.category?" selected":"")+">"+PRICE[k].label+"</option>").join("");
     const svcRows = item.services.map((s,si) => "<div class='ic-svcrow'><span class='ic-svcnum'>"+(si+1)+".</span><span class='ic-svcname'>"+s.name+"</span><span class='ic-svcprice' onclick='editSvcPrice("+item.id+","+si+",this)'>"+s.price+" ₴</span><button class='ic-svcdel' onclick='removeSvc("+item.id+","+si+")'>×</button></div>").join("");
     const modelVal = (item.model||"").replace(/"/g,"&quot;");
     const brandVal = (item.brand||"").replace(/"/g,"&quot;");
     const isBag = item.category === "bags";
     if (!item.mode) item.mode = "care";
     const isCare = item.mode === "care";
+
+    // ── Секція «Вид виробу» ──
+    const catSeg = Object.keys(PRICE).map(function(k){return "<button class='ic-seg"+(k===item.category?" on":"")+"' onclick='changeCategory("+item.id+",\""+k+"\")'>"+PRICE[k].label+"</button>";}).join("");
+    const modelSection =
+      "<div class='n-sec'>" +
+        "<div class='n-sec-label'>Вид виробу</div>" +
+        "<div class='ic-segrow ic-catseg'>"+catSeg+"</div>" +
+        "<div class='ic-row3' style='margin-top:10px'>" +
+          "<div class='ic-field'><label>ВИД</label><div class='ic-search-wrap'>" +
+            "<input class='ic-mini' id='ic-model-"+item.id+"' placeholder='Оберіть модель…' autocomplete='off' value=\""+modelVal+"\" oninput='filterModel("+item.id+")' onfocus='openModelDD("+item.id+")'>" +
+            "<div class='ic-dd' id='ic-mdd-"+item.id+"'></div>" +
+          "</div></div>" +
+          "<div class='ic-field'><label>БРЕНД</label><div class='ic-search-wrap'>" +
+            "<input class='ic-mini' id='ic-brand-"+item.id+"' placeholder=\"Необов'язково\" autocomplete='off' value=\""+brandVal+"\" oninput='onBrandInput("+item.id+",this.value)' onfocus='openBrandDD("+item.id+")'>" +
+            "<div class='ic-dd' id='ic-bdd-"+item.id+"'></div>" +
+          "</div></div>" +
+        "</div>" +
+      "</div>";
+
+    // Розмір + матеріал (тільки сумки, режим догляду) — впливає на ціну послуги, тому в секції «Послуги»
+    let sizeMatRow = "";
+    if (isBag && isCare && item.model !== "Поясний ремінь") {
+      const sizeHTML = ["S","M","L"].map(sz => "<button class='ic-seg" + (item.size===sz?" on":"") + "' onclick='setItemSize("+item.id+",\""+sz+"\")'>"+sz+"</button>").join("");
+      const matHTML = [["шкіряна","Шкіра"],["текстильна","Текстиль"]].map(m => "<button class='ic-seg" + (item.material===m[0]?" on":"") + "' onclick='setItemMaterial("+item.id+",\""+m[0]+"\")'>"+m[1]+"</button>").join("");
+      sizeMatRow =
+        "<div class='ic-row' style='margin-bottom:14px'>" +
+          "<div class='ic-field'><label>РОЗМІР</label><div class='ic-segrow'>"+sizeHTML+"</div></div>" +
+          "<div class='ic-field'><label>МАТЕРІАЛ <span style=\"opacity:.6\">(для чистки)</span></label><div class='ic-segrow'>"+matHTML+"</div></div>" +
+        "</div>";
+    }
 
     // Перемикач режиму
     const modeRow =
@@ -3008,19 +3066,7 @@ function buildItemBody(item, idx) {
         "<button class='ic-seg" + (!isCare?" on":"") + "' onclick='setItemMode("+item.id+",\"repair\")'>Ремонт / інше</button>" +
       "</div>";
 
-    // Розмір + матеріал (тільки сумки, режим догляду)
-    let sizeMatRow = "";
-    if (isBag && isCare && item.model !== "Поясний ремінь") {
-      const sizeHTML = ["S","M","L"].map(sz => "<button class='ic-seg" + (item.size===sz?" on":"") + "' onclick='setItemSize("+item.id+",\""+sz+"\")'>"+sz+"</button>").join("");
-      const matHTML = [["шкіряна","Шкіра"],["текстильна","Текстиль"]].map(m => "<button class='ic-seg" + (item.material===m[0]?" on":"") + "' onclick='setItemMaterial("+item.id+",\""+m[0]+"\")'>"+m[1]+"</button>").join("");
-      sizeMatRow =
-        "<div class='ic-row'>" +
-          "<div class='ic-field'><label>РОЗМІР</label><div class='ic-segrow'>"+sizeHTML+"</div></div>" +
-          "<div class='ic-field'><label>МАТЕРІАЛ <span style=\"opacity:.6\">(для чистки)</span></label><div class='ic-segrow'>"+matHTML+"</div></div>" +
-        "</div>";
-    }
-
-    // Блок операцій — лише у режимі догляду (модель показуємо завжди, нижче)
+    // Блок операцій — лише у режимі догляду
     let careBlock = "";
     if (isCare) {
       const opsHTML = CORE_OPS.map(op => {
@@ -3036,36 +3082,37 @@ function buildItemBody(item, idx) {
         : (VYDY.length ? "Натисніть, щоб додати послугу" : "додайте лист «Види», щоб працювали моделі");
       careBlock =
         sizeMatRow +
-        "<div class='ic-oplabel'>Швидкі послуги</div>" +
         "<div class='ic-oprow'>"+opsHTML+"</div>" +
         (opsHintTxt ? "<div class='ic-op-hint'>" + opsHintTxt + "</div>" : "") +
         "<div class='ic-op-hint'>Оберіть один рівень — кожен наступний вже включає попередній</div>";
     }
 
-    // Модель — показуємо в обох режимах (у ремонті це просто підпис)
-    const catSeg = Object.keys(PRICE).map(function(k){return "<button class='ic-seg"+(k===item.category?" on":"")+"' onclick='changeCategory("+item.id+",\""+k+"\")'>"+PRICE[k].label+"</button>";}).join("");
-    const modelRow =
-      "<div class='ic-row3'>" +
-        "<div class='ic-field'><label>КАТЕГОРІЯ</label><div class='ic-segrow ic-catseg'>"+catSeg+"</div></div>" +
-        "<div class='ic-field'><label>ВИД ВИРОБУ</label><div class='ic-search-wrap'>" +
-          "<input class='ic-mini' id='ic-model-"+item.id+"' placeholder='Оберіть модель…' autocomplete='off' value=\""+modelVal+"\" oninput='filterModel("+item.id+")' onfocus='openModelDD("+item.id+")'>" +
-          "<div class='ic-dd' id='ic-mdd-"+item.id+"'></div>" +
-        "</div></div>" +
-        "<div class='ic-field'><label>БРЕНД</label><div class='ic-search-wrap'>" +
-          "<input class='ic-mini' id='ic-brand-"+item.id+"' placeholder=\"Необов'язково\" autocomplete='off' value=\""+brandVal+"\" oninput='onBrandInput("+item.id+",this.value)' onfocus='openBrandDD("+item.id+")'>" +
-          "<div class='ic-dd' id='ic-bdd-"+item.id+"'></div>" +
-        "</div></div>" +
+    // ── Секція «Послуги» ──
+    const svcSection =
+      "<div class='n-sec'>" +
+        "<div class='n-sec-label'>Послуги</div>" +
+        modeRow +
+        careBlock +
+        (item.services.length ? "<div class='svc-count'>Обрано послуг <b>"+item.services.length+"</b></div>" : "") +
+        (item.services.length ? "<div class='ic-svclist'>"+svcRows+"</div>" : "") +
+        "<button type='button' class='ic-add-svc-btn" + (item.addSvcOpen?" open":"") + "' onclick='toggleAddSvc("+item.id+")'>" + (item.addSvcOpen?"− Приховати":"+ Додати ще одну послугу") + "</button>" +
+        (item.addSvcOpen ?
+          "<div class='ic-add-panel'>" +
+            "<div class='ic-search-row'>" +
+              "<select class='ic-search-cat' id='ic-search-cat-"+item.id+"' onchange='filterSvc("+item.id+")'>" +
+                "<option value=''>Усі види послуг</option>" +
+                allDepartments().map(d => "<option value='"+d.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/'/g,"&#39;")+"'>"+d+"</option>").join("") +
+              "</select>" +
+              "<div class='ic-search-wrap'><input type='text' class='ic-search' id='ic-search-"+item.id+"' placeholder='Пошук послуги по всій базі…' autocomplete='off' oninput='filterSvc("+item.id+")' onfocus='openSvcDD("+item.id+")'><div class='ic-dd' id='ic-dd-"+item.id+"'></div></div>" +
+            "</div>" +
+            "<div class='ic-manual-label'>Або своя послуга</div>" +
+            "<div class='ic-manual'><input class='ic-mini' id='ic-man-name-"+item.id+"' placeholder='Назва послуги'><input class='ic-mini' style='width:88px;flex:none' type='number' id='ic-man-price-"+item.id+"' placeholder='₴'><button class='ic-manual-add' onclick='addManualSvc("+item.id+")'>+</button></div>" +
+          "</div>" : "") +
       "</div>";
 
-    const otherLabel = isCare
-      ? "Інші послуги (ремонт, торцювання, швейні…)"
-      : "Послуги (ремонт, набійки, торцювання, швейні…)";
-
-    return (
-      modeRow +
-      modelRow +
-      careBlock +
-      "<div class='ic-details'>" +
+    // ── Секція «Деталі речі» ──
+    const detailsSection =
+      "<div class='n-sec'>" +
         "<button type='button' class='ic-details-toggle' onclick='toggleItemDetails(" + item.id + ")'>" +
           (item.detailsOpen ? "− " : "+ ") + "Деталі речі (колір, матеріал, стан, коментар)</button>" +
         (item.detailsOpen ?
@@ -3078,28 +3125,19 @@ function buildItemBody(item, idx) {
               "<div class='ic-field'><label>МАТЕРІАЛ</label>" + crSelect("mat" + item.id, item.matNote, MATERIALS, "setItemMatNote", {arg:item.id, placeholder:"Не вказано"}) + "</div>" +
               "<div class='ic-field'><label>СТАН</label>" + crSelect("cond" + item.id, item.condition, CONDITIONS, "setItemCondition", {arg:item.id, placeholder:"Не вказано"}) + "</div>" +
             "</div>" +
-            "<div class='ic-note-wrap'>" +
-              "<label class='ic-note-label'>Коментар до речі</label>" +
-              "<textarea class='ic-note' id='ic-note-" + item.id + "' rows='2' placeholder='Напр.: без шнурків, без устілок…' oninput='setItemNote(" + item.id + ",this.value)'>" + (item.note||"").replace(/&/g,"&amp;").replace(/</g,"&lt;") + "</textarea>" +
+            "<div class='ic-note-wrap n-icli'>" +
+              "<div class='n-icli-lbl'>Коментар <span style=\"text-transform:none;letter-spacing:0;font-weight:400;opacity:.75\">· видно клієнту</span></div>" +
+              "<textarea class='ic-note' id='ic-note-" + item.id + "' rows='2' placeholder='Напр.: без шнурків, без устілок, пильник у комплекті…' oninput='setItemNote(" + item.id + ",this.value)'>" + (item.note||"").replace(/&/g,"&amp;").replace(/</g,"&lt;") + "</textarea>" +
             "</div>" +
           "</div>" : "") +
-      "</div>" +
-      (item.services.length ? "<div class='ic-otherlabel' style='margin-top:14px;padding-top:0;border-top:none'>Обрані послуги ("+item.services.length+")</div>" : "") +
-      "<div class='ic-svclist'>"+svcRows+"</div>" +
-      "<button type='button' class='ic-add-svc-btn" + (item.addSvcOpen?" open":"") + "' onclick='toggleAddSvc("+item.id+")'>" + (item.addSvcOpen?"− Приховати":"+ Додати ще одну послугу") + "</button>" +
-      (item.addSvcOpen ?
-        "<div class='ic-add-panel'>" +
-          "<div class='ic-otherlabel' style='margin-top:0;padding-top:0;border-top:none'>"+otherLabel+"</div>" +
-          "<div class='ic-search-row'>" +
-            "<select class='ic-search-cat' id='ic-search-cat-"+item.id+"' onchange='filterSvc("+item.id+")'>" +
-              "<option value=''>Усі категорії</option>" +
-              Object.keys(PRICE).map(k => "<option value='"+k+"'>"+PRICE[k].label+"</option>").join("") +
-            "</select>" +
-            "<div class='ic-search-wrap'><input type='text' class='ic-search' id='ic-search-"+item.id+"' placeholder='Пошук послуги по всій базі…' autocomplete='off' oninput='filterSvc("+item.id+")' onfocus='openSvcDD("+item.id+")'><div class='ic-dd' id='ic-dd-"+item.id+"'></div></div>" +
-          "</div>" +
-          "<div class='ic-manual-label'>Або своя послуга</div>" +
-          "<div class='ic-manual'><input class='ic-mini' id='ic-man-name-"+item.id+"' placeholder='Назва послуги'><input class='ic-mini' style='width:88px;flex:none' type='number' id='ic-man-price-"+item.id+"' placeholder='₴'><button class='ic-manual-add' onclick='addManualSvc("+item.id+")'>+</button></div>" +
-        "</div>" : "")
+      "</div>";
+
+    return (
+      modelSection +
+      "<div class='n-div'></div>" +
+      svcSection +
+      "<div class='n-div'></div>" +
+      detailsSection
     );
 }
 
