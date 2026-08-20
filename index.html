@@ -2199,8 +2199,27 @@ async function parseBrands(res) {  try {
     return Array.from(new Set(out));
   } catch(e) { return []; }
 }
+/* Скільки разів кожен "Тип" реально зустрічається серед усіх виробів —
+   рахуємо з живих даних (ITEMS), нічого не прописано вручну. Використовується,
+   щоб у списку "Вид виробу" найпопулярніші типи були зверху, а ті, що
+   майже не обираються — внизу. */
+function typeFrequency(category) {
+  const freq = {};
+  ITEMS.forEach(it => {
+    const t = gv(it, "Тип");
+    if (t) freq[t] = (freq[t] || 0) + 1;
+  });
+  return freq;
+}
 function modelsFor(category) {
-  return VYDY.filter(v => v["Категорія"] === category);
+  const list = VYDY.filter(v => v["Категорія"] === category);
+  const freq = typeFrequency(category);
+  // Стабільне сортування: частіше використані — вище, невикористані (0) — в кінець,
+  // за рівних умов лишається порядок листа "Види".
+  return list
+    .map((v, i) => ({ v, i, f: freq[v["Тип"]] || 0 }))
+    .sort((a, b) => b.f - a.f || a.i - b.i)
+    .map(x => x.v);
 }function modelInfo(category, type) {
   return VYDY.find(v => v["Категорія"] === category && v["Тип"] === type) || null;
 }
@@ -3124,14 +3143,16 @@ function buildItemBody(item, idx) {
           "<div class='ic-field'><label>РОЗМІР</label><div class='ic-segrow'>"+sizeHTML+"</div></div>" +
           "<div class='ic-field'><label>МАТЕРІАЛ <span style=\"opacity:.6\">(для чистки)</span></label><div class='ic-segrow'>"+matHTML+"</div></div>" +
         "</div>";
-    } else if (!isBag && isCare) {
-      // Взуття: тарифна група визначається автоматично з листа «Види» для готових видів,
-      // але для власноруч уведеного виду треба обрати вручну — інакше не знайдеться ціна.
+    } else if (!isBag && isCare && item.model && !modelInfo(item.category, item.model)) {
+      // Взуття: тарифна група визначається автоматично з листа «Види» для готових видів —
+      // тоді тут нічого не показуємо. Але для власноруч уведеного виду, якого немає
+      // в «Види», автоматично визначити нема з чого — попереджаємо і даємо обрати вручну.
       const groups = shoeSizeGroups();
       const opts = groups.map(g => "<option value='"+g.replace(/'/g,"&#39;")+"'"+(item.size===g?" selected":"")+">"+g+"</option>").join("");
       sizeMatRow =
-        "<div class='ic-row' style='margin-bottom:14px'>" +
-          "<div class='ic-field' style='flex:1'><label>ТАРИФНА ГРУПА</label>" +
+        "<div class='ic-row' style='margin-bottom:14px;flex-direction:column;gap:6px'>" +
+          "<div style='font-size:11.5px;color:#B54B3F'>⚠ Не вдалося визначити тарифну групу автоматично для нового виду — оберіть вручну, інакше не знайдеться ціна</div>" +
+          "<div class='ic-field'><label>ТАРИФНА ГРУПА</label>" +
             "<select class='ic-mini' onchange='setItemSize("+item.id+",this.value)'>" +
               "<option value=''>Оберіть…</option>" + opts +
             "</select>" +
