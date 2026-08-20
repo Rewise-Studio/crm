@@ -129,9 +129,21 @@ function orderReceiptHTML(num) {
   its.forEach((it, idx) => {
     const amt = extractAmt(gv(it,"Сума")); total += amt;
     const name = [gv(it,"Тип"), gv(it,"Бренд")].filter(Boolean).join(" · ") || "Виріб";
-    const svcs = gv(it,"Послуги");
+    const itemNum = gv(it,"Номер виробу");
+    const detailedSvcs = (typeof servicesOfItem === "function") ? servicesOfItem(itemNum) : [];
     const note = gv(it,"Коментар");
-    const svcRow = "<div class='r-svcrow'><span>" + escHtml(svcs || "Послуги") + "</span><span class='rs-price'>" + amt.toLocaleString("uk-UA") + " ₴</span></div>";
+    let svcRow;
+    if (detailedSvcs.length) {
+      // Кожна послуга окремим рядком — з детального логу (лист «Послуги»)
+      svcRow = detailedSvcs.map(s => {
+        const p = extractAmt(gv(s,"Ціна"));
+        return "<div class='r-svcrow'><span>" + escHtml(gv(s,"Назва")) + "</span><span class='rs-price'>" + p.toLocaleString("uk-UA") + " ₴</span></div>";
+      }).join("");
+    } else {
+      // Фолбек для старих замовлень без детального логу — одним рядком, як раніше
+      const svcs = gv(it,"Послуги");
+      svcRow = "<div class='r-svcrow'><span>" + escHtml(svcs || "Послуги") + "</span><span class='rs-price'>" + amt.toLocaleString("uk-UA") + " ₴</span></div>";
+    }
     const noteHTML = note ? "<div class='r-item-note'>Коментар: " + escHtml(note) + "</div>" : "";
     itemsHTML += "<div class='r-item'><div class='r-item-title'><span class='ri-num'>№" + (idx+1) + "</span><span class='ri-name'>" + escHtml(name) + "</span></div>" + svcRow + noteHTML + "</div>";
   });
