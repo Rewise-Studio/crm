@@ -31,8 +31,8 @@ renderers.tailor = function() {
     list = list.filter(t => tailorStatusIdx(gv(t,"Статус")) === parseInt(tailorFilter));
   }
 
-  const counts = { all: TAILOR.length, 0:0, 1:0, 2:0, 3:0 };
-  TAILOR.forEach(t => { counts[tailorStatusIdx(gv(t,"Статус"))]++; });
+  const counts = { all: list.length, 0:0, 1:0, 2:0, 3:0 };
+  TAILOR.forEach(t => { if (!gv(t,"Примітка").startsWith("[ВИДАЛЕНО] ")) counts[tailorStatusIdx(gv(t,"Статус"))]++; });
   const tabs = [["all","Всі"],["0","Нові"],["1","В роботі"],["2","Готові"],["3","Видані"]].map(function(pair){
     const k = pair[0], label = pair[1];
     const cnt = (k === "all") ? counts.all : (counts[parseInt(k)] || 0);
