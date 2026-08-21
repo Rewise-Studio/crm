@@ -602,6 +602,16 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .d-client-sub { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--txt-2); margin-top: 2px; }
 .d-msg-ico { width: 16px; height: 16px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border: none; padding: 0; cursor: pointer; }
 .d-msg-ico svg { width: 10px; height: 10px; fill: #fff; }
+
+/* Кнопки контакту (Виготовлення) — раніше без стилів, іконка рендерилась
+   у "сирому" розмірі SVG на весь екран */
+.d-comm-btn { display: flex; align-items: center; gap: 9px; width: 100%; padding: 11px 14px; margin-bottom: 8px;
+  border-radius: 9px; border: 1px solid var(--field-border); background: var(--surface); color: var(--txt-2);
+  font-family: 'Commissioner', sans-serif; font-size: 13px; cursor: pointer; text-align: left; }
+.d-comm-btn:last-child { margin-bottom: 0; }
+.d-comm-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+.d-comm-btn.active { color: #fff; border-color: transparent; }
+.d-comm-btn.active svg { fill: #fff; }
 .d-client-notify { flex-shrink: 0; display: flex; align-items: center; gap: 6px; background: none; border: 1px solid var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 11px; padding: 6px 10px; cursor: pointer; white-space: nowrap; }
 .d-client-notify.on { background: #2FA98C; border-color: #2FA98C; color: #fff; }
 .d-client-notify .d-check { width: 15px; height: 15px; }
