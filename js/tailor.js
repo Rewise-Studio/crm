@@ -259,11 +259,10 @@ function openTailor(num) {
   const activeMsg = gv(t,"Месенджер");
   const curIdx = tailorStatusIdx(gv(t,"Статус"));
 
-  const commLinks = { telegram:"https://t.me/+"+phoneClean, whatsapp:"https://wa.me/"+phoneClean, viber:"viber://chat?number=%2B"+phoneClean };
   const commHTML = ["telegram","whatsapp","viber"].map(m => {
     const active = activeMsg === m;
-    return "<a class='d-comm-btn" + (active?" active":"") + "'" + (active?" style='background:"+MSG_COLORS[m]+"'":"") +
-      " href='" + commLinks[m] + "' target='_blank' rel='noopener'>" + MSG_ICONS[m] + MSG_LABELS[m] + "</a>";
+    return "<button type='button' class='d-comm-btn" + (active?" active":"") + "'" + (active?" style='background:"+MSG_COLORS[m]+"'":"") +
+      " onclick=\"openMessenger('" + m + "','" + phoneClean + "')\">" + MSG_ICONS[m] + MSG_LABELS[m] + "</button>";
   }).join("");
 
   const statusBtns = TAILOR_STATUSES.map((s, si) => {
