@@ -3066,19 +3066,11 @@ function editSvcPrice(itemId, idx, el) {
   const it = NO.items.find(i=>i.id===itemId);
   if (!it || !it.services[idx]) return;
   const cur = it.services[idx].price;
-  const input = document.createElement("input");
-  input.type = "number";
-  input.className = "ic-svcprice-input";
-  input.value = cur;
-  const commit = () => {
-    const v = parseInt(input.value);
+  openPriceKeypad(cur, null, function(finalValue) {
+    const v = parseInt(finalValue);
     it.services[idx].price = (!isNaN(v) && v >= 0) ? v : cur;
     renderItems(); updateReceipt();
-  };
-  input.onblur = commit;
-  input.onkeydown = (e) => { if (e.key === "Enter") input.blur(); if (e.key === "Escape") { input.value = cur; input.blur(); } };
-  el.replaceWith(input);
-  input.focus(); input.select();
+  });
 }
 
 function openSvcDD(id) { renderSvcDD(id, "", ""); const dd = document.getElementById("ic-dd-"+id); if (dd) dd.classList.add("open"); }
