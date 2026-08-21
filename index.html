@@ -1190,9 +1190,10 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 }
 
 /* ═══════════════ НАЛАШТУВАННЯ ═══════════════ */
-.price-row { display: grid; grid-template-columns: 1fr 76px 84px 74px 40px; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line-soft); }
+.price-row { display: grid; grid-template-columns: 1fr 76px 84px 74px 44px 40px; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line-soft); }
 .price-row:last-of-type { border-bottom: none; }
 .price-row.hidden-row { opacity: 0.5; }
+.price-editor-wrap { max-width: 640px; margin: 0 auto; }
 .price-name { font-size: 13px; color: var(--txt); }
 .price-name-cell { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
 .price-name-input { flex: 1; min-width: 80px; text-align: left; font-size: 13px; padding: 6px 8px; }
@@ -1201,8 +1202,11 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .price-input { background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 6px; padding: 7px 9px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 13px; outline: none; width: 100%; text-align: right; }
 .price-input:focus { border-color: var(--cognac); }
 .price-btn { background: none; border: 1px solid var(--line); border-radius: 6px; color: var(--txt-2); cursor: pointer; font-size: 13px; padding: 6px 0; transition: all 0.15s; }
+.price-from-btn { font-size: 11px; font-family: 'Commissioner', sans-serif; }
+.price-from-btn.on { background: var(--cognac); color: #fff; border-color: var(--cognac); }
 .price-btn:hover { border-color: var(--cognac); }
-.price-add { display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--cognac-border); }
+.price-add { display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--cognac-border); align-items: center; }
+.price-add-from { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--txt-2); white-space: nowrap; flex-shrink: 0; }
 .price-add .ic-mini { flex: 1; }
 
 .price-row.pending { background: var(--accent-soft); border-radius: 7px; padding-left: 8px; padding-right: 8px; }
@@ -2425,11 +2429,13 @@ async function loadPrice() {
     // шукаємо колонку "Активна" за назвою в шапці
     let activeIdx = -1;
     let termIdx = -1;
+    let fromIdx = -1;
     if (json.table && json.table.cols) {
       json.table.cols.forEach(function(col, i){
         const lbl = String((col && col.label) || "").trim().toLowerCase();
         if (lbl === "активна" || lbl === "активність" || lbl === "active") activeIdx = i;
         if (termIdx === -1 && (lbl.indexOf("термін") !== -1 || lbl.indexOf("строк") !== -1 || lbl.indexOf("срок") !== -1 || lbl.indexOf("виконан") !== -1)) termIdx = i;
+        if (fromIdx === -1 && (lbl === "від" || lbl.indexOf("від") !== -1)) fromIdx = i;
       });
     }
     json.table.rows.forEach(function(row){
@@ -2446,10 +2452,15 @@ async function loadPrice() {
       }
       let term = "";
       if (termIdx >= 0 && c[termIdx] && c[termIdx].v != null) term = gvizDate(String(c[termIdx].v).trim());
+      let priceFrom = false;
+      if (fromIdx >= 0 && c[fromIdx] && c[fromIdx].v != null) {
+        const v = String(c[fromIdx].v).trim().toLowerCase();
+        priceFrom = (v === "так" || v === "yes" || v === "true" || v === "1");
+      }
       if (!category || !deptName || !svcName) return;
       if (!PRICE[category]) PRICE[category] = { label: CATEGORY_LABELS[category] || category, departments: {} };
       if (!PRICE[category].departments[deptName]) PRICE[category].departments[deptName] = [];
-      PRICE[category].departments[deptName].push({ name: svcName, price: price, unit: unit, active: active, term: term });
+      PRICE[category].departments[deptName].push({ name: svcName, price: price, unit: unit, active: active, term: term, from: priceFrom });
     });
     priceLoaded = true;
     if (["create","settings","pricelist"].includes(currentPage)) renderers[currentPage]();
@@ -2525,7 +2536,7 @@ function allServicesFlat() {
     const c = PRICE[cat];
     Object.keys(c.departments).forEach(dept => {
       c.departments[dept].forEach(s => {
-        if (s.active !== false) out.push({ name: s.name, price: s.price, unit: s.unit, category: c.label, department: dept });
+        if (s.active !== false) out.push({ name: s.name, price: s.price, unit: s.unit, category: c.label, department: dept, from: s.from });
       });
     });
   });
@@ -3092,8 +3103,9 @@ function renderSvcDD(id, query, catFilter) {
     if (s.name.toLowerCase().indexOf(q) === -1) return;
     if (++shown > 40) return; // не рендеримо забагато рядків одразу
     const hint = s.category + " · " + s.department;
+    const priceLbl = (s.from ? "від " : "") + s.price + " ₴";
     html += "<div class='ic-opt' onclick='selectSvcByName(" + id + ",\"" + s.name.replace(/"/g,'\\"') + "\"," + s.price + ")'><span class='o-name'>" + s.name +
-      "<span class='o-hint'>" + hint + "</span></span><span class='o-price'>" + s.price + " ₴</span><span class='o-add'>+</span></div>";
+      "<span class='o-hint'>" + hint + "</span></span><span class='o-price'>" + priceLbl + "</span><span class='o-add'>+</span></div>";
   });
   dd.innerHTML = html || "<div class='ic-opt'><span class='o-empty'>Нічого не знайдено</span></div>";
 }
@@ -3185,7 +3197,7 @@ function buildItemBody(item, idx) {
       const opsHTML = CORE_OPS.map(op => {
         const added = item.services.some(s => s.kind==="core" && s.op===op);
         const p = item.model ? opPriceFor(item, op) : null;
-        const priceLbl = p ? (parseInt(p.price).toLocaleString("uk-UA") + " ₴") : "—";
+        const priceLbl = p ? ((p.from ? "від " : "") + parseInt(p.price).toLocaleString("uk-UA") + " ₴") : "—";
         return "<button class='ic-op-tile" + (added?" on":"") + ((!p && !added)?" off":"") + "' onclick='toggleOp("+item.id+",\""+op+"\")'>" +
           (added ? "<span class='ic-op-check'>✓</span>" : "") +
           "<span class='ic-op-name'>"+op+"</span><span class='ic-op-price'>"+priceLbl+"</span></button>";
@@ -4162,16 +4174,19 @@ function renderPriceEditor() {
       const aKey = "a|" + priceOpenCat + "|" + dept + "|" + s.name;
       const tKey = "t|" + priceOpenCat + "|" + dept + "|" + s.name;
       const nKey = "m|" + priceOpenCat + "|" + dept + "|" + s.name;
+      const fKey = "f|" + priceOpenCat + "|" + dept + "|" + s.name;
       const pend = pendingPrice[pKey];
       const aPend = pendingPrice[aKey];
       const tPend = pendingPrice[tKey];
       const nPend = pendingPrice[nKey];
+      const fPend = pendingPrice[fKey];
       const shownActive = aPend ? aPend.newValue : (s.active !== false);
       const shownPrice = pend ? pend.newValue : s.price;
       const shownTerm = tPend ? tPend.newValue : (s.term || "");
       const shownName = nPend ? nPend.newValue : s.name;
+      const shownFrom = fPend ? fPend.newValue : !!s.from;
 
-      return "<div class='price-row" + (shownActive ? "" : " hidden-row") + (pend || aPend || tPend || nPend ? " pending" : "") + "'>" +
+      return "<div class='price-row" + (shownActive ? "" : " hidden-row") + (pend || aPend || tPend || nPend || fPend ? " pending" : "") + "'>" +
         "<div class='price-name-cell'>" +
           "<input class='price-input price-name-input' type='text' value=\"" + shownName.replace(/"/g,"&quot;") + "\" " +
             "onchange=\"stageName('" + priceOpenCat + "','" + dEsc + "','" + sName + "',this.value)\">" +
@@ -4184,6 +4199,8 @@ function renderPriceEditor() {
           "onchange=\"stagePrice('" + priceOpenCat + "','" + dEsc + "','" + sName + "',this.value)\">" +
         "<input class='price-input' type='number' value='" + shownTerm + "' placeholder='дн' title='Термін, днів' " +
           "onchange=\"stageTerm('" + priceOpenCat + "','" + dEsc + "','" + sName + "',this.value)\">" +
+        "<button class='price-btn price-from-btn" + (shownFrom?" on":"") + "' title='" + (shownFrom?"Зняти позначку «від»":"Позначити ціну як «від»") + "' " +
+          "onclick=\"stageFrom('" + priceOpenCat + "','" + dEsc + "','" + sName + "'," + (shownFrom?"false":"true") + ")\">від</button>" +
         "<button class='price-btn' title='" + (shownActive?"Приховати":"Показати") + "' " +
           "onclick=\"stageActive('" + priceOpenCat + "','" + dEsc + "','" + sName + "'," + (shownActive?"false":"true") + ")\">" +
           (shownActive ? "🚫" : "👁") + "</button>" +
@@ -4201,6 +4218,7 @@ function renderPriceEditor() {
         "<span class='price-unit'>" + (ch.unit || "") + "</span>" +
         "<span class='price-input-static'>" + ch.newValue + " ₴</span>" +
         "<span class='price-input-static'>" + (ch.term ? ch.term + " дн" : "—") + "</span>" +
+        "<span class='price-input-static'>" + (ch.from ? "від" : "—") + "</span>" +
         "<button class='price-btn' title='Прибрати' onclick=\"cancelPending('" + k.replace(/'/g,"\\'") + "')\">×</button>" +
       "</div>";
     }).join("");
@@ -4213,6 +4231,7 @@ function renderPriceEditor() {
         "<input class='ic-mini' style='max-width:100px' id='pa-unit-" + id + "' placeholder='Одиниця'>" +
         "<input class='ic-mini' style='max-width:80px' type='number' id='pa-price-" + id + "' placeholder='₴'>" +
         "<input class='ic-mini' style='max-width:72px' type='number' id='pa-term-" + id + "' placeholder='дн'>" +
+        "<label class='price-add-from'><input type='checkbox' id='pa-from-" + id + "'> від</label>" +
         "<button class='ic-manual-add' onclick=\"stageAdd('" + priceOpenCat + "','" + dEsc + "')\">+</button>" +
       "</div>" +
     "</div>";
@@ -4226,9 +4245,10 @@ function renderPriceEditor() {
       "<button class='pending-confirm' onclick='openPriceConfirm()'>Переглянути та підтвердити</button>" +
     "</div>" : "";
 
-  box.innerHTML = catTabs + deptTabs + body +
+  box.innerHTML = "<div class='price-editor-wrap'>" + catTabs + deptTabs + body +
     "<div class='d-bonus-hint'>Зміни застосуються лише після підтвердження паролем. Приховані послуги не пропонуються при створенні замовлення, але ціна та історія зберігаються.</div>" +
-    bar;
+    bar +
+  "</div>";
 }
 function hashId(str) { let h = 0; for (let i=0;i<str.length;i++) h = (h*31 + str.charCodeAt(i)) % 100000; return h; }
 function setPriceCat(k) { priceOpenCat = k; priceOpenDept = ""; renderPriceEditor(); }
@@ -4288,22 +4308,34 @@ function stageName(cat, dept, name, value) {
   renderPriceEditor();
 }
 
+function stageFrom(cat, dept, name, makeFrom) {
+  const s = findPriceSvc(cat, dept, name);
+  if (!s) return;
+  const key = "f|" + cat + "|" + dept + "|" + name;
+  const current = !!s.from;
+  if (makeFrom === current) delete pendingPrice[key];
+  else pendingPrice[key] = { type: "from", cat, dept, name, oldValue: current, newValue: makeFrom };
+  renderPriceEditor();
+}
+
 function stageAdd(cat, dept) {
   const id = hashId(cat + dept);
   const nameEl = document.getElementById("pa-name-" + id);
   const unitEl = document.getElementById("pa-unit-" + id);
   const priceEl = document.getElementById("pa-price-" + id);
   const termEl = document.getElementById("pa-term-" + id);
+  const fromEl = document.getElementById("pa-from-" + id);
   const name = nameEl.value.trim();
   const unit = unitEl.value.trim();
   const price = parseInt(priceEl.value || "0");
   const term = termEl && termEl.value.trim() ? String(parseInt(termEl.value)) : "";
+  const from = !!(fromEl && fromEl.checked);
   if (!name) { toast("Вкажіть назву послуги"); return; }
   if (!price) { toast("Вкажіть ціну"); return; }
   if (findPriceSvc(cat, dept, name)) { toast("Така послуга вже є"); return; }
   const key = "n|" + cat + "|" + dept + "|" + name;
-  pendingPrice[key] = { type: "add", cat, dept, name, unit, term, newValue: price };
-  nameEl.value = ""; unitEl.value = ""; priceEl.value = ""; if (termEl) termEl.value = "";
+  pendingPrice[key] = { type: "add", cat, dept, name, unit, term, from, newValue: price };
+  nameEl.value = ""; unitEl.value = ""; priceEl.value = ""; if (termEl) termEl.value = ""; if (fromEl) fromEl.checked = false;
   renderPriceEditor();
 }
 
@@ -4339,8 +4371,12 @@ function openPriceConfirm() {
       return "<div class='chg-row'><span class='chg-name'>" + ch.oldValue + "</span>" +
         "<span class='chg-val'>перейменувати → <b>" + ch.newValue + "</b></span></div>";
     }
+    if (ch.type === "from") {
+      return "<div class='chg-row'><span class='chg-name'>" + ch.name + "</span>" +
+        "<span class='chg-val'>" + (ch.newValue ? "позначити як «від»" : "прибрати «від»") + "</span></div>";
+    }
     return "<div class='chg-row'><span class='chg-name'>" + ch.name + " <span class='price-new-tag'>нова</span></span>" +
-      "<span class='chg-val'><b>" + ch.newValue + " ₴</b>" + (ch.term ? " · " + ch.term + " дн" : "") + "</span></div>";
+      "<span class='chg-val'>" + (ch.from ? "від " : "") + "<b>" + ch.newValue + " ₴</b>" + (ch.term ? " · " + ch.term + " дн" : "") + "</span></div>";
   }).join("");
 
   let ov = document.getElementById("price-confirm");
@@ -4562,9 +4598,12 @@ async function applyPendingPrice() {
     } else if (ch.type === "name") {
       ok = await priceApi("/price/update", { category: ch.cat, department: ch.dept, service: ch.name, newName: ch.newValue });
       if (ok) { const s = findPriceSvc(ch.cat, ch.dept, ch.name); if (s) s.name = ch.newValue; }
+    } else if (ch.type === "from") {
+      ok = await priceApi("/price/update", { category: ch.cat, department: ch.dept, service: ch.name, from: ch.newValue });
+      if (ok) { const s = findPriceSvc(ch.cat, ch.dept, ch.name); if (s) s.from = ch.newValue; }
     } else {
-      ok = await priceApi("/price/add", { category: ch.cat, department: ch.dept, service: ch.name, unit: ch.unit, price: ch.newValue, term: ch.term || "" });
-      if (ok) PRICE[ch.cat].departments[ch.dept].push({ name: ch.name, price: ch.newValue, unit: ch.unit, active: true, term: ch.term || "" });
+      ok = await priceApi("/price/add", { category: ch.cat, department: ch.dept, service: ch.name, unit: ch.unit, price: ch.newValue, term: ch.term || "", from: !!ch.from });
+      if (ok) PRICE[ch.cat].departments[ch.dept].push({ name: ch.name, price: ch.newValue, unit: ch.unit, active: true, term: ch.term || "", from: !!ch.from });
     }
     if (ok) delete pendingPrice[k]; else failed++;
   }
