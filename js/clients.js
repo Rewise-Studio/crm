@@ -26,15 +26,17 @@ function buildClientRows() {
 }
 renderers.clients = function() {
   const page = document.getElementById("page-clients");
-  // Унікальні клієнти за телефоном — ремонт + пошив
+  // Унікальні клієнти за телефоном — ремонт + пошив (без видалених)
   const map = {};
   ORDERS.forEach(o => {
+    if (typeof isOrderDeleted === "function" && isOrderDeleted(o)) return;
     const phone = gv(o,"Телефон"); if (!phone) return;
     if (!map[phone]) map[phone] = { name: gv(o,"Ім'я клієнта"), phone: phone, count: 0, sum: 0 };
     map[phone].count++;
     map[phone].sum += orderTotal(gv(o,"Номер замовлення"));
   });
   TAILOR.forEach(t => {
+    if (gv(t,"Примітка").indexOf("[ВИДАЛЕНО] ") === 0) return;
     const phone = gv(t,"Телефон"); if (!phone) return;
     if (!map[phone]) map[phone] = { name: gv(t,"Ім'я клієнта"), phone: phone, count: 0, sum: 0 };
     map[phone].count++;
@@ -181,8 +183,10 @@ function openClientEdit(phone) {
       "<div class='edit-form'>" +
         "<div class='cr-block-label first'>Телефон</div>" +
         "<input class='cr-input' readonly style='cursor:pointer' id='client-card-phone' value=\"" + phone.replace(/"/g,"&quot;") + "\" onclick=\"openPhoneKeypad('" + phone.replace(/'/g,"") + "', function(v){ var el=document.getElementById('client-card-phone'); if(el) el.value=v; }, function(v){ saveClientPhone('" + phone.replace(/'/g,"") + "', v); })\">" +
+        "<div class='cr-block-label'>Ім'я</div>" +
+        "<input class='cr-input' id='client-card-firstname' placeholder=\"Ім'я клієнта\" value=\"" + nameParts.first.replace(/"/g,"&quot;") + "\" onblur=\"saveClientFullName('" + phone.replace(/'/g,"") + "')\">" +
         "<div class='cr-block-label'>Прізвище / позначення</div>" +
-        "<input class='cr-input' placeholder='напр. Адвокат, Магазин взуття' value=\"" + nameParts.rest.replace(/"/g,"&quot;") + "\" onblur=\"saveClientNameTag('" + phone.replace(/'/g,"") + "','" + nameParts.first.replace(/'/g,"") + "',this.value)\">" +
+        "<input class='cr-input' id='client-card-lastname' placeholder='напр. Адвокат, Магазин взуття' value=\"" + nameParts.rest.replace(/"/g,"&quot;") + "\" onblur=\"saveClientFullName('" + phone.replace(/'/g,"") + "')\">" +
         "<div class='cr-block-label'>Месенджер</div>" +
         "<div class='cr-msg-pick'>" + msgPick + "</div>" +
         "<div class='cr-block-label'>День народження</div>" +
@@ -194,6 +198,7 @@ function openClientEdit(phone) {
       "</div>" +
       (balance > 0 ? "<button class='d-settle-btn' style='margin-top:14px;background:none;border:1px solid rgba(226,75,74,0.3);color:#E24B4A' onclick=\"openResetBonusConfirm('" + phone.replace(/'/g,"") + "','" + name.replace(/'/g,"") + "')\">Обнулити бонуси</button>" : "") +
       "<button style='width:100%;margin-top:10px;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:13px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:13px' onclick=\"openClientCard('" + phone.replace(/'/g,"") + "')\">Готово</button>" +
+      "<button style='width:100%;margin-top:10px;background:none;border:1px solid rgba(226,75,74,0.3);border-radius:8px;color:#E24B4A;padding:13px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:13px' onclick=\"openDeleteClientConfirm('" + phone.replace(/'/g,"") + "','" + name.replace(/'/g,"") + "')\">Видалити клієнта</button>" +
     "</div></div>";
 }
 
@@ -216,13 +221,17 @@ async function setClientMessenger(phone, m) {
   } catch(e) { console.error("messenger save failed", e); toast("Не вдалося зберегти месенджер"); }
 }
 
-/* Зберегти прізвище/позначення — склеюємо з іменем в одне поле "Ім'я клієнта"
-   і оновлюємо ВСІ замовлення телефону (як і з номером телефону — це той самий
-   ключовий атрибут клієнта, має лишатись однаковим по всій історії). */
-async function saveClientNameTag(phone, firstName, restRaw) {
+/* Зберегти повне ім'я — читаємо обидва поля (ім'я + прізвище/позначення),
+   склеюємо в одне поле "Ім'я клієнта" і оновлюємо ВСІ замовлення телефону
+   (номер телефону лишається ключем, ім'я має бути однаковим по всій історії). */
+async function saveClientFullName(phone) {
   if (!isAdmin()) return;
-  const rest = (restRaw || "").trim();
-  const newName = rest ? (firstName + " " + rest) : firstName;
+  const firstEl = document.getElementById("client-card-firstname");
+  const lastEl = document.getElementById("client-card-lastname");
+  const first = (firstEl ? firstEl.value.trim() : "");
+  const rest = (lastEl ? lastEl.value.trim() : "");
+  if (!first) { toast("Ім'я не може бути порожнім"); return; }
+  const newName = rest ? (first + " " + rest) : first;
   const orders = ORDERS.filter(o => gv(o,"Телефон") === phone);
   if (!orders.length) { toast("У клієнта ще немає замовлень"); return; }
   let failed = 0;
@@ -386,4 +395,96 @@ async function confirmResetBonus() {
   }
   closeClientCard();
   if (renderers.clients) renderers.clients();
+}
+
+/* ── Видалення клієнта (адмін, підтвердження паролем) ──
+   Клієнт — це агрегований вид по всіх замовленнях телефону, окремого рядка
+   немає, тому "видалити клієнта" = заховати ВСІ його замовлення (ремонт
+   і виготовлення) тим самим механізмом архіву, що й окреме замовлення.
+   Нічого не стирається остаточно — кожне замовлення можна відновити окремо. */
+let pendingDeleteClientPhone = null;
+function openDeleteClientConfirm(phone, name) {
+  if (!isAdmin()) { toast("Доступно лише адміністратору"); return; }
+  pendingDeleteClientPhone = phone;
+  const c = _clientsCache.find(x => x.phone === phone);
+  const count = c ? c.count : 0;
+
+  let ov = document.getElementById("delete-client-confirm");
+  if (!ov) {
+    ov = document.createElement("div");
+    ov.id = "delete-client-confirm";
+    ov.className = "odm-bg";
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = "<div class='odm' style='width:400px'>" +
+    "<div class='odm-close' onclick='closeDeleteClientConfirm()'>×</div>" +
+    "<div class='odm-scroll'>" +
+      "<div class='detail-top'><span class='detail-title' style='font-size:16px'>Видалити клієнта?</span></div>" +
+      "<p style='font-size:13px;color:var(--txt-2);line-height:1.5;margin:0 0 4px'>" + name + " · " + phone + "</p>" +
+      "<p style='font-size:12px;color:var(--txt-3);line-height:1.5'>Сховає всі " + count + " замовлення цього клієнта (ремонт і виготовлення) зі списків і статистики. " +
+        "Дані не стираються остаточно — кожне замовлення можна відновити окремо через Google Таблицю.</p>" +
+      "<div class='cr-block-label' style='margin-top:14px'>Пароль адміністратора</div>" +
+      "<input class='cr-input' id='delete-client-pw' type='password' placeholder='Пароль' onkeydown=\"if(event.key==='Enter')confirmDeleteClient()\">" +
+      "<div class='login-err' id='delete-client-err'></div>" +
+      "<div style='display:flex;gap:10px;margin-top:6px'>" +
+        "<button onclick='closeDeleteClientConfirm()' style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:13px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:13px'>Скасувати</button>" +
+        "<button class='cr-create-btn' style='flex:2;margin-top:0;background:#E24B4A' id='delete-client-btn' onclick='confirmDeleteClient()'>Видалити</button>" +
+      "</div>" +
+    "</div></div>";
+  ov.classList.add("open");
+  setTimeout(function(){ const el = document.getElementById("delete-client-pw"); if (el) el.focus(); }, 50);
+}
+function closeDeleteClientConfirm() {
+  const ov = document.getElementById("delete-client-confirm");
+  if (ov) ov.classList.remove("open");
+  pendingDeleteClientPhone = null;
+}
+async function confirmDeleteClient() {
+  if (!pendingDeleteClientPhone) return;
+  const err = document.getElementById("delete-client-err");
+  const pw = document.getElementById("delete-client-pw").value;
+  if (!pw) { err.textContent = "Введіть пароль"; return; }
+  let hash;
+  try { hash = await sha256(pw); } catch(e) { err.textContent = "Помилка перевірки"; return; }
+  if (hash !== ROLE_HASHES.admin) { err.textContent = "Невірний пароль"; return; }
+
+  const btn = document.getElementById("delete-client-btn");
+  btn.textContent = "Видалення..."; btn.disabled = true;
+  err.textContent = "";
+
+  const phone = pendingDeleteClientPhone;
+  let failed = 0;
+
+  const phoneOrders = ORDERS.filter(o => gv(o,"Телефон") === phone && !(typeof isOrderDeleted === "function" && isOrderDeleted(o)));
+  for (const o of phoneOrders) {
+    const num = gv(o,"Номер замовлення");
+    try {
+      const res = await fetch(API_URL.replace("/order","/order/delete"), {
+        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ order_num: num })
+      });
+      const r = await res.json();
+      if (r.status === "ok") o["Примітка"] = "[ВИДАЛЕНО] " + gv(o,"Примітка"); else failed++;
+    } catch(e) { failed++; }
+  }
+
+  const phoneTailor = TAILOR.filter(t => gv(t,"Телефон") === phone && gv(t,"Примітка").indexOf("[ВИДАЛЕНО] ") !== 0);
+  for (const t of phoneTailor) {
+    const num = gv(t,"Номер");
+    try {
+      const res = await fetch(API_URL.replace("/order","/tailor/delete"), {
+        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ order_num: num })
+      });
+      const r = await res.json();
+      if (r.status === "ok") t["Примітка"] = "[ВИДАЛЕНО] " + gv(t,"Примітка"); else failed++;
+    } catch(e) { failed++; }
+  }
+
+  closeDeleteClientConfirm();
+  closeClientCard();
+  if (failed) toast("Готово, але " + failed + " замовлень не вдалося приховати");
+  else toast("Клієнта видалено");
+  if (typeof loadData === "function") await loadData();
+  else if (renderers.clients) renderers.clients();
 }
