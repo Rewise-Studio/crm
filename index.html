@@ -1194,6 +1194,8 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .price-row:last-of-type { border-bottom: none; }
 .price-row.hidden-row { opacity: 0.5; }
 .price-name { font-size: 13px; color: var(--txt); }
+.price-name-cell { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+.price-name-input { flex: 1; min-width: 80px; text-align: left; font-size: 13px; padding: 6px 8px; }
 .price-hidden-tag { font-size: 10px; color: var(--txt-3); }
 .price-unit { font-size: 11px; color: var(--txt-3); }
 .price-input { background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 6px; padding: 7px 9px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 13px; outline: none; width: 100%; text-align: right; }
@@ -4099,6 +4101,7 @@ async function saveEditOrder() {
 /* ═══════════════ ВКЛАДКА НАЛАШТУВАННЯ ═══════════════ */
 let settingsSection = "params"; // params | price
 let priceOpenCat = "";
+let priceOpenDept = "";
 
 renderers.settings = function() {
   const page = document.getElementById("page-settings");
@@ -4133,12 +4136,21 @@ function renderPriceEditor() {
   if (!cats.length) { box.innerHTML = "<div class='orders-empty'>Прайс порожній</div>"; return; }
   if (!priceOpenCat || !PRICE[priceOpenCat]) priceOpenCat = cats[0];
 
-  const catTabs = "<div class='cr-pills' style='margin-bottom:16px'>" + cats.map(k =>
+  const catTabs = "<div class='cr-pills' style='margin-bottom:10px'>" + cats.map(k =>
     "<button class='cr-pill" + (priceOpenCat===k?" active":"") + "' onclick=\"setPriceCat('" + k + "')\">" + PRICE[k].label + "</button>"
   ).join("") + "</div>";
 
   const cat = PRICE[priceOpenCat];
-  const depts = Object.keys(cat.departments);
+  const allDepts = Object.keys(cat.departments);
+  if (priceOpenDept && allDepts.indexOf(priceOpenDept) === -1) priceOpenDept = "";
+
+  const deptTabs = "<div class='cr-pills' style='margin-bottom:16px'>" +
+    "<button class='cr-pill" + (!priceOpenDept?" active":"") + "' onclick=\"setPriceDept('')\">Усі</button>" +
+    allDepts.map(d =>
+      "<button class='cr-pill" + (priceOpenDept===d?" active":"") + "' onclick=\"setPriceDept('" + d.replace(/'/g,"\\'") + "')\">" + d + "</button>"
+    ).join("") + "</div>";
+
+  const depts = priceOpenDept ? [priceOpenDept] : allDepts;
 
   const body = depts.map(dept => {
     const dEsc = dept.replace(/'/g,"\\'");
@@ -4149,18 +4161,24 @@ function renderPriceEditor() {
       const pKey = "p|" + priceOpenCat + "|" + dept + "|" + s.name;
       const aKey = "a|" + priceOpenCat + "|" + dept + "|" + s.name;
       const tKey = "t|" + priceOpenCat + "|" + dept + "|" + s.name;
+      const nKey = "m|" + priceOpenCat + "|" + dept + "|" + s.name;
       const pend = pendingPrice[pKey];
       const aPend = pendingPrice[aKey];
       const tPend = pendingPrice[tKey];
+      const nPend = pendingPrice[nKey];
       const shownActive = aPend ? aPend.newValue : (s.active !== false);
       const shownPrice = pend ? pend.newValue : s.price;
       const shownTerm = tPend ? tPend.newValue : (s.term || "");
+      const shownName = nPend ? nPend.newValue : s.name;
 
-      return "<div class='price-row" + (shownActive ? "" : " hidden-row") + (pend || aPend || tPend ? " pending" : "") + "'>" +
-        "<span class='price-name'>" + s.name +
+      return "<div class='price-row" + (shownActive ? "" : " hidden-row") + (pend || aPend || tPend || nPend ? " pending" : "") + "'>" +
+        "<div class='price-name-cell'>" +
+          "<input class='price-input price-name-input' type='text' value=\"" + shownName.replace(/"/g,"&quot;") + "\" " +
+            "onchange=\"stageName('" + priceOpenCat + "','" + dEsc + "','" + sName + "',this.value)\">" +
           (shownActive ? "" : " <span class='price-hidden-tag'>приховано</span>") +
           (pend ? " <span class='price-was'>було " + s.price + " ₴</span>" : "") +
-        "</span>" +
+          (nPend ? " <span class='price-was'>було «" + s.name + "»</span>" : "") +
+        "</div>" +
         "<span class='price-unit'>" + (s.unit || "") + "</span>" +
         "<input class='price-input' type='number' value='" + shownPrice + "' " +
           "onchange=\"stagePrice('" + priceOpenCat + "','" + dEsc + "','" + sName + "',this.value)\">" +
@@ -4208,12 +4226,13 @@ function renderPriceEditor() {
       "<button class='pending-confirm' onclick='openPriceConfirm()'>Переглянути та підтвердити</button>" +
     "</div>" : "";
 
-  box.innerHTML = catTabs + body +
+  box.innerHTML = catTabs + deptTabs + body +
     "<div class='d-bonus-hint'>Зміни застосуються лише після підтвердження паролем. Приховані послуги не пропонуються при створенні замовлення, але ціна та історія зберігаються.</div>" +
     bar;
 }
 function hashId(str) { let h = 0; for (let i=0;i<str.length;i++) h = (h*31 + str.charCodeAt(i)) % 100000; return h; }
-function setPriceCat(k) { priceOpenCat = k; renderPriceEditor(); }
+function setPriceCat(k) { priceOpenCat = k; priceOpenDept = ""; renderPriceEditor(); }
+function setPriceDept(d) { priceOpenDept = d; renderPriceEditor(); }
 
 function findPriceSvc(cat, dept, name) {
   const list = (PRICE[cat] && PRICE[cat].departments[dept]) || [];
@@ -4254,6 +4273,18 @@ function stageTerm(cat, dept, name, value) {
   const norm = raw === "" ? "" : String(parseInt(raw));
   if (norm === cur) delete pendingPrice[key];
   else pendingPrice[key] = { type: "term", cat, dept, name, oldValue: cur, newValue: norm };
+  renderPriceEditor();
+}
+
+function stageName(cat, dept, name, value) {
+  const s = findPriceSvc(cat, dept, name);
+  if (!s) return;
+  const v = String(value).trim();
+  const key = "m|" + cat + "|" + dept + "|" + name;
+  if (!v) { toast("Назва не може бути порожньою"); renderPriceEditor(); return; }
+  if (v === name) { delete pendingPrice[key]; renderPriceEditor(); return; }
+  if (v !== name && findPriceSvc(cat, dept, v)) { toast("Послуга з такою назвою вже є"); renderPriceEditor(); return; }
+  pendingPrice[key] = { type: "name", cat, dept, name, oldValue: name, newValue: v };
   renderPriceEditor();
 }
 
@@ -4303,6 +4334,10 @@ function openPriceConfirm() {
       const newT = ch.newValue ? ch.newValue + " дн" : "—";
       return "<div class='chg-row'><span class='chg-name'>" + ch.name + "</span>" +
         "<span class='chg-val'>термін <s>" + oldT + "</s> → <b>" + newT + "</b></span></div>";
+    }
+    if (ch.type === "name") {
+      return "<div class='chg-row'><span class='chg-name'>" + ch.oldValue + "</span>" +
+        "<span class='chg-val'>перейменувати → <b>" + ch.newValue + "</b></span></div>";
     }
     return "<div class='chg-row'><span class='chg-name'>" + ch.name + " <span class='price-new-tag'>нова</span></span>" +
       "<span class='chg-val'><b>" + ch.newValue + " ₴</b>" + (ch.term ? " · " + ch.term + " дн" : "") + "</span></div>";
@@ -4524,6 +4559,9 @@ async function applyPendingPrice() {
     } else if (ch.type === "term") {
       ok = await priceApi("/price/update", { category: ch.cat, department: ch.dept, service: ch.name, term: ch.newValue });
       if (ok) { const s = findPriceSvc(ch.cat, ch.dept, ch.name); if (s) s.term = ch.newValue; }
+    } else if (ch.type === "name") {
+      ok = await priceApi("/price/update", { category: ch.cat, department: ch.dept, service: ch.name, newName: ch.newValue });
+      if (ok) { const s = findPriceSvc(ch.cat, ch.dept, ch.name); if (s) s.name = ch.newValue; }
     } else {
       ok = await priceApi("/price/add", { category: ch.cat, department: ch.dept, service: ch.name, unit: ch.unit, price: ch.newValue, term: ch.term || "" });
       if (ok) PRICE[ch.cat].departments[ch.dept].push({ name: ch.name, price: ch.newValue, unit: ch.unit, active: true, term: ch.term || "" });
