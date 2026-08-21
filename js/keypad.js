@@ -1,6 +1,7 @@
 /* ═══════════════ ЕКРАННА ЦИФРОВА КЛАВІАТУРА ═══════════════
    Модалка по центру. Ввід тільки через екранні кнопки (поле readonly).
-   Два режими: телефон (openPhoneKeypad) і ціна (openPriceKeypad).
+   Три режими: телефон (openPhoneKeypad), ціна (openPriceKeypad),
+   термін у днях (openTermKeypad).
    - startValue: поточне значення (рядок/число)
    - onChange(newValue): викликається на кожну зміну (для live-підказок/чека)
    - onDone(finalValue): викликається при «Готово» або закритті */
@@ -21,6 +22,11 @@ function openPriceKeypad(startValue, onChange, onDone) {
   _openKeypad("price", "Ціна", v, onChange, onDone);
 }
 
+function openTermKeypad(startValue, onChange, onDone) {
+  const v = (startValue != null && startValue !== "") ? String(parseInt(startValue) || 0) : "";
+  _openKeypad("term", "Термін, днів", v, onChange, onDone);
+}
+
 function _openKeypad(mode, title, startValue, onChange, onDone) {
   _kpMode = mode;
   _kpValue = startValue;
@@ -36,7 +42,7 @@ function _openKeypad(mode, title, startValue, onChange, onDone) {
     document.body.appendChild(bg);
   }
 
-  const grid = mode === "price"
+  const grid = (mode === "price" || mode === "term")
     ? (kpBtn("1") + kpBtn("2") + kpBtn("3") +
        kpBtn("4") + kpBtn("5") + kpBtn("6") +
        kpBtn("7") + kpBtn("8") + kpBtn("9") +
@@ -80,6 +86,9 @@ function kpRenderDisplay() {
   if (_kpMode === "price") {
     const n = parseInt(_kpValue || "0") || 0;
     d.textContent = n.toLocaleString("uk-UA") + " ₴";
+  } else if (_kpMode === "term") {
+    const n = parseInt(_kpValue || "0") || 0;
+    d.textContent = n + " дн";
   } else {
     d.textContent = _kpValue || "";
   }
