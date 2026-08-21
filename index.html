@@ -332,6 +332,7 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .ic-field { flex: 1; }
 .ic-field label { display: block; font-size: 10px; color: var(--txt-3); letter-spacing: 0.08em; margin-bottom: 5px; }
 .ic-select, .ic-mini { width: 100%; background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 6px; padding: 9px 11px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 13px; font-weight: 300; outline: none; }
+.ic-mini[readonly] { cursor: pointer; caret-color: transparent; }
 .ic-select:focus, .ic-mini:focus { border-color: var(--cognac); }
 .ic-mini::placeholder { color: var(--txt-3); }
 .ic-select option { background: var(--surface-2); color: var(--txt); }
@@ -1200,6 +1201,8 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .price-hidden-tag { font-size: 10px; color: var(--txt-3); }
 .price-unit { font-size: 11px; color: var(--txt-3); }
 .price-input { background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 6px; padding: 7px 9px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 13px; outline: none; width: 100%; text-align: right; }
+.price-input[readonly] { cursor: pointer; caret-color: transparent; }
+.price-input[readonly]:hover { border-color: var(--cognac-border); }
 .price-input:focus { border-color: var(--cognac); }
 .price-btn { background: none; border: 1px solid var(--line); border-radius: 6px; color: var(--txt-2); cursor: pointer; font-size: 13px; padding: 6px 0; transition: all 0.15s; }
 .price-from-btn { font-size: 11px; font-family: 'Commissioner', sans-serif; }
@@ -4187,10 +4190,10 @@ function renderPriceEditor() {
           (nPend ? " <span class='price-was'>було «" + s.name + "»</span>" : "") +
         "</div>" +
         "<span class='price-unit'>" + (s.unit || "") + "</span>" +
-        "<input class='price-input' type='number' value='" + shownPrice + "' " +
-          "onchange=\"stagePrice('" + priceOpenCat + "','" + dEsc + "','" + sName + "',this.value)\">" +
-        "<input class='price-input' type='number' value='" + shownTerm + "' placeholder='дн' title='Термін, днів' " +
-          "onchange=\"stageTerm('" + priceOpenCat + "','" + dEsc + "','" + sName + "',this.value)\">" +
+        "<input class='price-input' type='text' inputmode='none' readonly value='" + shownPrice + "' " +
+          "onclick=\"openPriceKeypad(" + shownPrice + ",null,function(v){stagePrice('" + priceOpenCat + "','" + dEsc + "','" + sName + "',v);})\">" +
+        "<input class='price-input' type='text' inputmode='none' readonly value='" + shownTerm + "' placeholder='дн' title='Термін, днів' " +
+          "onclick=\"openTermKeypad(" + (shownTerm||0) + ",null,function(v){stageTerm('" + priceOpenCat + "','" + dEsc + "','" + sName + "',v);})\">" +
         "<button class='price-btn price-from-btn" + (shownFrom?" on":"") + "' title='" + (shownFrom?"Зняти позначку «від»":"Позначити ціну як «від»") + "' " +
           "onclick=\"stageFrom('" + priceOpenCat + "','" + dEsc + "','" + sName + "'," + (shownFrom?"false":"true") + ")\">від</button>" +
         "<button class='price-btn' title='" + (shownActive?"Приховати":"Показати") + "' " +
@@ -4221,8 +4224,10 @@ function renderPriceEditor() {
       "<div class='price-add'>" +
         "<input class='ic-mini' id='pa-name-" + id + "' placeholder='Нова послуга'>" +
         "<input class='ic-mini' style='max-width:100px' id='pa-unit-" + id + "' placeholder='Одиниця'>" +
-        "<input class='ic-mini' style='max-width:80px' type='number' id='pa-price-" + id + "' placeholder='₴'>" +
-        "<input class='ic-mini' style='max-width:72px' type='number' id='pa-term-" + id + "' placeholder='дн'>" +
+        "<input class='ic-mini' style='max-width:80px' type='text' inputmode='none' readonly id='pa-price-" + id + "' placeholder='₴' " +
+          "onclick=\"openPriceKeypad(this.value,null,function(v){document.getElementById('pa-price-" + id + "').value=v;})\">" +
+        "<input class='ic-mini' style='max-width:72px' type='text' inputmode='none' readonly id='pa-term-" + id + "' placeholder='дн' " +
+          "onclick=\"openTermKeypad(this.value,null,function(v){document.getElementById('pa-term-" + id + "').value=v;})\">" +
         "<label class='price-add-from'><input type='checkbox' id='pa-from-" + id + "'> від</label>" +
         "<button class='ic-manual-add' onclick=\"stageAdd('" + priceOpenCat + "','" + dEsc + "')\">+</button>" +
       "</div>" +
@@ -4589,7 +4594,19 @@ async function applyPendingPrice() {
       if (ok) { const s = findPriceSvc(ch.cat, ch.dept, ch.name); if (s) s.term = ch.newValue; }
     } else if (ch.type === "name") {
       ok = await priceApi("/price/update", { category: ch.cat, department: ch.dept, service: ch.name, newName: ch.newValue });
-      if (ok) { const s = findPriceSvc(ch.cat, ch.dept, ch.name); if (s) s.name = ch.newValue; }
+      if (ok) {
+        const s = findPriceSvc(ch.cat, ch.dept, ch.name);
+        if (s) s.name = ch.newValue;
+        // Розповсюджуємо перейменування на інші ще не оброблені зміни цього ж
+        // рядка (напр. одночасно позначили «від») — інакше вони шукатимуть
+        // рядок за вже застарілою назвою і не знайдуть його.
+        keys.forEach(function(otherKey){
+          const other = pendingPrice[otherKey];
+          if (other && other !== ch && other.cat === ch.cat && other.dept === ch.dept && other.name === ch.name) {
+            other.name = ch.newValue;
+          }
+        });
+      }
     } else if (ch.type === "from") {
       ok = await priceApi("/price/update", { category: ch.cat, department: ch.dept, service: ch.name, from: ch.newValue });
       if (ok) { const s = findPriceSvc(ch.cat, ch.dept, ch.name); if (s) s.from = ch.newValue; }
