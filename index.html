@@ -613,6 +613,16 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .d-comm-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
 .d-comm-btn.active { color: #fff; border-color: transparent; }
 .d-comm-btn.active svg { fill: #fff; }
+
+/* Кнопки статусу (Виготовлення) — раніше без стилів, рендерились браузерним
+   виглядом за замовчуванням */
+.d-status-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.d-status-btn { background: var(--surface-2); border: 1px solid var(--field-border); border-radius: 8px;
+  color: var(--txt-2); font-family: 'Commissioner', sans-serif; font-size: 12.5px; padding: 9px 14px;
+  cursor: pointer; transition: all 0.15s; }
+.d-status-btn:hover { border-color: var(--cognac-border); }
+.d-status-btn.done { background: var(--cognac-light); border-color: var(--cognac-border); color: var(--leather); }
+.d-status-btn.current { color: #fff; border-color: transparent; font-weight: 600; }
 .d-client-notify { flex-shrink: 0; display: flex; align-items: center; gap: 6px; background: none; border: 1px solid var(--cognac-border); border-radius: 7px; color: var(--cognac); font-family: 'Commissioner', sans-serif; font-size: 11px; padding: 6px 10px; cursor: pointer; white-space: nowrap; }
 .d-client-notify.on { background: #2FA98C; border-color: #2FA98C; color: #fff; }
 .d-client-notify .d-check { width: 15px; height: 15px; }
@@ -3732,8 +3742,9 @@ function ordersInPeriod(key) {
 }
 function tailorInPeriod(key) {
   const from = periodStart(key);
-  if (!from) return TAILOR.slice();
-  return TAILOR.filter(t => {
+  const base = TAILOR.filter(t => gv(t,"Примітка").indexOf("[ВИДАЛЕНО] ") !== 0);
+  if (!from) return base;
+  return base.filter(t => {
     const s = gv(t,"Дата створення");
     const m = s.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
     if (!m) return false;
@@ -5682,7 +5693,7 @@ const RATING_META = {
 function clientPaymentStats(phone) {
   let issuedDebt = 0, settledOrders = 0, openDebt = 0;
 
-  ORDERS.filter(o => gv(o,"Телефон") === phone).forEach(o => {
+  ORDERS.filter(o => gv(o,"Телефон") === phone && !isOrderDeleted(o)).forEach(o => {
     const num = gv(o,"Номер замовлення");
     const total = orderTotal(num);
     if (!total) return;
@@ -5696,7 +5707,7 @@ function clientPaymentStats(phone) {
     } else if (debt > 0) openDebt += debt;
   });
 
-  TAILOR.filter(t => gv(t,"Телефон") === phone).forEach(t => {
+  TAILOR.filter(t => gv(t,"Телефон") === phone && gv(t,"Примітка").indexOf("[ВИДАЛЕНО] ") !== 0).forEach(t => {
     const total = extractAmt(gv(t,"Вартість"));
     if (!total) return;
     const payStr = gv(t,"Оплата");
