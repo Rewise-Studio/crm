@@ -26,7 +26,7 @@ function tailorBadge(s) {
 
 renderers.tailor = function() {
   const page = document.getElementById("page-tailor");
-  let list = TAILOR.slice().reverse();
+  let list = TAILOR.slice().reverse().filter(t => !gv(t,"Примітка").startsWith("[ВИДАЛЕНО] "));
   if (tailorFilter !== "all") {
     list = list.filter(t => tailorStatusIdx(gv(t,"Статус")) === parseInt(tailorFilter));
   }
@@ -301,6 +301,7 @@ function openTailor(num) {
       "<span class='detail-title'>Виготовлення " + num.replace("RW-V-","В-") + "</span>" +
       tailorBadge(gv(t,"Статус")) +
       "<button class='detail-edit' onclick=\"openTailorEdit('" + num + "')\">Редагувати</button>" +
+      "<button class='detail-edit' style='color:#E24B4A;border-color:rgba(226,75,74,.3)' onclick=\"openDeleteTailorConfirm('" + num + "')\">Видалити</button>" +
     "</div>" +
     "<div class='detail-grid'>" +
       "<div class='detail-col'>" +
@@ -343,6 +344,81 @@ async function setTailorStatus(num, idx) {
       body: JSON.stringify({ order_num: num, status: TAILOR_STATUSES[idx][0] })
     });
   } catch(e) { console.error("tailor status failed", e); }
+}
+
+/* ─── Видалення замовлення на виготовлення (архів, з паролем) ─── */
+let pendingDeleteTailor = null;
+function openDeleteTailorConfirm(num) {
+  if (!isAdmin()) { toast("Видалення доступне лише адміністратору"); return; }
+  pendingDeleteTailor = num;
+
+  let ov = document.getElementById("delete-tailor-confirm");
+  if (!ov) {
+    ov = document.createElement("div");
+    ov.id = "delete-tailor-confirm";
+    ov.className = "odm-bg";
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML =
+    "<div class='odm' style='width:420px'>" +
+      "<div class='odm-close' onclick='closeDeleteTailorConfirm()'>×</div>" +
+      "<div class='odm-scroll'>" +
+        "<div class='detail-top'><span class='detail-title'>Видалити замовлення " + num.replace("RW-V-","В-") + "?</span></div>" +
+        "<p style='font-size:13px;color:var(--txt-2);line-height:1.5;margin:10px 0 0'>" +
+          "Замовлення зникне зі списку. Дані не стираються остаточно — " +
+          "їх можна відновити вручну через Google Таблицю, прибравши позначку в примітці." +
+        "</p>" +
+        "<div class='cr-block-label' style='margin-top:18px'>Пароль адміністратора</div>" +
+        "<input class='cr-input' id='delete-tailor-pw' type='password' placeholder='Пароль' " +
+          "onkeydown=\"if(event.key==='Enter')confirmDeleteTailor()\">" +
+        "<div class='login-err' id='delete-tailor-err'></div>" +
+        "<div style='display:flex;gap:10px;margin-top:6px'>" +
+          "<button onclick='closeDeleteTailorConfirm()' style='flex:1;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:13px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:13px'>Скасувати</button>" +
+          "<button class='cr-create-btn' style='flex:2;margin-top:0;background:#E24B4A' id='delete-tailor-btn' onclick='confirmDeleteTailor()'>Видалити</button>" +
+        "</div>" +
+      "</div>" +
+    "</div>";
+  ov.classList.add("open");
+  setTimeout(function(){ const el = document.getElementById("delete-tailor-pw"); if (el) el.focus(); }, 50);
+}
+function closeDeleteTailorConfirm() {
+  const ov = document.getElementById("delete-tailor-confirm");
+  if (ov) ov.classList.remove("open");
+  pendingDeleteTailor = null;
+}
+async function confirmDeleteTailor() {
+  if (!pendingDeleteTailor) return;
+  const err = document.getElementById("delete-tailor-err");
+  const pw = document.getElementById("delete-tailor-pw").value;
+  if (!pw) { err.textContent = "Введіть пароль"; return; }
+  let hash;
+  try { hash = await sha256(pw); } catch(e) { err.textContent = "Помилка перевірки"; return; }
+  if (hash !== ROLE_HASHES.admin) { err.textContent = "Невірний пароль"; return; }
+
+  const btn = document.getElementById("delete-tailor-btn");
+  btn.textContent = "Видалення..."; btn.disabled = true;
+  err.textContent = "";
+
+  const num = pendingDeleteTailor;
+  try {
+    const res = await fetch(API_URL.replace("/order","/tailor/delete"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ order_num: num })
+    });
+    const r = await res.json();
+    if (r.status !== "ok") throw new Error(r.message || "error");
+  } catch(e) {
+    err.textContent = "Не вдалося видалити. Спробуйте ще раз.";
+    btn.textContent = "Видалити"; btn.disabled = false;
+    return;
+  }
+
+  closeDeleteTailorConfirm();
+  document.getElementById("odm-bg").classList.remove("open");
+  const t = TAILOR.find(function(x){ return gv(x,"Номер") === num; });
+  if (t) t["Примітка"] = "[ВИДАЛЕНО] " + (gv(t,"Примітка") || "");
+  toast("Замовлення " + num.replace("RW-V-","В-") + " видалено");
+  renderers.tailor();
 }
 
 // Функції фото винесено у js/photo.js
