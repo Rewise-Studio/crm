@@ -332,7 +332,6 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .ic-field { flex: 1; }
 .ic-field label { display: block; font-size: 10px; color: var(--txt-3); letter-spacing: 0.08em; margin-bottom: 5px; }
 .ic-select, .ic-mini { width: 100%; background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 6px; padding: 9px 11px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 13px; font-weight: 300; outline: none; }
-.ic-mini[readonly] { cursor: pointer; caret-color: transparent; }
 .ic-select:focus, .ic-mini:focus { border-color: var(--cognac); }
 .ic-mini::placeholder { color: var(--txt-3); }
 .ic-select option { background: var(--surface-2); color: var(--txt); }
@@ -1211,8 +1210,6 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .price-hidden-tag { font-size: 10px; color: var(--txt-3); }
 .price-unit { font-size: 11px; color: var(--txt-3); }
 .price-input { background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 6px; padding: 7px 9px; color: var(--txt); font-family: 'Commissioner', sans-serif; font-size: 13px; outline: none; width: 100%; text-align: right; }
-.price-input[readonly] { cursor: pointer; caret-color: transparent; }
-.price-input[readonly]:hover { border-color: var(--cognac-border); }
 .price-input:focus { border-color: var(--cognac); }
 .price-btn { background: none; border: 1px solid var(--line); border-radius: 6px; color: var(--txt-2); cursor: pointer; font-size: 13px; padding: 6px 0; transition: all 0.15s; }
 .price-from-btn { font-size: 11px; font-family: 'Commissioner', sans-serif; }
@@ -1434,18 +1431,17 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .cf-note-mobile{display:none}
 .kp-bg { display:none; position:fixed; inset:0; z-index:9999; background:rgba(42,38,33,0.35); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; }
 .kp-bg.open { display:flex; }
-.kp-bg.kp-anchored { background:rgba(42,38,33,0.1); backdrop-filter:none; -webkit-backdrop-filter:none; }
-.kp-modal { background:var(--surface); border-radius:14px; padding:12px 12px 14px; width:220px; max-width:85vw; box-shadow:0 14px 38px rgba(0,0,0,0.28); border:1px solid var(--field-border); }
-.kp-modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-.kp-modal-title { font-size:12px; font-weight:500; color:var(--txt-2); }
-.kp-close { width:20px; height:20px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:16px; color:var(--txt-2); cursor:pointer; }
+.kp-modal { background:var(--surface); border-radius:18px; padding:18px 18px 20px; width:320px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
+.kp-modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.kp-modal-title { font-size:15px; font-weight:500; color:var(--txt); }
+.kp-close { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:22px; color:var(--txt-2); cursor:pointer; }
 .kp-close:active { background:var(--hover); }
-.kp-display { border:1px solid var(--field-border); border-radius:8px; padding:8px 10px; font-size:15px; letter-spacing:0.02em; min-height:18px; margin-bottom:8px; background:var(--surface-2); color:var(--txt); text-align:center; }
-.kp-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
-.kp-key { padding:9px 0; font-size:15px; font-weight:500; background:var(--surface-2); border:1px solid var(--field-border); border-radius:8px; color:var(--txt); cursor:pointer; font-family:'Commissioner',sans-serif; }
+.kp-display { border:1px solid var(--field-border); border-radius:10px; padding:14px 16px; font-size:20px; letter-spacing:0.03em; min-height:26px; margin-bottom:14px; background:var(--surface-2); color:var(--txt); text-align:center; }
+.kp-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+.kp-key { padding:18px 0; font-size:23px; font-weight:500; background:var(--surface-2); border:1px solid var(--field-border); border-radius:12px; color:var(--txt); cursor:pointer; font-family:'Commissioner',sans-serif; }
 .kp-key:active { background:var(--leather); color:#fff; transform:scale(0.96); }
 .kp-del { color:var(--txt-2); }
-.kp-done { width:100%; margin-top:8px; background:var(--leather); color:#fff; border:none; border-radius:9px; padding:9px; font-size:12.5px; font-weight:500; font-family:'Commissioner',sans-serif; cursor:pointer; }
+.kp-done { width:100%; margin-top:12px; background:var(--leather); color:#fff; border:none; border-radius:12px; padding:14px; font-size:15px; font-weight:500; font-family:'Commissioner',sans-serif; cursor:pointer; }
 
 /* Планшет: даємо контенту більше простору, щоб колонки не тиснули */
 @media (max-width: 1100px) {
@@ -4211,10 +4207,10 @@ function renderPriceEditor() {
           (nPend ? " <span class='price-was'>було «" + s.name + "»</span>" : "") +
         "</div>" +
         "<span class='price-unit'>" + (s.unit || "") + "</span>" +
-        "<input class='price-input' type='text' inputmode='none' readonly value='" + shownPrice + "' " +
-          "onclick=\"openPriceKeypad(" + shownPrice + ",null,function(v){stagePrice('" + priceOpenCat + "','" + dEsc + "','" + sName + "',v);},this)\">" +
-        "<input class='price-input' type='text' inputmode='none' readonly value='" + shownTerm + "' placeholder='дн' title='Термін, днів' " +
-          "onclick=\"openTermKeypad(" + (shownTerm||0) + ",null,function(v){stageTerm('" + priceOpenCat + "','" + dEsc + "','" + sName + "',v);},this)\">" +
+        "<input class='price-input' type='number' value='" + shownPrice + "' " +
+          "onchange=\"stagePrice('" + priceOpenCat + "','" + dEsc + "','" + sName + "',this.value)\">" +
+        "<input class='price-input' type='number' value='" + shownTerm + "' placeholder='дн' title='Термін, днів' " +
+          "onchange=\"stageTerm('" + priceOpenCat + "','" + dEsc + "','" + sName + "',this.value)\">" +
         "<button class='price-btn price-from-btn" + (shownFrom?" on":"") + "' title='" + (shownFrom?"Зняти позначку «від»":"Позначити ціну як «від»") + "' " +
           "onclick=\"stageFrom('" + priceOpenCat + "','" + dEsc + "','" + sName + "'," + (shownFrom?"false":"true") + ")\">від</button>" +
         "<button class='price-btn' title='" + (shownActive?"Приховати":"Показати") + "' " +
@@ -4245,10 +4241,8 @@ function renderPriceEditor() {
       "<div class='price-add'>" +
         "<input class='ic-mini' id='pa-name-" + id + "' placeholder='Нова послуга'>" +
         "<input class='ic-mini' style='max-width:100px' id='pa-unit-" + id + "' placeholder='Одиниця'>" +
-        "<input class='ic-mini' style='max-width:80px' type='text' inputmode='none' readonly id='pa-price-" + id + "' placeholder='₴' " +
-          "onclick=\"openPriceKeypad(this.value,null,function(v){document.getElementById('pa-price-" + id + "').value=v;},this)\">" +
-        "<input class='ic-mini' style='max-width:72px' type='text' inputmode='none' readonly id='pa-term-" + id + "' placeholder='дн' " +
-          "onclick=\"openTermKeypad(this.value,null,function(v){document.getElementById('pa-term-" + id + "').value=v;},this)\">" +
+        "<input class='ic-mini' style='max-width:80px' type='number' id='pa-price-" + id + "' placeholder='₴'>" +
+        "<input class='ic-mini' style='max-width:72px' type='number' id='pa-term-" + id + "' placeholder='дн'>" +
         "<label class='price-add-from'><input type='checkbox' id='pa-from-" + id + "'> від</label>" +
         "<button class='ic-manual-add' onclick=\"stageAdd('" + priceOpenCat + "','" + dEsc + "')\">+</button>" +
       "</div>" +
