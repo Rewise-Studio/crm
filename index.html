@@ -1434,17 +1434,18 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .cf-note-mobile{display:none}
 .kp-bg { display:none; position:fixed; inset:0; z-index:9999; background:rgba(42,38,33,0.35); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; }
 .kp-bg.open { display:flex; }
-.kp-modal { background:var(--surface); border-radius:18px; padding:18px 18px 20px; width:320px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
-.kp-modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
-.kp-modal-title { font-size:15px; font-weight:500; color:var(--txt); }
-.kp-close { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:22px; color:var(--txt-2); cursor:pointer; }
+.kp-bg.kp-anchored { background:rgba(42,38,33,0.1); backdrop-filter:none; -webkit-backdrop-filter:none; }
+.kp-modal { background:var(--surface); border-radius:14px; padding:12px 12px 14px; width:220px; max-width:85vw; box-shadow:0 14px 38px rgba(0,0,0,0.28); border:1px solid var(--field-border); }
+.kp-modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.kp-modal-title { font-size:12px; font-weight:500; color:var(--txt-2); }
+.kp-close { width:20px; height:20px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:16px; color:var(--txt-2); cursor:pointer; }
 .kp-close:active { background:var(--hover); }
-.kp-display { border:1px solid var(--field-border); border-radius:10px; padding:14px 16px; font-size:20px; letter-spacing:0.03em; min-height:26px; margin-bottom:14px; background:var(--surface-2); color:var(--txt); text-align:center; }
-.kp-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
-.kp-key { padding:18px 0; font-size:23px; font-weight:500; background:var(--surface-2); border:1px solid var(--field-border); border-radius:12px; color:var(--txt); cursor:pointer; font-family:'Commissioner',sans-serif; }
+.kp-display { border:1px solid var(--field-border); border-radius:8px; padding:8px 10px; font-size:15px; letter-spacing:0.02em; min-height:18px; margin-bottom:8px; background:var(--surface-2); color:var(--txt); text-align:center; }
+.kp-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.kp-key { padding:9px 0; font-size:15px; font-weight:500; background:var(--surface-2); border:1px solid var(--field-border); border-radius:8px; color:var(--txt); cursor:pointer; font-family:'Commissioner',sans-serif; }
 .kp-key:active { background:var(--leather); color:#fff; transform:scale(0.96); }
 .kp-del { color:var(--txt-2); }
-.kp-done { width:100%; margin-top:12px; background:var(--leather); color:#fff; border:none; border-radius:12px; padding:14px; font-size:15px; font-weight:500; font-family:'Commissioner',sans-serif; cursor:pointer; }
+.kp-done { width:100%; margin-top:8px; background:var(--leather); color:#fff; border:none; border-radius:9px; padding:9px; font-size:12.5px; font-weight:500; font-family:'Commissioner',sans-serif; cursor:pointer; }
 
 /* Планшет: даємо контенту більше простору, щоб колонки не тиснули */
 @media (max-width: 1100px) {
@@ -2031,23 +2032,25 @@ function orderHasStalledServices(num) {
   });
 }
 
+/* Повторна спроба при збої мережі/навантаженні Google — до 3 разів на запит,
+   перш ніж здатися. Спільна для loadData() і loadPrice() — раніше прайс
+   вантажився окремо і без жодного захисту, тому міг тихо лишитися порожнім. */
+function fetchWithRetry(url, opts, tries) {
+  tries = tries || 3;
+  return fetch(url, opts).then(function(res) {
+    if (!res.ok && tries > 1) return fetchWithRetry(url, opts, tries - 1);
+    return res;
+  }).catch(function(err) {
+    if (tries > 1) return fetchWithRetry(url, opts, tries - 1);
+    throw err;
+  });
+}
+
 async function loadData() {
   const failedSheets = [];
   try {
     const _cb = "&_=" + Date.now();
     const base = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&sheet=";
-    // Повторна спроба при збої мережі/навантаженні Google — до 3 разів на кожен лист,
-    // перш ніж здатися. Захищає від разових обривів під час одночасної загрузки 11 запитів.
-    function fetchWithRetry(url, opts, tries) {
-      tries = tries || 3;
-      return fetch(url, opts).then(function(res) {
-        if (!res.ok && tries > 1) return fetchWithRetry(url, opts, tries - 1);
-        return res;
-      }).catch(function(err) {
-        if (tries > 1) return fetchWithRetry(url, opts, tries - 1);
-        throw err;
-      });
-    }
     const gv = (name) => fetchWithRetry(base + encodeURIComponent(name) + _cb, { cache: "no-store" });
     const gvSafe = (name) => gv(name).catch(function() { failedSheets.push(name); return null; });
     const [r1, r2, r3, r4, r5, r7, r8, r9, r10, r11, sres] = await Promise.all([
@@ -2435,7 +2438,7 @@ let priceLoaded = false;
 async function loadPrice() {
   try {
     const url = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&gid=" + PRICE_GID;
-    const r = await fetch(url);
+    const r = await fetchWithRetry(url, { cache: "no-store" });
     const txt = await r.text();
     const json = JSON.parse(txt.substring(txt.indexOf("{"), txt.lastIndexOf("}") + 1));
     PRICE = {};
@@ -2477,7 +2480,14 @@ async function loadPrice() {
     });
     priceLoaded = true;
     if (["create","settings","pricelist"].includes(currentPage)) renderers[currentPage]();
-  } catch(err) { console.error("Price load error:", err); priceLoaded = true; }
+  } catch(err) {
+    console.error("Price load error:", err);
+    // НЕ виставляємо priceLoaded=true при збої — інакше addItem() почне
+    // створювати речі з неіснуючою категорією (звідси порожні картки).
+    // Замість цього — видиме попередження і повтор через кілька секунд.
+    if (typeof toast === "function") toast("Не вдалося завантажити прайс. Спробуємо ще раз...");
+    setTimeout(loadPrice, 3000);
+  }
 }
 
 const SVC_HINTS = {
@@ -2773,7 +2783,7 @@ renderers.create = function() {
             "<div class='cr-pills' id='cr-mgr'></div>" +
             "<div class='cr-block-label'>Клієнт</div>" +
             "<div class='cr-client-row'>" +
-              "<input class='cr-input' id='cr-phone' readonly style='flex:1;min-width:150px;cursor:pointer' placeholder='+380...' value=\"" + (NO.phone||"+380 ") + "\" onclick='openPhoneKeypad(NO.phone||\"+380 \", function(v){ onPhoneInput(v); var el=document.getElementById(\"cr-phone\"); if(el) el.value=v; }, function(v){ onPhoneInput(v); var el=document.getElementById(\"cr-phone\"); if(el) el.value=v; })'>" +
+              "<input class='cr-input' id='cr-phone' readonly style='flex:1;min-width:150px;cursor:pointer' placeholder='+380...' value=\"" + (NO.phone||"+380 ") + "\" onclick='openPhoneKeypad(NO.phone||\"+380 \", function(v){ onPhoneInput(v); var el=document.getElementById(\"cr-phone\"); if(el) el.value=v; }, function(v){ onPhoneInput(v); var el=document.getElementById(\"cr-phone\"); if(el) el.value=v; }, this)'>" +
               "<div class='cr-client-suggest' style='flex:1;min-width:150px'>" +
                 "<input class='cr-input' id='cr-client' placeholder=\"Ім'я або магазин\" autocomplete='off' value=\"" + (NO.client||"").replace(/"/g,"&quot;") + "\" oninput='onClientInput(this.value)'>" +
                 "<div class='cr-suggest-dd' id='cr-suggest'></div>" +
@@ -3083,7 +3093,7 @@ function editSvcPrice(itemId, idx, el) {
     const v = parseInt(finalValue);
     it.services[idx].price = (!isNaN(v) && v >= 0) ? v : cur;
     renderItems(); updateReceipt();
-  });
+  }, el);
 }
 
 function openSvcDD(id) { renderSvcDD(id, "", ""); const dd = document.getElementById("ic-dd-"+id); if (dd) dd.classList.add("open"); }
@@ -4061,7 +4071,7 @@ function renderEditForm() {
     "<div class='edit-form'>" +
       "<div class='cr-block-label first'>Клієнт</div>" +
       "<input class='cr-input' id='edit-client' value=\"" + e.client.replace(/"/g,"&quot;") + "\" oninput='editState.client=this.value'>" +
-      "<input class='cr-input' id='edit-phone' readonly style='cursor:pointer' value=\"" + e.phone + "\" onclick='openPhoneKeypad(editState.phone||\"+380 \", function(v){ editState.phone=v; var el=document.getElementById(\"edit-phone\"); if(el) el.value=v; }, function(v){ editState.phone=v; var el=document.getElementById(\"edit-phone\"); if(el) el.value=v; })'>" +
+      "<input class='cr-input' id='edit-phone' readonly style='cursor:pointer' value=\"" + e.phone + "\" onclick='openPhoneKeypad(editState.phone||\"+380 \", function(v){ editState.phone=v; var el=document.getElementById(\"edit-phone\"); if(el) el.value=v; }, function(v){ editState.phone=v; var el=document.getElementById(\"edit-phone\"); if(el) el.value=v; }, this)'>" +
       "<div class='cr-msg-pick' id='edit-msg'>" + msgPick + "</div>" +
       "<div class='cr-block-label'>Термін</div>" +
       "<input class='cr-input' id='edit-deadline' value=\"" + e.deadline.replace(/"/g,"&quot;") + "\" oninput='editState.deadline=this.value'>" +
@@ -4202,9 +4212,9 @@ function renderPriceEditor() {
         "</div>" +
         "<span class='price-unit'>" + (s.unit || "") + "</span>" +
         "<input class='price-input' type='text' inputmode='none' readonly value='" + shownPrice + "' " +
-          "onclick=\"openPriceKeypad(" + shownPrice + ",null,function(v){stagePrice('" + priceOpenCat + "','" + dEsc + "','" + sName + "',v);})\">" +
+          "onclick=\"openPriceKeypad(" + shownPrice + ",null,function(v){stagePrice('" + priceOpenCat + "','" + dEsc + "','" + sName + "',v);},this)\">" +
         "<input class='price-input' type='text' inputmode='none' readonly value='" + shownTerm + "' placeholder='дн' title='Термін, днів' " +
-          "onclick=\"openTermKeypad(" + (shownTerm||0) + ",null,function(v){stageTerm('" + priceOpenCat + "','" + dEsc + "','" + sName + "',v);})\">" +
+          "onclick=\"openTermKeypad(" + (shownTerm||0) + ",null,function(v){stageTerm('" + priceOpenCat + "','" + dEsc + "','" + sName + "',v);},this)\">" +
         "<button class='price-btn price-from-btn" + (shownFrom?" on":"") + "' title='" + (shownFrom?"Зняти позначку «від»":"Позначити ціну як «від»") + "' " +
           "onclick=\"stageFrom('" + priceOpenCat + "','" + dEsc + "','" + sName + "'," + (shownFrom?"false":"true") + ")\">від</button>" +
         "<button class='price-btn' title='" + (shownActive?"Приховати":"Показати") + "' " +
@@ -4236,9 +4246,9 @@ function renderPriceEditor() {
         "<input class='ic-mini' id='pa-name-" + id + "' placeholder='Нова послуга'>" +
         "<input class='ic-mini' style='max-width:100px' id='pa-unit-" + id + "' placeholder='Одиниця'>" +
         "<input class='ic-mini' style='max-width:80px' type='text' inputmode='none' readonly id='pa-price-" + id + "' placeholder='₴' " +
-          "onclick=\"openPriceKeypad(this.value,null,function(v){document.getElementById('pa-price-" + id + "').value=v;})\">" +
+          "onclick=\"openPriceKeypad(this.value,null,function(v){document.getElementById('pa-price-" + id + "').value=v;},this)\">" +
         "<input class='ic-mini' style='max-width:72px' type='text' inputmode='none' readonly id='pa-term-" + id + "' placeholder='дн' " +
-          "onclick=\"openTermKeypad(this.value,null,function(v){document.getElementById('pa-term-" + id + "').value=v;})\">" +
+          "onclick=\"openTermKeypad(this.value,null,function(v){document.getElementById('pa-term-" + id + "').value=v;},this)\">" +
         "<label class='price-add-from'><input type='checkbox' id='pa-from-" + id + "'> від</label>" +
         "<button class='ic-manual-add' onclick=\"stageAdd('" + priceOpenCat + "','" + dEsc + "')\">+</button>" +
       "</div>" +
