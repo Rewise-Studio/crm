@@ -1442,6 +1442,10 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .kp-key:active { background:var(--leather); color:#fff; transform:scale(0.96); }
 .kp-del { color:var(--txt-2); }
 .kp-done { width:100%; margin-top:12px; background:var(--leather); color:#fff; border:none; border-radius:12px; padding:14px; font-size:15px; font-weight:500; font-family:'Commissioner',sans-serif; cursor:pointer; }
+.kp-done:disabled, .kp-done-disabled { background:var(--field-border); color:var(--txt-2); cursor:not-allowed; }
+.kp-display-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.kp-phone-hint { font-size:12px; color:var(--txt-2); text-align:center; margin:-6px 0 10px; }
+.kp-phone-hint.ok { color:#2e7d32; }
 
 /* Планшет: даємо контенту більше простору, щоб колонки не тиснули */
 @media (max-width: 1100px) {
@@ -2542,20 +2546,26 @@ function itemServices(item) {
 /* Унікальні "відділи" (типи послуг: Чищення/Ремонт/Пошиття...) з усього прайсу —
    для фільтра в пошуку послуги. Береться динамічно з реальних даних, нічого
    не прописано вручну, тому оновлюється сам, коли прайс міняється. */
-function allDepartments() {
+function allDepartments(catKey) {
   const set = new Set();
-  Object.keys(PRICE).forEach(cat => {
-    Object.keys(PRICE[cat].departments).forEach(d => set.add(d));
-  });
+  if (catKey) {
+    if (PRICE[catKey]) Object.keys(PRICE[catKey].departments).forEach(d => set.add(d));
+  } else {
+    Object.keys(PRICE).forEach(cat => {
+      Object.keys(PRICE[cat].departments).forEach(d => set.add(d));
+    });
+  }
   return Array.from(set);
 }
-function allServicesFlat() {
+function allServicesFlat(catKey) {
   const out = [];
-  Object.keys(PRICE).forEach(cat => {
+  const cats = catKey ? [catKey] : Object.keys(PRICE);
+  cats.forEach(cat => {
     const c = PRICE[cat];
+    if (!c) return;
     Object.keys(c.departments).forEach(dept => {
       c.departments[dept].forEach(s => {
-        if (s.active !== false) out.push({ name: s.name, price: s.price, unit: s.unit, category: c.label, department: dept, from: s.from });
+        if (s.active !== false) out.push({ name: s.name, price: s.price, unit: s.unit, category: c.label, catKey: cat, department: dept, from: s.from });
       });
     });
   });
@@ -3103,7 +3113,7 @@ function renderSvcDD(id, query, catFilter) {
   const it = NO.items.find(i=>i.id===id);
   const dd = document.getElementById("ic-dd-"+id);
   if (!it || !dd) return;
-  let services = allServicesFlat();
+  let services = allServicesFlat(it.category);
   if (catFilter) {
     services = services.filter(s => s.department === catFilter);
   }
@@ -3238,9 +3248,9 @@ function buildItemBody(item, idx) {
             "<div class='ic-search-row'>" +
               "<select class='ic-search-cat' id='ic-search-cat-"+item.id+"' onchange='filterSvc("+item.id+")'>" +
                 "<option value=''>Усі види послуг</option>" +
-                allDepartments().map(d => "<option value='"+d.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/'/g,"&#39;")+"'>"+d+"</option>").join("") +
+                allDepartments(item.category).map(d => "<option value='"+d.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/'/g,"&#39;")+"'>"+d+"</option>").join("") +
               "</select>" +
-              "<div class='ic-search-wrap'><input type='text' class='ic-search' id='ic-search-"+item.id+"' placeholder='Пошук послуги по всій базі…' autocomplete='off' oninput='filterSvc("+item.id+")' onfocus='openSvcDD("+item.id+")'><div class='ic-dd' id='ic-dd-"+item.id+"'></div></div>" +
+              "<div class='ic-search-wrap'><input type='text' class='ic-search' id='ic-search-"+item.id+"' placeholder='Пошук послуги по цій категорії…' autocomplete='off' oninput='filterSvc("+item.id+")' onfocus='openSvcDD("+item.id+")'><div class='ic-dd' id='ic-dd-"+item.id+"'></div></div>" +
             "</div>" +
             "<div class='ic-manual-label'>Або своя послуга</div>" +
             "<div class='ic-manual'><input class='ic-mini' id='ic-man-name-"+item.id+"' placeholder='Назва послуги'><input class='ic-mini' style='width:88px;flex:none' type='number' id='ic-man-price-"+item.id+"' placeholder='₴'><button class='ic-manual-add' onclick='addManualSvc("+item.id+")'>+</button></div>" +
