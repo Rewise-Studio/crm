@@ -61,8 +61,9 @@ function _openKeypad(mode, title, startValue, onChange, onDone) {
         "<div class='kp-close' onclick='closePhoneKeypad()'>×</div>" +
       "</div>" +
       "<div class='kp-display' id='kp-display'></div>" +
+      (mode === "phone" ? "<div class='kp-phone-hint' id='kp-phone-hint'></div>" : "") +
       "<div class='kp-grid'>" + grid + "</div>" +
-      "<button class='kp-done' onclick='closePhoneKeypad()'>Готово</button>" +
+      "<button class='kp-done' id='kp-done' onclick='kpDone()'>Готово</button>" +
     "</div>";
   bg.classList.add("open");
   kpRenderDisplay();
@@ -75,9 +76,22 @@ function kpBtn(k) {
 function kpPress(k) {
   if (k === "del") _kpValue = _kpValue.slice(0, -1);
   else if (k === "+") { if (!_kpValue.includes("+")) _kpValue = "+" + _kpValue; }
+  else if (_kpMode === "phone" && kpPhoneLocalDigits().length >= 9) { /* номер вже повний — зайві цифри ігноруємо */ }
   else _kpValue += k;
   kpRenderDisplay();
   if (_kpOnChange) _kpOnChange(_kpValue);
+}
+
+function kpPhoneLocalDigits() {
+  const digitsOnly = (_kpValue || "").replace(/\D/g, "");
+  return digitsOnly.indexOf("380") === 0 ? digitsOnly.slice(3) : digitsOnly;
+}
+function kpPhoneValid() {
+  return kpPhoneLocalDigits().length >= 9;
+}
+function kpDone() {
+  if (_kpMode === "phone" && !kpPhoneValid()) return;
+  closePhoneKeypad();
 }
 
 function kpRenderDisplay() {
@@ -89,6 +103,21 @@ function kpRenderDisplay() {
   } else if (_kpMode === "term") {
     const n = parseInt(_kpValue || "0") || 0;
     d.textContent = n + " дн";
+  } else if (_kpMode === "phone") {
+    const local = kpPhoneLocalDigits().slice(0, 9);
+    const parts = [local.slice(0,2), local.slice(2,5), local.slice(5,7), local.slice(7,9)].filter(p => p.length);
+    d.textContent = "+380" + (parts.length ? " " + parts.join(" ") : "");
+    const hint = document.getElementById("kp-phone-hint");
+    const valid = local.length >= 9;
+    if (hint) {
+      hint.textContent = valid ? "Номер введено повністю" : "Введіть номер повністю (" + local.length + " з 9 цифр)";
+      hint.classList.toggle("ok", valid);
+    }
+    const btn = document.getElementById("kp-done");
+    if (btn) {
+      btn.disabled = !valid;
+      btn.classList.toggle("kp-done-disabled", !valid);
+    }
   } else {
     d.textContent = _kpValue || "";
   }
