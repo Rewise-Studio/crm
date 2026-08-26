@@ -6,6 +6,16 @@ function escHtml(s) {
   return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;");
 }
 
+/* Форматує номер тільки для показу (+380 XX XXX XX XX) — не чіпає збережене
+   значення, щоб не зламати пошук/зіставлення клієнтів по точному рядку. */
+function fmtPhone(raw) {
+  const digitsOnly = String(raw || "").replace(/\D/g, "");
+  const local = digitsOnly.indexOf("380") === 0 ? digitsOnly.slice(3) : digitsOnly;
+  if (local.length < 9) return raw || "";
+  const parts = [local.slice(0,2), local.slice(2,5), local.slice(5,7), local.slice(7,9)];
+  return "+380 " + parts.join(" ");
+}
+
 /* Розраховує статус оплати за сумою замовлення та рядком "Оплата".
    Повертає { isPrepay, prepayAmt, toPay, isPaid } — використовується
    і у формі створення (NO), і в готових замовленнях (ORDERS). */
@@ -47,7 +57,7 @@ function receiptClientHTML(client, phone, term, delivery) {
   if (!hasLeft && !hasRight) return "";
   const left = "<div class='r-ccol'>" +
     (client ? "<div class='r-crow'><span class='rc-label'>Клієнт</span></div><div class='rc-value-2col'>" + escHtml(client) + "</div>" : "") +
-    (phone ? "<div class='r-crow'><span class='rc-label'>Телефон</span></div><div class='rc-value-2col'>" + escHtml(phone) + "</div>" : "") +
+    (phone ? "<div class='r-crow'><span class='rc-label'>Телефон</span></div><div class='rc-value-2col'>" + escHtml(fmtPhone(phone)) + "</div>" : "") +
     "</div>";
   const right = "<div class='r-ccol'>" +
     (term ? "<div class='r-crow'><span class='rc-label'>Термін</span></div><div class='rc-value-2col'>" + escHtml(term) + "</div>" : "") +
