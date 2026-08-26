@@ -1614,7 +1614,7 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .ord-next-btn{border:none;background:var(--cognac);color:#fff;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0}
 .n-item.collapsed .svc-list,.n-item.collapsed .n-icli,.n-item.collapsed .n-hist,.n-item.collapsed .n-ifoot,.n-item.collapsed .svc-stall{display:none}
 .n-ihead{cursor:pointer}
-.n-item-chev{color:var(--txt-3);transition:transform .15s;margin-left:4px}
+.n-item-chev{color:var(--txt-3);transition:transform .15s;margin-left:4px;flex-shrink:0;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;align-self:center}
 .n-item.collapsed .n-item-chev{transform:rotate(-90deg)}
 .n-iready-badge{font-size:10px;color:var(--st-ready-fg);font-weight:600;white-space:nowrap}
 .n-btn-primary{width:100%;padding:13px;border:none;border-radius:11px;background:var(--cognac);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
@@ -1830,13 +1830,15 @@ let userRole = "";
 
 function isAdmin() { return userRole === "admin"; }
 
-/* Ім'я адміністратора (Сергій) — недоступне для вибору «хто бере в роботу /
+/* Ім'я адміністратора — недоступне для вибору «хто бере в роботу /
    хто видає», коли зайшли як приймальник без пароля. Не дає оформити роботу
-   чи видачу від чужого імені з чужого акаунта. */
-const RESTRICTED_MASTER_NAME = "Сергій";
+   чи видачу від чужого імені з чужого акаунта.
+   Враховуємо обидва написання («Сергій» укр. і «Сергей» рос.), бо в листі
+   «Майстри» ім'я може бути внесене неоднаково. */
+const RESTRICTED_MASTER_NAMES = ["Сергій", "Сергей"];
 function masterNamesForRole() {
   const all = masterNames();
-  return isAdmin() ? all : all.filter(m => m !== RESTRICTED_MASTER_NAME);
+  return isAdmin() ? all : all.filter(m => RESTRICTED_MASTER_NAMES.indexOf(m) === -1);
 }
 
 async function sha256(str) {
@@ -5471,7 +5473,7 @@ function openOrder(num) {
       "<div class='n-ihead' onclick=\"this.parentElement.classList.toggle('collapsed')\"><span class='n-inum'>№" + (idx+1) + "</span><span class='n-iname'>" + iname + "</span>" +
       (allSvcReady ? "<span class='n-iready-badge'>✓ Готово</span>" : "") +
       "<span class='n-iprice'>" + (itemTotal ? itemTotal.toLocaleString("uk-UA") + " ₴" : "—") + "</span>" +
-      "<i class='n-item-chev'>⌄</i></div>" +
+      "<span class='n-item-chev'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' width='16' height='16'><path d='M6 9l6 6 6-6'/></svg></span></div>" +
       (itemNote ? "<div class='n-icli'><div class='n-icli-lbl'>Коментар <span class='eye'>· видно клієнту</span></div><div class='n-icli-txt'>" + itemNote.replace(/&/g,"&amp;").replace(/</g,"&lt;") + "</div></div>" : "") +
       stallBanner +
       "<div class='svc-list'>" + svcHTML + "</div>" +
