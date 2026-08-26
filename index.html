@@ -1592,6 +1592,31 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 .n-hist-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;color:var(--txt-2)}
 .n-hist-row .hl{color:var(--txt-3)}
 .n-actions{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.ord-grid{display:block}
+.ord-left,.ord-right{display:block}
+@media (min-width:900px){
+  .card-inner.ord-grid{max-width:920px;display:grid;grid-template-columns:280px 1fr;gap:16px;align-items:start}
+  .ord-left,.ord-right{display:flex;flex-direction:column;gap:16px}
+}
+.ord-stepper{display:flex;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 10px}
+.ord-step{display:flex;flex-direction:column;align-items:center;flex:1}
+.ord-step-dot{width:24px;height:24px;border-radius:50%;border:1px solid var(--line);color:var(--txt-3);display:flex;align-items:center;justify-content:center;font-size:10px}
+.ord-step-lbl{font-size:9px;color:var(--txt-3);margin-top:6px;text-align:center}
+.ord-step.done .ord-step-dot{background:var(--cognac);border-color:var(--cognac);color:#fff}
+.ord-step.done .ord-step-lbl{color:var(--txt-2)}
+.ord-step.active .ord-step-dot{background:var(--txt);border-color:var(--txt);color:#fff;font-weight:700}
+.ord-step.active .ord-step-lbl{color:var(--txt);font-weight:600}
+.ord-step-line{flex:1;height:1px;background:var(--line);margin-top:12px}
+.ord-step-line.done{background:var(--cognac)}
+.ord-next{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--cognac-light);border-radius:12px;padding:14px 16px}
+.ord-next-lbl{font-size:11px;color:var(--cognac);margin:0 0 4px}
+.ord-next-txt{font-size:14px;font-weight:600;color:var(--txt);margin:0}
+.ord-next-btn{border:none;background:var(--cognac);color:#fff;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0}
+.n-item.collapsed .svc-list,.n-item.collapsed .n-icli,.n-item.collapsed .n-hist,.n-item.collapsed .n-ifoot,.n-item.collapsed .svc-stall{display:none}
+.n-ihead{cursor:pointer}
+.n-item-chev{color:var(--txt-3);transition:transform .15s;margin-left:4px}
+.n-item.collapsed .n-item-chev{transform:rotate(-90deg)}
+.n-iready-badge{font-size:10px;color:var(--st-ready-fg);font-weight:600;white-space:nowrap}
 .n-btn-primary{width:100%;padding:13px;border:none;border-radius:11px;background:var(--cognac);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
 .n-btn-primary:disabled{background:var(--st-issued-bg);color:var(--st-issued-fg);cursor:default}
 .n-btn-secondary{width:100%;padding:12px;border:1px solid var(--field-border);border-radius:11px;background:var(--surface);color:var(--txt);font-size:13px;cursor:pointer;font-family:inherit}
@@ -1804,6 +1829,15 @@ const ROLE_LABELS = { admin: "Адміністратор", operator: "Прийм
 let userRole = "";
 
 function isAdmin() { return userRole === "admin"; }
+
+/* Ім'я адміністратора (Сергій) — недоступне для вибору «хто бере в роботу /
+   хто видає», коли зайшли як приймальник без пароля. Не дає оформити роботу
+   чи видачу від чужого імені з чужого акаунта. */
+const RESTRICTED_MASTER_NAME = "Сергій";
+function masterNamesForRole() {
+  const all = masterNames();
+  return isAdmin() ? all : all.filter(m => m !== RESTRICTED_MASTER_NAME);
+}
 
 async function sha256(str) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
@@ -2757,7 +2791,7 @@ renderers.create = function() {
     "<div class='cr-confirm-head'><div class='cr-block-label first' style='margin:0'>Перевірте замовлення</div><div class='cr-confirm-date'>" + _cfDateStr + "</div></div>" +
     "<div class='cr-confirm'>" +
       "<div class='cr-cf'><span class='k'>Клієнт</span><span class='v'>" + (NO.client||"—") + "</span></div>" +
-      "<div class='cr-cf'><span class='k'>Телефон</span><span class='v'>" + (NO.phone||"—") + "</span></div>" +
+      "<div class='cr-cf'><span class='k'>Телефон</span><span class='v'>" + (NO.phone?fmtPhone(NO.phone):"—") + "</span></div>" +
       "<div class='cr-cf'><span class='k'>Приймає</span><span class='v'>" + (NO.manager||"—") + "</span></div>" +
       "<div class='cr-cf'><span class='k'>Речей</span><span class='v'>" + ((NO.items&&NO.items.length)||0) + "</span></div>" +
       _cfItemsHTML +
@@ -2789,7 +2823,7 @@ renderers.create = function() {
             "<div class='cr-pills' id='cr-mgr'></div>" +
             "<div class='cr-block-label'>Клієнт</div>" +
             "<div class='cr-client-row'>" +
-              "<input class='cr-input' id='cr-phone' readonly style='flex:1;min-width:150px;cursor:pointer' placeholder='+380...' value=\"" + (NO.phone||"+380 ") + "\" onclick='openPhoneKeypad(NO.phone||\"+380 \", function(v){ onPhoneInput(v); var el=document.getElementById(\"cr-phone\"); if(el) el.value=v; }, function(v){ onPhoneInput(v); var el=document.getElementById(\"cr-phone\"); if(el) el.value=v; }, this)'>" +
+              "<input class='cr-input' id='cr-phone' readonly style='flex:1;min-width:150px;cursor:pointer' placeholder='+380...' value=\"" + (NO.phone?fmtPhone(NO.phone):"+380 ") + "\" onclick='openPhoneKeypad(NO.phone||\"+380 \", function(v){ onPhoneInput(v); var el=document.getElementById(\"cr-phone\"); if(el) el.value=fmtPhone(v); }, function(v){ onPhoneInput(v); var el=document.getElementById(\"cr-phone\"); if(el) el.value=fmtPhone(v); }, this)'>" +
               "<div class='cr-client-suggest' style='flex:1;min-width:150px'>" +
                 "<input class='cr-input' id='cr-client' placeholder=\"Ім'я або магазин\" autocomplete='off' value=\"" + (NO.client||"").replace(/"/g,"&quot;") + "\" oninput='onClientInput(this.value)'>" +
                 "<div class='cr-suggest-dd' id='cr-suggest'></div>" +
@@ -2946,7 +2980,7 @@ function showClientSuggest(q, field) {
   ).slice(0, 5);
   if (!matches.length) { dd.classList.remove("open"); return; }
   dd.innerHTML = matches.map(c =>
-    "<div class='cr-suggest-opt' onclick=\"pickClient('" + c.phone.replace(/'/g,"") + "')\"><span>" + c.name + "</span><span class='sug-phone'>" + c.phone + "</span></div>"
+    "<div class='cr-suggest-opt' onclick=\"pickClient('" + c.phone.replace(/'/g,"") + "')\"><span>" + c.name + "</span><span class='sug-phone'>" + fmtPhone(c.phone) + "</span></div>"
   ).join("");
   dd.classList.add("open");
 }
@@ -2955,7 +2989,7 @@ function pickClient(phone) {
   if (!c) return;
   NO.client = c.name; NO.phone = c.phone;
   document.getElementById("cr-client").value = c.name;
-  document.getElementById("cr-phone").value = c.phone;
+  document.getElementById("cr-phone").value = fmtPhone(c.phone);
   document.getElementById("cr-suggest").classList.remove("open");
   const msg = clientMessenger(phone);
   if (msg) { NO.messenger = msg; renderMsgPick(); }
@@ -3119,13 +3153,17 @@ function renderSvcDD(id, query, catFilter) {
   }
   const q = query.trim().toLowerCase();
   if (!q) { dd.innerHTML = "<div class='ic-opt'><span class='o-empty'>Почніть вводити назву послуги</span></div>"; return; }
+  const words = q.split(/\s+/).filter(w => w.length);
   let html = "", shown = 0;
   services.forEach((s, i) => {
-    if (s.name.toLowerCase().indexOf(q) === -1) return;
+    const nameLC = s.name.toLowerCase();
+    const matchesAll = words.every(w => nameLC.indexOf(w) !== -1);
+    if (!matchesAll) return;
     if (++shown > 40) return; // не рендеримо забагато рядків одразу
     const hint = s.category + " · " + s.department;
     const priceLbl = (s.from ? "від " : "") + s.price + " ₴";
-    html += "<div class='ic-opt' onclick='selectSvcByName(" + id + ",\"" + s.name.replace(/"/g,'\\"') + "\"," + s.price + ")'><span class='o-name'>" + s.name +
+    const nameAttr = s.name.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+    html += "<div class='ic-opt' onclick='selectSvcByName(" + id + ",\"" + nameAttr + "\"," + s.price + ")'><span class='o-name'>" + s.name +
       "<span class='o-hint'>" + hint + "</span></span><span class='o-price'>" + priceLbl + "</span><span class='o-add'>+</span></div>";
   });
   dd.innerHTML = html || "<div class='ic-opt'><span class='o-empty'>Нічого не знайдено</span></div>";
@@ -3676,7 +3714,7 @@ function renderOrdersList() {
         "<button class='ocard-flag" + (imp?" on":"") + "' onclick=\"toggleImportant('" + num + "',event)\" aria-label='Важливо'>" + flagSvg + "</button>" +
       "</div>" +
       "<div class='olr-2'>" +
-        "<span class='olr-who'><span class='nm cc-link' onclick=\"event.stopPropagation();openClientCard('" + gv(o,"Телефон").replace(/'/g,"") + "')\">" + (gv(o,"Ім'я клієнта") || "—") + "</span><span class='ph'>" + gv(o,"Телефон") + "</span></span>" +
+        "<span class='olr-who'><span class='nm cc-link' onclick=\"event.stopPropagation();openClientCard('" + gv(o,"Телефон").replace(/'/g,"") + "')\">" + (gv(o,"Ім'я клієнта") || "—") + "</span><span class='ph'>" + fmtPhone(gv(o,"Телефон")) + "</span></span>" +
         "<span class='olr-badge'>" + statusBadge(num) + "</span>" +
       "</div>" +
       "<div class='olr-3" + (warn ? " warn" : "") + "'>" +
@@ -3797,7 +3835,7 @@ renderers.archive = function() {
     return "<div class='archive-row'>" +
       "<div class='archive-row-main'>" +
         "<span class='archive-num'>" + num + "</span>" +
-        "<span class='archive-client'>" + name + (phone ? " · " + phone : "") + "</span>" +
+        "<span class='archive-client'>" + name + (phone ? " · " + fmtPhone(phone) : "") + "</span>" +
         (total ? "<span class='archive-total'>" + total.toLocaleString("uk-UA") + " ₴</span>" : "") +
       "</div>" +
       (note ? "<div class='archive-note'>" + note.replace(/&/g,"&amp;").replace(/</g,"&lt;") + "</div>" : "") +
@@ -4077,7 +4115,7 @@ function renderEditForm() {
     "<div class='edit-form'>" +
       "<div class='cr-block-label first'>Клієнт</div>" +
       "<input class='cr-input' id='edit-client' value=\"" + e.client.replace(/"/g,"&quot;") + "\" oninput='editState.client=this.value'>" +
-      "<input class='cr-input' id='edit-phone' readonly style='cursor:pointer' value=\"" + e.phone + "\" onclick='openPhoneKeypad(editState.phone||\"+380 \", function(v){ editState.phone=v; var el=document.getElementById(\"edit-phone\"); if(el) el.value=v; }, function(v){ editState.phone=v; var el=document.getElementById(\"edit-phone\"); if(el) el.value=v; }, this)'>" +
+      "<input class='cr-input' id='edit-phone' readonly style='cursor:pointer' value=\"" + fmtPhone(e.phone) + "\" onclick='openPhoneKeypad(editState.phone||\"+380 \", function(v){ editState.phone=v; var el=document.getElementById(\"edit-phone\"); if(el) el.value=fmtPhone(v); }, function(v){ editState.phone=v; var el=document.getElementById(\"edit-phone\"); if(el) el.value=fmtPhone(v); }, this)'>" +
       "<div class='cr-msg-pick' id='edit-msg'>" + msgPick + "</div>" +
       "<div class='cr-block-label'>Термін</div>" +
       "<input class='cr-input' id='edit-deadline' value=\"" + e.deadline.replace(/"/g,"&quot;") + "\" oninput='editState.deadline=this.value'>" +
@@ -5338,7 +5376,7 @@ function openOrder(num) {
     "<div class='n-sec'><div class='n-sec-label'>Клієнт</div>" +
     "<div class='n-client'>" +
       "<div><div class='n-cname'><span class='cc-link' onclick=\"backToOrders();openClientCard('" + phone.replace(/'/g,"") + "')\">" + name + "</span></div>" +
-      "<div class='n-csub'>" + msgIcoHTML + phone + "</div></div>" +
+      "<div class='n-csub'>" + msgIcoHTML + fmtPhone(phone) + "</div></div>" +
       (its.length ? "<label class='n-client-notify" + (allNotified?" on":"") + "' onclick=\"event.preventDefault();markAllNotified('" + num + "'," + (allNotified?"false":"true") + ")\"><span class='d-check" + (allNotified?" on":"") + "'>" + (allNotified?"✓":"") + "</span>Сповіщено</label>" : "") +
     "</div>" +
     "<div class='n-rating'>" + rating.label + " " + rating.dot + (rating.debt ? " · борг " + rating.debt.toLocaleString("uk-UA") + " ₴" : "") + "</div>" +
@@ -5346,6 +5384,7 @@ function openOrder(num) {
 
   // Вироби зі статусами
   let total = 0;
+  let anyStarted = false, allReadyGlobal = its.length > 0;
   const itemsHTML = its.map((it, idx) => {
     const itemTotal = extractAmt(gv(it,"Сума"));
     total += itemTotal;
@@ -5408,6 +5447,10 @@ function openOrder(num) {
 
     // ── Видача (вся річ) + сповіщення на рівні виробу ──
     const allSvcReady = svcs.length ? svcs.every(sv => serviceStatusIndex(gv(sv,"Статус")) === 2) : (itemStatusIndex(gv(it,"Статус")) >= 2);
+    const someStarted = svcs.length ? svcs.some(sv => serviceStatusIndex(gv(sv,"Статус")) >= 1) : (itemStatusIndex(gv(it,"Статус")) >= 1);
+    if (someStarted) anyStarted = true;
+    if (!allSvcReady) allReadyGlobal = false;
+    const collapsedByDefault = allSvcReady && !issued;
     const issueBtn = (!issued && allSvcReady)
       ? "<button class='n-issue-mini' onclick=\"openMasterPick('" + num + "'," + idx + ",'issue')\">Видати річ →</button>" : "";
 
@@ -5424,9 +5467,11 @@ function openOrder(num) {
     if (notified) historyHTML += "<div class='n-hist-row'><span class='hl'>Сповістив</span><span>" + (notifiedBy || "—") + " · " + notified + "</span></div>";
     if (issuedBy || dIssue) historyHTML += "<div class='n-hist-row'><span class='hl'>Видав</span><span>" + (issuedBy || "—") + (dIssue ? " · " + dIssue : "") + "</span></div>";
 
-    return "<div class='n-item'>" +
-      "<div class='n-ihead'><span class='n-inum'>№" + (idx+1) + "</span><span class='n-iname'>" + iname + "</span>" +
-      "<span class='n-iprice'>" + (itemTotal ? itemTotal.toLocaleString("uk-UA") + " ₴" : "—") + "</span></div>" +
+    return "<div class='n-item" + (collapsedByDefault ? " collapsed" : "") + "'>" +
+      "<div class='n-ihead' onclick=\"this.parentElement.classList.toggle('collapsed')\"><span class='n-inum'>№" + (idx+1) + "</span><span class='n-iname'>" + iname + "</span>" +
+      (allSvcReady ? "<span class='n-iready-badge'>✓ Готово</span>" : "") +
+      "<span class='n-iprice'>" + (itemTotal ? itemTotal.toLocaleString("uk-UA") + " ₴" : "—") + "</span>" +
+      "<i class='n-item-chev'>⌄</i></div>" +
       (itemNote ? "<div class='n-icli'><div class='n-icli-lbl'>Коментар <span class='eye'>· видно клієнту</span></div><div class='n-icli-txt'>" + itemNote.replace(/&/g,"&amp;").replace(/</g,"&lt;") + "</div></div>" : "") +
       stallBanner +
       "<div class='svc-list'>" + svcHTML + "</div>" +
@@ -5438,7 +5483,45 @@ function openOrder(num) {
 
   const allIssuedNow = its.length > 0 && its.every(it => gv(it,"Статус") === "📦 Виданий");
 
-  // Виконання та оплата
+  // ── Степпер замовлення (5 кроків) + наступна дія ──
+  let orderStepIdx = 0;
+  if (allIssuedNow) orderStepIdx = 4;
+  else if (allNotified && allReadyGlobal) orderStepIdx = 3;
+  else if (allReadyGlobal) orderStepIdx = 2;
+  else if (anyStarted) orderStepIdx = 1;
+  const ORDER_STEP_LABELS = ["Прийнято","В роботі","Готово","Повідомлено","Видано"];
+  let stepperHTML = "<div class='ord-stepper'>";
+  ORDER_STEP_LABELS.forEach((lbl, i) => {
+    const cls = i < orderStepIdx ? "done" : (i === orderStepIdx ? "active" : "");
+    stepperHTML += "<div class='ord-step " + cls + "'><div class='ord-step-dot'>" + (i < orderStepIdx ? "✓" : (i+1)) + "</div><div class='ord-step-lbl'>" + lbl + "</div></div>";
+    if (i < ORDER_STEP_LABELS.length - 1) stepperHTML += "<div class='ord-step-line" + (i < orderStepIdx ? " done" : "") + "'></div>";
+  });
+  stepperHTML += "</div>";
+
+  let readyCount = 0, totalSvcCount = 0;
+  its.forEach((it, idx) => {
+    const itemNum2 = gv(it,"Номер виробу") || (num + "-" + (idx+1));
+    const svcs2 = servicesOfItem(itemNum2);
+    if (svcs2.length) {
+      totalSvcCount += svcs2.length;
+      readyCount += svcs2.filter(sv => serviceStatusIndex(gv(sv,"Статус")) === 2).length;
+    } else {
+      totalSvcCount += 1;
+      if (itemStatusIndex(gv(it,"Статус")) >= 2) readyCount += 1;
+    }
+  });
+  let nextActionHTML = "";
+  if (!allIssuedNow) {
+    const nextTxt = orderStepIdx === 0 ? "Взяти вироби в роботу"
+      : orderStepIdx === 1 ? "Завершити роботу по всіх послугах"
+      : orderStepIdx === 2 ? "Повідомити клієнта, що готово"
+      : "Видати замовлення клієнту";
+    nextActionHTML = "<div class='ord-next'><div><div class='ord-next-lbl'>Наступна дія · " + readyCount + " з " + totalSvcCount + " послуг готові</div><div class='ord-next-txt'>" + nextTxt + "</div></div>" +
+      (!allReadyGlobal ? "<button class='ord-next-btn' onclick=\"markOrderReady('" + num + "')\">Позначити готовим</button>" : "") +
+      "</div>";
+  }
+
+
   const payStr = gv(o,"Оплата");
   const prepayAmt = extractAmt(payStr);
   const prepayMethod = gv(o,"Спосіб передоплати");
@@ -5500,25 +5583,33 @@ function openOrder(num) {
       "<span class='badge " + stMeta[1] + "'>" + stMeta[0] + "</span>" +
     "</div>" +
     "<div class='detail-created'>Створено: " + (gv(o,"Дата створення") || "—") + (gv(o,"Приймальник") ? " · " + gv(o,"Приймальник") : "") + "</div>" +
-    clientBlock +
-    "<div class='n-div'></div>" +
-    payBlock +
-    "<div class='n-div'></div>" +
-    itemsBlock +
-    "<div class='n-actions'>" +
-      "<button class='n-btn-primary' " + (allIssuedNow ? "disabled" : "onclick=\"issueWholeOrder('" + num + "')\"") + ">" + (allIssuedNow ? "Замовлення видано" : "Видати замовлення") + "</button>" +
-      "<button class='n-btn-secondary' onclick=\"openReceiptModal('" + num + "')\">Переглянути чек</button>" +
-      "<div class='n-notify-group'>" +
-        "<div class='n-notify-lbl'>Сповістити клієнта</div>" +
-        "<div class='n-notify-row'>" +
-          "<button class='n-notify-btn' onclick=\"copyNotify('" + num + "','ready')\">" + copyIcon() + "Готово</button>" +
-          "<button class='n-notify-btn' onclick=\"copyNotify('" + num + "','remind')\">" + copyIcon() + "Нагадування</button>" +
-          "<button class='n-notify-btn' onclick=\"copyNotify('" + num + "','accepted')\">" + copyIcon() + "Прийнято</button>" +
+    "</div>" +
+    "<div class='card-inner ord-grid'>" +
+    "<div class='ord-left'>" +
+      clientBlock +
+      payBlock +
+      "<div class='n-actions' style='margin-top:0'>" +
+        "<button class='n-btn-secondary' onclick=\"openReceiptModal('" + num + "')\">Переглянути чек</button>" +
+        "<div class='n-manage-row'>" +
+          "<button class='n-manage-btn' onclick=\"openEditOrder('" + num + "')\">Редагувати</button>" +
+          "<button class='n-manage-btn danger admin-only' onclick=\"openDeleteOrderConfirm('" + num + "')\">Видалити</button>" +
         "</div>" +
       "</div>" +
-      "<div class='n-manage-row'>" +
-        "<button class='n-manage-btn' onclick=\"openEditOrder('" + num + "')\">Редагувати</button>" +
-        "<button class='n-manage-btn danger admin-only' onclick=\"openDeleteOrderConfirm('" + num + "')\">Видалити</button>" +
+    "</div>" +
+    "<div class='ord-right'>" +
+      stepperHTML +
+      nextActionHTML +
+      itemsBlock +
+      "<div class='n-actions' style='margin-top:0'>" +
+        "<button class='n-btn-primary' " + (allIssuedNow ? "disabled" : "onclick=\"issueWholeOrder('" + num + "')\"") + ">" + (allIssuedNow ? "Замовлення видано" : "Видати замовлення") + "</button>" +
+        "<div class='n-notify-group'>" +
+          "<div class='n-notify-lbl'>Сповістити клієнта</div>" +
+          "<div class='n-notify-row'>" +
+            "<button class='n-notify-btn' onclick=\"copyNotify('" + num + "','ready')\">" + copyIcon() + "Готово</button>" +
+            "<button class='n-notify-btn' onclick=\"copyNotify('" + num + "','remind')\">" + copyIcon() + "Нагадування</button>" +
+            "<button class='n-notify-btn' onclick=\"copyNotify('" + num + "','accepted')\">" + copyIcon() + "Прийнято</button>" +
+          "</div>" +
+        "</div>" +
       "</div>" +
     "</div>" +
     "</div>";
@@ -5634,17 +5725,40 @@ function closeAllItemsModal() {
   if (ov) ov.classList.remove("open");
 }
 
+/* Позначити готовими всі ще не готові послуги/вироби замовлення одразу —
+   зручно, коли роботу вносять заднім числом і не хочуть клікати по кожній послузі. */
+async function markOrderReady(num) {
+  const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+  for (let idx = 0; idx < its.length; idx++) {
+    const it = its[idx];
+    if (gv(it,"Статус") === "📦 Виданий") continue;
+    const itemNum = gv(it,"Номер виробу") || (num + "-" + (idx+1));
+    const svcs = servicesOfItem(itemNum);
+    if (svcs.length) {
+      for (const sv of svcs) {
+        if (serviceStatusIndex(gv(sv,"Статус")) < 2) {
+          await confirmServiceStatus(gv(sv,"Номер послуги"), "✅ Готово", gv(sv,"Майстер") || "");
+        }
+      }
+    } else if (itemStatusIndex(gv(it,"Статус")) < 2) {
+      await setItemStatus(num, idx, 2);
+    }
+  }
+  if (detailOrderNum) openOrder(detailOrderNum);
+}
+
 function issueWholeOrder(num) {
   const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
   const pending = its.filter(it => gv(it,"Статус") !== "📦 Виданий");
   if (!pending.length) return;
-  const names = masterNames();
+  const names = masterNamesForRole();
+  if (!isAdmin() && names.length === 1) { confirmIssueWholeOrder(num, names[0]); return; }
   const body = document.getElementById("odm-body");
   const wrap = document.createElement("div");
   wrap.className = "settle-overlay";
   const opts = names.length
     ? names.map(m => "<button class='rating-opt' onclick=\"confirmIssueWholeOrder('" + num + "','" + m.replace(/'/g,"\\'") + "')\">" + m + "</button>").join("")
-    : "<div class='d-bonus-hint'>Додайте майстрів у лист «Майстри»</div>";
+    : (masterNames().length ? "<div class='d-bonus-hint'>Для вашого акаунта немає доступного майстра</div>" : "<div class='d-bonus-hint'>Додайте майстрів у лист «Майстри»</div>");
   wrap.innerHTML =
     "<div class='settle-card'>" +
       "<div class='dblock-label'>Хто видає замовлення?</div>" +
@@ -5765,12 +5879,13 @@ function clientRating(phone) {
 
 /* ─── Виконавці: прийняти в роботу / видати з вибором майстра ─── */
 function openMasterPick(num, itemIdx, action) {
+  const names = masterNamesForRole();
+  if (!isAdmin() && names.length === 1) { assignMaster(num, itemIdx, action, names[0]); return; }
   const body = document.getElementById("odm-body");
   const title = action === "work" ? "Хто приймає в роботу?" : "Хто видає?";
-  const names = masterNames();
   const opts = names.length
     ? names.map(m => "<button class='rating-opt' onclick=\"assignMaster('" + num + "'," + itemIdx + ",'" + action + "','" + m.replace(/'/g,"\\'") + "')\">" + m + "</button>").join("")
-    : "<div class='d-bonus-hint'>Додайте майстрів у лист «Майстри»</div>";
+    : (masterNames().length ? "<div class='d-bonus-hint'>Для вашого акаунта немає доступного майстра</div>" : "<div class='d-bonus-hint'>Додайте майстрів у лист «Майстри»</div>");
   const wrap = document.createElement("div");
   wrap.className = "settle-overlay";
   wrap.innerHTML =
@@ -5836,13 +5951,14 @@ async function setItemStatus(num, itemIdx, statusIdx) {
 function svcAction(svcNum, action) {
   if (action === "ready") { confirmServiceStatus(svcNum, "✅ Готово", ""); return; }
   // action === "work": вибір майстра
-  const names = masterNames();
+  const names = masterNamesForRole();
+  if (!isAdmin() && names.length === 1) { confirmServiceStatus(svcNum, "⚙️ В роботі", names[0]); return; }
   const body = document.getElementById("odm-body");
   const wrap = document.createElement("div");
   wrap.className = "settle-overlay";
   const opts = names.length
     ? names.map(m => "<button class='rating-opt' onclick=\"confirmServiceStatus('" + svcNum + "','⚙️ В роботі','" + m.replace(/'/g,"\\'") + "')\">" + m + "</button>").join("")
-    : "<div class='d-bonus-hint'>Додайте майстрів у лист «Майстри»</div>";
+    : (masterNames().length ? "<div class='d-bonus-hint'>Для вашого акаунта немає доступного майстра</div>" : "<div class='d-bonus-hint'>Додайте майстрів у лист «Майстри»</div>");
   wrap.innerHTML =
     "<div class='settle-card'>" +
       "<div class='dblock-label'>Хто бере послугу в роботу?</div>" +
