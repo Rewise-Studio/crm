@@ -5602,17 +5602,19 @@ function openOrder(num) {
       stepperHTML +
       nextActionHTML +
       itemsBlock +
-      "<div class='n-actions' style='margin-top:0'>" +
-        "<button class='n-btn-primary' " + (allIssuedNow ? "disabled" : "onclick=\"issueWholeOrder('" + num + "')\"") + ">" + (allIssuedNow ? "Замовлення видано" : "Видати замовлення") + "</button>" +
-        "<div class='n-notify-group'>" +
-          "<div class='n-notify-lbl'>Сповістити клієнта</div>" +
-          "<div class='n-notify-row'>" +
-            "<button class='n-notify-btn' onclick=\"copyNotify('" + num + "','ready')\">" + copyIcon() + "Готово</button>" +
-            "<button class='n-notify-btn' onclick=\"copyNotify('" + num + "','remind')\">" + copyIcon() + "Нагадування</button>" +
-            "<button class='n-notify-btn' onclick=\"copyNotify('" + num + "','accepted')\">" + copyIcon() + "Прийнято</button>" +
+      (orderStepIdx >= 2 ?
+        "<div class='n-actions' style='margin-top:0'>" +
+          "<button class='n-btn-primary' " + (allIssuedNow ? "disabled" : "onclick=\"issueWholeOrder('" + num + "')\"") + ">" + (allIssuedNow ? "Замовлення видано" : "Видати замовлення") + "</button>" +
+          "<div class='n-notify-group'>" +
+            "<div class='n-notify-lbl'>Сповістити клієнта</div>" +
+            "<div class='n-notify-row'>" +
+              "<button class='n-notify-btn' onclick=\"copyNotify('" + num + "','ready')\">" + copyIcon() + "Готово</button>" +
+              "<button class='n-notify-btn' onclick=\"copyNotify('" + num + "','remind')\">" + copyIcon() + "Нагадування</button>" +
+              "<button class='n-notify-btn' onclick=\"copyNotify('" + num + "','accepted')\">" + copyIcon() + "Прийнято</button>" +
+            "</div>" +
           "</div>" +
-        "</div>" +
-      "</div>" +
+        "</div>"
+      : "") +
     "</div>" +
     "</div>";
 
