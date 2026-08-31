@@ -900,6 +900,24 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .archive-total { font-size: 13px; color: var(--txt-2); font-weight: 500; }
 .archive-note { font-size: 12px; color: var(--txt-3); margin-top: 6px; font-style: italic; }
 
+.assign-tabs { display: flex; gap: 6px; padding: 0 28px 16px; }
+.assign-tab { flex: 1; text-align: center; padding: 10px 6px; border-radius: 9px; font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--txt-2); background: var(--surface); border: 1px solid var(--line); font-family: 'Commissioner', sans-serif; }
+.assign-tab.active { background: var(--cognac); color: #fff; border-color: var(--cognac); }
+.assign-tab-cnt { opacity: 0.8; font-weight: 400; }
+.assign-list { padding: 0 28px 40px; display: flex; flex-direction: column; gap: 10px; }
+.assign-row-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 13px 16px; }
+.assign-row-card.unassigned { border-color: rgba(226,75,74,0.25); background: rgba(226,75,74,0.03); }
+.assign-row-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
+.assign-svc-name { font-size: 14px; font-weight: 600; color: var(--txt); }
+.assign-svc-price { font-size: 13px; font-weight: 600; color: var(--txt); white-space: nowrap; }
+.assign-svc-meta { font-size: 12px; color: var(--txt-2); margin-bottom: 10px; }
+.assign-num { color: var(--cognac); font-weight: 600; }
+.assign-pills-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.assign-pills-lbl { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--txt-3); margin-right: 2px; }
+.pill { padding: 7px 14px; border-radius: 20px; border: 1px solid var(--field-border); background: var(--surface); font-size: 12px; font-weight: 600; color: var(--txt); cursor: pointer; font-family: 'Commissioner', sans-serif; }
+.pill.assigned { background: var(--cognac); border-color: var(--cognac); color: #fff; }
+.pill:disabled { opacity: 0.45; cursor: default; }
+
 .hist-link { cursor: pointer; }
 .hist-link:hover { opacity: 0.75; }
 .hist-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
@@ -1721,6 +1739,11 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     Клієнти
   </button>
+  <button class="nav-item mobile-hide" data-page="assign" onclick="showPage('assign')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+    Розподіл робіт
+  </button>
+  <div class="nav-div mobile-hide"></div>
   <button class="nav-item admin-only mobile-hide" data-page="analytics" onclick="showPage('analytics')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="13"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="9"/></svg>
     Аналітика
@@ -1767,6 +1790,7 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
   <div class="page" id="page-create"></div>
   <div class="page active" id="page-orders"></div>
   <div class="page" id="page-clients"></div>
+  <div class="page" id="page-assign"></div>
   <div class="page" id="page-finance"></div>
   <div class="page" id="page-stats"></div>
   <div class="page" id="page-tasks"></div>
@@ -1972,6 +1996,7 @@ const MATERIALS = ["Шкіра","Замша","Нубук","Текстиль","Л
 const CONDITIONS = ["Новий стан","Гарний стан","Незначні потертості","Потертості","Пошкодження","Сильний знос"];
 const DELIVERY_OPTS = ["Самовивіз","Нова пошта","Кур'єр"];
 let ordersFilter = new Set(), ordersSearch = "", ordersPayFilter = "all", ordersShowItems = true;
+let assignTab = "unassigned";
 let dataLoaded = false;
 
 function gv(obj, ...keys) {
@@ -2034,7 +2059,7 @@ async function parsePartners(res) {
    Номер послуги RW-0041-1-2 = замовлення 41, виріб 1, послуга 2. */
 async function parseServices(res) {
   if (!res) return [];
-  return await parseSheet(res, ["Номер послуги","Номер виробу","Номер замовлення","Назва","Ціна","Статус","Майстер","Дата в роботі","Дата готово","Хто видав","Дата видачі"]);
+  return await parseSheet(res, ["Номер послуги","Номер виробу","Номер замовлення","Назва","Ціна","Статус","Майстер","Дата в роботі","Дата готово","Хто видав","Дата видачі","Призначено"]);
 }
 /* Послуги конкретного виробу */
 function servicesOfItem(itemNum) {
@@ -3874,6 +3899,80 @@ function periodTabsHTML(tabKey) {
   ).join("") + "</div>";
 }
 function setPeriod(tabKey, val) { periodSel[tabKey] = val; renderers[tabKey](); }
+
+/* ═══════════════ РОЗПОДІЛ РОБІТ ═══════════════
+   Ім'я «поточного користувача» для вкладки «Моє»: під адмін-акаунтом —
+   Сергій (обидва написання), під приймальником — будь-хто інший (зараз
+   це фактично Олександр, окремого логіна для нього ще немає). */
+function isMineAssignment(assigned) {
+  if (!assigned) return false;
+  return isAdmin()
+    ? RESTRICTED_MASTER_NAMES.indexOf(assigned) !== -1
+    : RESTRICTED_MASTER_NAMES.indexOf(assigned) === -1;
+}
+function setAssignTab(tab) { assignTab = tab; renderers.assign(); }
+renderers.assign = function() {
+  const page = document.getElementById("page-assign");
+  const all = SERVICES.filter(s => gv(s,"Номер виробу"));
+  const unassigned = all.filter(s => !gv(s,"Призначено"));
+  const mine = all.filter(s => isMineAssignment(gv(s,"Призначено")));
+  const list = assignTab === "unassigned" ? unassigned : assignTab === "mine" ? mine : all;
+  const names = masterNamesForRole();
+
+  const rows = list.map(s => {
+    const svcNum = gv(s,"Номер послуги");
+    const itemNum = gv(s,"Номер виробу");
+    const orderNum = gv(s,"Номер замовлення");
+    const it = ITEMS.find(i => gv(i,"Номер виробу") === itemNum);
+    const iname = it ? [gv(it,"Тип"), gv(it,"Бренд")].filter(Boolean).join(" · ") || "Виріб" : "Виріб";
+    const price = gv(s,"Ціна");
+    const assigned = gv(s,"Призначено");
+    const locked = assigned && !isAdmin();
+    const pills = names.map(n => {
+      const active = n === assigned;
+      const disabled = locked && !active;
+      return "<button class='pill" + (active ? " assigned" : "") + "'" +
+        (disabled ? " disabled" : " onclick=\"assignService('" + svcNum + "','" + n + "')\"") +
+        ">" + n + "</button>";
+    }).join("");
+    return "<div class='assign-row-card" + (!assigned ? " unassigned" : "") + "'>" +
+      "<div class='assign-row-top'>" +
+        "<div class='assign-svc-name'>" + gv(s,"Назва") + "</div>" +
+        (price ? "<div class='assign-svc-price'>" + parseInt(price).toLocaleString("uk-UA") + " ₴</div>" : "") +
+      "</div>" +
+      "<div class='assign-svc-meta'><span class='assign-num'>" + orderNum + "</span> · " + iname + "</div>" +
+      "<div class='assign-pills-row'>" +
+        "<span class='assign-pills-lbl'>" + (assigned ? "Призначено:" : "Призначити:") + "</span>" +
+        pills +
+      "</div>" +
+    "</div>";
+  }).join("");
+
+  page.innerHTML =
+    "<div class='page-header'><div class='page-title'>Розподіл робіт</div></div>" +
+    "<div class='assign-tabs'>" +
+      "<button class='assign-tab" + (assignTab==="unassigned"?" active":"") + "' onclick=\"setAssignTab('unassigned')\">Не призначено <span class='assign-tab-cnt'>(" + unassigned.length + ")</span></button>" +
+      "<button class='assign-tab" + (assignTab==="mine"?" active":"") + "' onclick=\"setAssignTab('mine')\">Моє <span class='assign-tab-cnt'>(" + mine.length + ")</span></button>" +
+      "<button class='assign-tab" + (assignTab==="all"?" active":"") + "' onclick=\"setAssignTab('all')\">Усі <span class='assign-tab-cnt'>(" + all.length + ")</span></button>" +
+    "</div>" +
+    (list.length
+      ? "<div class='assign-list'>" + rows + "</div>"
+      : "<div class='orders-empty'>Тут порожньо</div>");
+};
+
+async function assignService(svcNum, masterName) {
+  const sv = SERVICES.find(s => gv(s,"Номер послуги") === svcNum);
+  if (!sv) return;
+  if (gv(sv,"Призначено") && !isAdmin()) return; // переназначити може лише адмін
+  sv["Призначено"] = masterName;
+  renderers.assign();
+  try {
+    await fetch(API_URL.replace("/order","/service/assign"), {
+      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ svc_num: svcNum, assigned: masterName })
+    });
+  } catch(e) { console.error("service assign failed", e); }
+}
 const barsExpanded = {};
 function barsHTML(data, unit, panelId) {
   const max = Math.max(1, ...data.map(d => d[1]));
