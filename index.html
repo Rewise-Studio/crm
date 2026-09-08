@@ -920,6 +920,25 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .pill.assigned { background: var(--cognac); border-color: var(--cognac); color: #fff; }
 .pill:disabled { opacity: 0.45; cursor: default; }
 
+.mw-toggle-row { display: flex; justify-content: flex-end; padding: 0 28px 16px; }
+.mw-seg { display: flex; background: var(--cognac-light); border-radius: 20px; padding: 3px; }
+.mw-seg-opt { padding: 6px 14px; border-radius: 16px; font-size: 11px; font-weight: 700; color: var(--cognac); cursor: pointer; }
+.mw-seg-opt.active { background: var(--cognac); color: #fff; }
+.mw-list { padding: 0 28px 40px; display: flex; flex-direction: column; gap: 10px; }
+.mw-row { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+.mw-row.overdue { border-color: rgba(226,75,74,0.35); background: rgba(226,75,74,0.03); }
+.mw-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 5px; }
+.mw-name { font-size: 14px; font-weight: 600; color: var(--txt); }
+.mw-price { font-size: 13px; font-weight: 600; color: var(--txt); white-space: nowrap; }
+.mw-meta { font-size: 11.5px; color: var(--txt-2); margin-bottom: 10px; }
+.mw-num { color: var(--cognac); font-weight: 600; }
+.mw-due { font-weight: 700; }
+.mw-due.late { color: #B54B3F; }
+.mw-foot { display: flex; justify-content: space-between; align-items: center; }
+.mw-status { font-size: 11px; font-weight: 600; color: var(--txt-2); }
+.mw-btn { padding: 8px 16px; border: none; border-radius: 9px; background: var(--cognac); color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; font-family: 'Commissioner', sans-serif; }
+.mw-btn.ghost { background: var(--st-ready-bg); color: var(--st-ready-fg); }
+
 .hist-link { cursor: pointer; }
 .hist-link:hover { opacity: 0.75; }
 .hist-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
@@ -1808,6 +1827,7 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
   <div class="page" id="page-stats"></div>
   <div class="page" id="page-tasks"></div>
   <div class="page" id="page-calendar"></div>
+  <div class="page" id="page-myworks"></div>
   <div class="page" id="page-tailor"></div>
   <div class="page" id="page-settings"></div>
   <div class="page" id="page-pricelist"></div>
@@ -1966,8 +1986,8 @@ function toggleTheme() {
 /* ═══════════════ РОУТИНГ ═══════════════ */
 let currentPage = "orders";
 /* Об'єднані розділи: одна іконка → внутрішні вкладки */
-const NAV_GROUP = { orders: "worklist", tailor: "worklist", assign: "worklist", finance: "analytics", stats: "analytics", tasks: "planning", calendar: "planning" };
-const GROUP_DEFAULT = { worklist: "orders", analytics: "finance", planning: "tasks" };
+const NAV_GROUP = { orders: "worklist", tailor: "worklist", assign: "worklist", finance: "analytics", stats: "analytics", tasks: "planning", calendar: "planning", myworks: "planning" };
+const GROUP_DEFAULT = { worklist: "orders", analytics: "finance", planning: "myworks" };
 const groupTab = { worklist: "orders", analytics: "finance", planning: "tasks" };
 function showPage(name) {
   // Вхід у групу → відкриваємо запам'ятовану/типову вкладку
@@ -1995,7 +2015,7 @@ function groupSwitcher(group) {
     ? [["orders","Ремонт"],["tailor","Виготовлення"],["assign","Розподіл"]]
     : group === "analytics"
     ? [["finance","Фінанси"],["stats","Статистика"]]
-    : [["tasks","Задачі"],["calendar","Календар"]];
+    : [["tasks","Задачі"],["calendar","Календар"],["myworks","Мої роботи"]];
   return "<div class='grp-switch'>" + tabs.map(t =>
     "<button class='grp-tab" + (currentPage===t[0]?" active":"") + "' onclick=\"showPage('" + t[0] + "')\">" + t[1] + "</button>"
   ).join("") + "</div>";
@@ -3925,16 +3945,19 @@ function isMineAssignment(assigned) {
     ? RESTRICTED_MASTER_NAMES.indexOf(assigned) !== -1
     : RESTRICTED_MASTER_NAMES.indexOf(assigned) === -1;
 }
-function setAssignTab(tab) { assignTab = tab; renderers.assign(); }
-renderers.assign = function() {
-  const page = document.getElementById("page-assign");
-  // Виключаємо послуги виробів, які вже видані — розподіляти там більше нічого
-  const active = SERVICES.filter(s => {
+/* Послуги, чий виріб ще не виданий — спільний фільтр для «Розподіл робіт» і «Мої роботи» */
+function activeServices() {
+  return SERVICES.filter(s => {
     const itemNum = gv(s,"Номер виробу");
     if (!itemNum) return false;
     const it = ITEMS.find(i => gv(i,"Номер виробу") === itemNum);
     return !it || gv(it,"Статус") !== "📦 Виданий";
   });
+}
+function setAssignTab(tab) { assignTab = tab; renderers.assign(); }
+renderers.assign = function() {
+  const page = document.getElementById("page-assign");
+  const active = activeServices();
   const unassigned = active.filter(s => !gv(s,"Призначено"));
   const mine = active.filter(s => isMineAssignment(gv(s,"Призначено")));
   const list = assignTab === "unassigned" ? unassigned : assignTab === "mine" ? mine : active;
@@ -3994,6 +4017,74 @@ renderers.assign = function() {
     "</div>" +
     (groups.length
       ? "<div class='assign-list'>" + groupsHTML + "</div>"
+      : "<div class='orders-empty'>Тут порожньо</div>");
+};
+
+/* ═══════════════ МОЇ РОБОТИ ═══════════════ */
+let myWorksShowAll = false;
+function setMyWorksFilter(v) { myWorksShowAll = v; renderers.myworks(); }
+renderers.myworks = function() {
+  const page = document.getElementById("page-myworks");
+  const mine = activeServices().filter(s => isMineAssignment(gv(s,"Призначено")));
+  const list = mine.filter(s => myWorksShowAll || gv(s,"Статус") !== "✅ Готово");
+
+  list.sort((a,b) => {
+    const oa = ORDERS.find(o => gv(o,"Номер замовлення") === gv(a,"Номер замовлення"));
+    const ob = ORDERS.find(o => gv(o,"Номер замовлення") === gv(b,"Номер замовлення"));
+    const da = oa ? parseDeadline(gv(oa,"Термін")) : null;
+    const db = ob ? parseDeadline(gv(ob,"Термін")) : null;
+    if (!da && !db) return 0;
+    if (!da) return 1;
+    if (!db) return -1;
+    return da - db;
+  });
+
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  const rows = list.map(s => {
+    const svcNum = gv(s,"Номер послуги");
+    const itemNum = gv(s,"Номер виробу");
+    const orderNum = gv(s,"Номер замовлення");
+    const it = ITEMS.find(i => gv(i,"Номер виробу") === itemNum);
+    const o = ORDERS.find(x => gv(x,"Номер замовлення") === orderNum);
+    const iname = it ? [gv(it,"Тип"), gv(it,"Бренд")].filter(Boolean).join(" · ") || "Виріб" : "Виріб";
+    const price = gv(s,"Ціна");
+    const status = gv(s,"Статус") || "🆕 Новий";
+    const term = o ? gv(o,"Термін") : "";
+    const termDate = term ? parseDeadline(term) : null;
+    const late = termDate && termDate < today;
+    const dueHTML = term
+      ? "<span class='mw-due" + (late ? " late" : "") + "'>Термін " + term + (late ? " (протерміновано)" : "") + "</span>"
+      : "";
+
+    let actionHTML = "";
+    if (status === "🆕 Новий") actionHTML = "<button class='mw-btn' onclick=\"svcAction('" + svcNum + "','work')\">Взяти в роботу</button>";
+    else if (status === "⚙️ В роботі") actionHTML = "<button class='mw-btn ghost' onclick=\"svcAction('" + svcNum + "','ready')\">Готово</button>";
+
+    return "<div class='mw-row" + (late ? " overdue" : "") + "'>" +
+      "<div class='mw-top'>" +
+        "<div class='mw-name'>" + gv(s,"Назва") + "</div>" +
+        (price ? "<div class='mw-price'>" + parseInt(price).toLocaleString("uk-UA") + " ₴</div>" : "") +
+      "</div>" +
+      "<div class='mw-meta'><span class='mw-num'>" + orderNum + "</span> · " + iname + (dueHTML ? " · " + dueHTML : "") + "</div>" +
+      "<div class='mw-foot'>" +
+        "<span class='mw-status'>" + status + "</span>" +
+        actionHTML +
+      "</div>" +
+    "</div>";
+  }).join("");
+
+  page.innerHTML =
+    groupSwitcher("planning") +
+    "<div class='page-header'><div class='page-title'>Мої роботи</div></div>" +
+    "<div class='mw-toggle-row'>" +
+      "<div class='mw-seg'>" +
+        "<span class='mw-seg-opt" + (!myWorksShowAll?" active":"") + "' onclick='setMyWorksFilter(false)'>Активні</span>" +
+        "<span class='mw-seg-opt" + (myWorksShowAll?" active":"") + "' onclick='setMyWorksFilter(true)'>Усі</span>" +
+      "</div>" +
+    "</div>" +
+    (list.length
+      ? "<div class='mw-list'>" + rows + "</div>"
       : "<div class='orders-empty'>Тут порожньо</div>");
 };
 
@@ -6093,6 +6184,8 @@ function svcAction(svcNum, action) {
   // action === "work": вибір майстра
   const names = masterNamesForRole();
   if (!isAdmin() && names.length === 1) { confirmServiceStatus(svcNum, "⚙️ В роботі", names[0]); return; }
+  const bg = document.getElementById("odm-bg");
+  if (!bg.classList.contains("open")) { bg.classList.add("open"); settleOwnsModal = true; }
   const body = document.getElementById("odm-body");
   const wrap = document.createElement("div");
   wrap.className = "settle-overlay";
@@ -6117,6 +6210,8 @@ async function confirmServiceStatus(svcNum, status, master) {
   else if (status === "✅ Готово") { sv["Дата готово"] = nowVal; }
   rollUpItemStatus(gv(sv,"Номер виробу"));
   if (detailOrderNum) openOrder(detailOrderNum);
+  if (currentPage === "myworks") renderers.myworks();
+  if (currentPage === "assign") renderers.assign();
   try {
     await fetch(API_URL.replace("/order","/service/status"), {
       method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
@@ -6439,9 +6534,11 @@ function setSettleMethod(m, btn) {
   const infoBox = document.getElementById("settle-card-info");
   if (infoBox) infoBox.innerHTML = (m === "Картка" && payConfigured()) ? "<div class='settle-card-req'>" + payPanelHTML() + "</div>" : (m === "ФОП" && fopConfigured()) ? "<div class='settle-card-req'>" + fopPanelHTML() + "</div>" : "";
 }
+let settleOwnsModal = false;
 function closeSettle() {
   const ov = document.querySelector(".settle-overlay");
   if (ov) ov.remove();
+  if (settleOwnsModal) { document.getElementById("odm-bg").classList.remove("open"); settleOwnsModal = false; }
 }
 async function confirmSettle() {
   const amt = parseInt(document.getElementById("settle-amt").value || "0");
