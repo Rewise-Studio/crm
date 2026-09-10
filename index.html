@@ -1014,6 +1014,13 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .plan-cal-day.muted { visibility: hidden; }
 .plan-cal-day.today { background: var(--cognac); color: #fff; font-weight: 700; }
 .plan-cal-day.selected { background: var(--cognac-light); color: var(--cognac); font-weight: 700; }
+
+.q-card { text-align: center; }
+.q-text { font-family: 'Tenor Sans', serif; font-size: 13px; color: var(--txt-2); line-height: 1.6; letter-spacing: 0.02em; }
+.q-attrib { font-family: 'Tenor Sans', serif; font-size: 9px; color: var(--cognac); letter-spacing: 0.15em; text-transform: uppercase; margin-top: 8px; }
+.q-actions { display: flex; justify-content: center; gap: 16px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+.q-act { font-size: 15px; color: var(--txt-3); cursor: pointer; transition: color 0.15s; }
+.q-act.active { color: var(--cognac); }
 .plan-cal-day .dot { position: absolute; bottom: 1px; left: 50%; transform: translateX(-50%); width: 3px; height: 3px; border-radius: 50%; background: var(--st-postponed-fg); }
 .plan-cal-filter-note { margin-top: 10px; font-size: 10.5px; color: var(--txt-2); }
 .plan-cal-filter-note span { color: var(--cognac); font-weight: 600; cursor: pointer; }
@@ -1940,6 +1947,7 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
 </div>
 
 <script src="js/receipt.js?v=1"></script>
+<script src="js/quotes.js?v=1"></script>
 <script src="js/photo.js?v=1"></script>
 <script src="js/summary.js?v=1"></script>
 <script>
@@ -4179,6 +4187,81 @@ function planToggleExpand(itemNum) { planExpanded[itemNum] = !planExpanded[itemN
 function planToggleSection(key) { planCollapsed[key] = !planCollapsed[key]; renderers.todayplan(); }
 function planSetFilter(v) { planFilter = v; renderers.todayplan(); }
 function planSetViewMode(v) { planViewMode = v; renderers.todayplan(); }
+/* ═══════════════ ФРАЗА ДНЯ ═══════════════
+   Спільна для всього застосунку (не персональна), зберігається в localStorage —
+   поки CRM працює на одному пристрої. Якщо колись з'явиться кілька пристроїв
+   одночасно — це місце, де знадобиться перенести стан на backend. */
+const QUOTES_STORAGE_KEY = "rewise_quotes_state";
+
+function qTodayStr() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+function qLoadState() {
+  try { const raw = localStorage.getItem(QUOTES_STORAGE_KEY); if (raw) return JSON.parse(raw); } catch(e) {}
+  return null;
+}
+function qSaveState(st) {
+  try { localStorage.setItem(QUOTES_STORAGE_KEY, JSON.stringify(st)); } catch(e) {}
+}
+function qInitState() {
+  return { date: null, currentId: null, reaction: null, approved: [], pending: QUOTES.map(q => q.id), rejected: [] };
+}
+/* Гарантує, що стан відповідає сьогоднішній даті — при зміні дня прокручує чергу. */
+function qEnsureToday() {
+  let st = qLoadState();
+  if (!st) st = qInitState();
+
+  // Синхронізація з бібліотекою: прибрати видалені id, додати нові фрази в pending
+  const knownIds = new Set(QUOTES.map(q => q.id));
+  st.pending = st.pending.filter(id => knownIds.has(id));
+  st.approved = st.approved.filter(id => knownIds.has(id));
+  st.rejected = st.rejected.filter(id => knownIds.has(id));
+  const used = new Set([...st.pending, ...st.approved, ...st.rejected]);
+  QUOTES.forEach(q => { if (!used.has(q.id)) st.pending.push(q.id); });
+
+  const today = qTodayStr();
+  if (st.date !== today) {
+    if (st.currentId != null) {
+      const idx = st.pending.indexOf(st.currentId);
+      if (st.reaction === "approved") {
+        if (idx !== -1) st.pending.splice(idx, 1);
+        if (!st.approved.includes(st.currentId)) st.approved.push(st.currentId);
+      } else if (st.reaction === "rejected") {
+        if (idx !== -1) st.pending.splice(idx, 1);
+        if (!st.rejected.includes(st.currentId)) st.rejected.push(st.currentId);
+      } else if (idx !== -1) {
+        st.pending.splice(idx, 1); st.pending.push(st.currentId);
+      }
+    }
+    if (!st.pending.length) { st.pending = st.approved.length ? st.approved.slice() : QUOTES.map(q => q.id); st.approved = []; }
+    st.currentId = st.pending[0];
+    st.reaction = null;
+    st.date = today;
+    qSaveState(st);
+  }
+  return st;
+}
+function qReact(type) {
+  const st = qEnsureToday();
+  st.reaction = (st.reaction === type) ? null : type;
+  qSaveState(st);
+  renderers.todayplan();
+}
+function planQuoteCardHTML() {
+  const st = qEnsureToday();
+  const quote = QUOTES.find(q => q.id === st.currentId);
+  if (!quote) return "";
+  return "<div class='plan-side-card q-card'>" +
+    "<div class='q-text'>«" + quote.text + "»</div>" +
+    "<div class='q-attrib'>— REWISE STUDIO</div>" +
+    "<div class='q-actions'>" +
+      "<span class='q-act" + (st.reaction==="approved" ? " active" : "") + "' onclick=\"qReact('approved')\">" + (st.reaction==="approved" ? "♥" : "♡") + "</span>" +
+      "<span class='q-act" + (st.reaction==="rejected" ? " active" : "") + "' onclick=\"qReact('rejected')\">×</span>" +
+    "</div>" +
+  "</div>";
+}
+
 function planDateHeaderHTML() {
   const today = new Date();
   const weekdayNames = ["Неділя","Понеділок","Вівторок","Середа","Четвер","П'ятниця","Субота"];
@@ -4349,6 +4432,7 @@ renderers.todayplan = function() {
           "<div class='plan-money-row'><span class='plan-money-lbl'>Гроші в роботі</span><span class='plan-money-val work'>" + fmtUAH(planMoneyByStatus("⚙️ В роботі")) + "</span></div>" +
           "<div class='plan-money-row'><span class='plan-money-lbl'>Не почато</span><span class='plan-money-val new'>" + fmtUAH(planMoneyByStatus("🆕 Новий")) + "</span></div>" +
         "</div>" +
+        planQuoteCardHTML() +
       "</div>" +
     "</div>";
 };
