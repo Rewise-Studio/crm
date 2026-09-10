@@ -939,6 +939,85 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .mw-btn { padding: 8px 16px; border: none; border-radius: 9px; background: var(--cognac); color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; font-family: 'Commissioner', sans-serif; }
 .mw-btn.ghost { background: var(--st-ready-bg); color: var(--st-ready-fg); }
 
+/* ═══ ПЛАН ═══ */
+.plan-wrap { display: flex; gap: 20px; align-items: flex-start; padding: 0 28px 40px; }
+.plan-main { flex: 1; min-width: 0; }
+.plan-side { width: 260px; flex-shrink: 0; }
+.plan-filter-row { margin: 12px 0 16px; }
+.plan-f-toggle { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 9px; padding: 3px; }
+.plan-f-opt { padding: 7px 15px; border-radius: 7px; font-size: 12px; font-weight: 700; color: var(--txt-2); cursor: pointer; }
+.plan-f-opt.active { background: var(--cognac); color: #fff; }
+.plan-tiles { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 18px; }
+.plan-tile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; text-align: center; }
+.plan-tile-val { font-family: 'Tenor Sans', serif; font-size: 20px; }
+.plan-tile.late .plan-tile-val { color: var(--st-postponed-fg); }
+.plan-tile-lbl { font-size: 10px; color: var(--txt-2); margin-top: 2px; text-transform: uppercase; letter-spacing: .03em; }
+
+.plan-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 14px; overflow: hidden; }
+.plan-card-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; cursor: pointer; }
+.plan-card-head-left { display: flex; align-items: center; gap: 9px; }
+.plan-card-title { font-size: 13px; font-weight: 700; }
+.plan-card-count { background: var(--cognac-light); color: var(--cognac); font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+.plan-chev { color: var(--txt-3); transition: transform .15s; }
+.plan-chev.up { transform: rotate(180deg); }
+.plan-empty { padding: 16px 18px; font-size: 12px; color: var(--txt-3); text-align: center; }
+
+.plan-row { display: flex; align-items: center; gap: 11px; padding: 11px 18px; border-top: 1px solid var(--line-soft); }
+.plan-row-num { font-size: 11px; color: var(--cognac); font-weight: 700; flex-shrink: 0; width: 56px; }
+.plan-row-main { flex: 1; min-width: 0; }
+.plan-row-name { font-size: 13px; font-weight: 600; }
+.plan-row-meta { font-size: 11px; color: var(--txt-2); margin-top: 2px; }
+.plan-master-chip { font-size: 9.5px; font-weight: 700; padding: 4px 9px; border-radius: 12px; white-space: nowrap; flex-shrink: 0; }
+.plan-master-chip.m-oleksandr { background: rgba(59,110,113,0.14); color: #2F6366; }
+.plan-master-chip.m-serhii { background: rgba(122,74,107,0.14); color: #6B3A5D; }
+.plan-master-chip.m-none { background: var(--line-soft); color: var(--txt-3); }
+.plan-badge { font-size: 9.5px; font-weight: 700; padding: 4px 10px; border-radius: 12px; white-space: nowrap; flex-shrink: 0; }
+.plan-badge.b-work { background: var(--st-work-bg); color: var(--st-work-fg); }
+.plan-badge.b-ready { background: var(--st-ready-bg); color: var(--st-ready-fg); }
+.plan-badge.b-late { background: var(--st-postponed-bg); color: var(--st-postponed-fg); }
+.plan-row-arrow { color: var(--txt-3); flex-shrink: 0; transition: transform .15s; }
+.plan-row-arrow.up { transform: rotate(180deg); }
+.plan-issue-btn { padding: 7px 15px; border: none; border-radius: 8px; background: var(--cognac); color: #fff; font-size: 11.5px; font-weight: 700; cursor: pointer; flex-shrink: 0; font-family: 'Commissioner', sans-serif; }
+.plan-bell { width: 30px; height: 30px; border-radius: 9px; background: var(--st-work-bg); color: var(--st-work-fg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; }
+
+.plan-accordion { background: var(--bg); border-top: 1px solid var(--line-soft); padding: 9px 18px 10px 74px; }
+.plan-svc-line { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-top: 1px dashed var(--line); }
+.plan-svc-line:first-child { border-top: none; }
+.plan-svc-name { font-size: 12px; color: var(--txt); }
+.plan-svc-btn { padding: 6px 12px; border: none; border-radius: 8px; background: var(--cognac); color: #fff; font-size: 10.5px; font-weight: 700; cursor: pointer; font-family: 'Commissioner', sans-serif; }
+.plan-svc-btn.ghost { background: var(--st-ready-bg); color: var(--st-ready-fg); }
+.plan-svc-done { font-size: 10.5px; color: var(--st-ready-fg); font-weight: 600; }
+.plan-svc-empty { padding: 8px 0; font-size: 11.5px; color: var(--txt-3); }
+
+.plan-side-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 15px 16px; margin-bottom: 14px; }
+.plan-cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 11px; font-size: 12.5px; font-weight: 700; }
+.plan-cal-nav { display: flex; gap: 10px; color: var(--txt-3); cursor: pointer; }
+.plan-cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; text-align: center; }
+.plan-cal-dow { font-size: 8.5px; color: var(--txt-3); padding-bottom: 3px; }
+.plan-cal-day { font-size: 10.5px; padding: 6px 0; border-radius: 6px; color: var(--txt); position: relative; cursor: pointer; }
+.plan-cal-day.muted { visibility: hidden; }
+.plan-cal-day.today { background: var(--cognac); color: #fff; font-weight: 700; }
+.plan-cal-day.selected { background: var(--cognac-light); color: var(--cognac); font-weight: 700; }
+.plan-cal-day .dot { position: absolute; bottom: 1px; left: 50%; transform: translateX(-50%); width: 3px; height: 3px; border-radius: 50%; background: var(--st-postponed-fg); }
+.plan-cal-filter-note { margin-top: 10px; font-size: 10.5px; color: var(--txt-2); }
+.plan-cal-filter-note span { color: var(--cognac); font-weight: 600; cursor: pointer; }
+
+.plan-money-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-top: 1px dashed var(--line); }
+.plan-money-row:first-child { border-top: none; }
+.plan-money-lbl { font-size: 11px; color: var(--txt-2); }
+.plan-money-val { font-family: 'Tenor Sans', serif; font-size: 14px; }
+.plan-money-val.debt { color: var(--st-postponed-fg); }
+.plan-money-val.work { color: var(--st-work-fg); }
+.plan-money-val.new { color: var(--st-new-fg); }
+
+@media (orientation: portrait) and (max-width: 1180px) {
+  .plan-wrap { flex-direction: row; padding: 0 12px 30px; gap: 10px; }
+  .plan-side { width: 150px; }
+  .plan-tiles { grid-template-columns: repeat(2,1fr); }
+  .plan-row-meta { display: block; }
+  .plan-row-num { width: 40px; font-size: 10px; }
+}
+
 .hist-link { cursor: pointer; }
 .hist-link:hover { opacity: 0.75; }
 .hist-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
@@ -1827,6 +1906,7 @@ body.no-auth .role-badge, body.no-auth .nav-logout { display: none; }
   <div class="page" id="page-stats"></div>
   <div class="page" id="page-tasks"></div>
   <div class="page" id="page-calendar"></div>
+  <div class="page" id="page-todayplan"></div>
   <div class="page" id="page-myworks"></div>
   <div class="page" id="page-tailor"></div>
   <div class="page" id="page-settings"></div>
@@ -1986,8 +2066,8 @@ function toggleTheme() {
 /* ═══════════════ РОУТИНГ ═══════════════ */
 let currentPage = "orders";
 /* Об'єднані розділи: одна іконка → внутрішні вкладки */
-const NAV_GROUP = { orders: "worklist", tailor: "worklist", assign: "worklist", finance: "analytics", stats: "analytics", tasks: "planning", calendar: "planning", myworks: "planning" };
-const GROUP_DEFAULT = { worklist: "orders", analytics: "finance", planning: "myworks" };
+const NAV_GROUP = { orders: "worklist", tailor: "worklist", assign: "worklist", finance: "analytics", stats: "analytics", tasks: "planning", calendar: "planning", myworks: "planning", todayplan: "planning" };
+const GROUP_DEFAULT = { worklist: "orders", analytics: "finance", planning: "todayplan" };
 const groupTab = { worklist: "orders", analytics: "finance", planning: "tasks" };
 function showPage(name) {
   // Вхід у групу → відкриваємо запам'ятовану/типову вкладку
@@ -2015,7 +2095,7 @@ function groupSwitcher(group) {
     ? [["orders","Ремонт"],["tailor","Виготовлення"],["assign","Розподіл"]]
     : group === "analytics"
     ? [["finance","Фінанси"],["stats","Статистика"]]
-    : [["tasks","Задачі"],["calendar","Календар"],["myworks","Мої роботи"]];
+    : [["todayplan","План"],["myworks","Мої роботи"],["tasks","Задачі"],["calendar","Календар"]];
   return "<div class='grp-switch'>" + tabs.map(t =>
     "<button class='grp-tab" + (currentPage===t[0]?" active":"") + "' onclick=\"showPage('" + t[0] + "')\">" + t[1] + "</button>"
   ).join("") + "</div>";
@@ -4020,6 +4100,218 @@ renderers.assign = function() {
       : "<div class='orders-empty'>Тут порожньо</div>");
 };
 
+/* ═══════════════ ПЛАН ═══════════════ */
+let planFilter = "all";           // all | mine
+let planExpanded = {};            // itemNum -> bool (розгорнутий акордеон послуг)
+let planCollapsed = {};           // sectionKey -> bool (згорнута секція цілком)
+let planCalMonth = new Date();    // місяць, що показує міні-календар
+let planDateFilter = null;        // "dd.mm.yyyy" — фільтр по кліку на день календаря, або null
+
+function planItemIsMine(it) {
+  const svcs = activeServices().filter(s => gv(s,"Номер виробу") === gv(it,"Номер виробу"));
+  return svcs.some(s => isMineAssignment(gv(s,"Призначено")));
+}
+function planItemProgress(itemNum) {
+  const svcs = activeServices().filter(s => gv(s,"Номер виробу") === itemNum);
+  const done = svcs.filter(s => gv(s,"Статус") === "✅ Готово").length;
+  return { done: done, total: svcs.length, svcs: svcs };
+}
+function planItemMasterChip(itemNum) {
+  const p = planItemProgress(itemNum);
+  const next = p.svcs.find(s => gv(s,"Статус") !== "✅ Готово");
+  const assigned = next ? gv(next,"Призначено") : "";
+  return assigned || "";
+}
+function planOrderTermDate(orderNum) {
+  const o = ORDERS.find(x => gv(x,"Номер замовлення") === orderNum);
+  return o ? parseDeadline(gv(o,"Термін")) : null;
+}
+function planOrderTermStr(orderNum) {
+  const o = ORDERS.find(x => gv(x,"Номер замовлення") === orderNum);
+  return o ? gv(o,"Термін") : "";
+}
+function planIsOverdue(orderNum) {
+  const d = planOrderTermDate(orderNum);
+  if (!d) return false;
+  const today = new Date(); today.setHours(0,0,0,0);
+  return d < today;
+}
+function planItemName(it) {
+  return [gv(it,"Тип"), gv(it,"Бренд")].filter(Boolean).join(" · ") || "Виріб";
+}
+function planDebtTotal() {
+  let sum = 0;
+  ORDERS.forEach(o => {
+    const num = gv(o,"Номер замовлення");
+    if (isOrderDeleted(o)) return;
+    if (isOrderPaid(num)) return;
+    const total = orderTotal(num);
+    const payStr = gv(o,"Оплата");
+    const prepayAmt = extractAmt(payStr);
+    const settleAmt = extractAmt(gv(o,"Сума доплати"));
+    sum += computePayStatus(total, payStr, prepayAmt, settleAmt).toPay;
+  });
+  return sum;
+}
+function planMoneyByStatus(status) {
+  let sum = 0;
+  ITEMS.forEach(it => { if (gv(it,"Статус") === status) sum += parseInt(gv(it,"Сума")) || 0; });
+  return sum;
+}
+function planToggleExpand(itemNum) { planExpanded[itemNum] = !planExpanded[itemNum]; renderers.todayplan(); }
+function planToggleSection(key) { planCollapsed[key] = !planCollapsed[key]; renderers.todayplan(); }
+function planSetFilter(v) { planFilter = v; renderers.todayplan(); }
+function planCalPrevMonth() { planCalMonth = new Date(planCalMonth.getFullYear(), planCalMonth.getMonth()-1, 1); renderers.todayplan(); }
+function planCalNextMonth() { planCalMonth = new Date(planCalMonth.getFullYear(), planCalMonth.getMonth()+1, 1); renderers.todayplan(); }
+function planCalDayClick(dateStr) { planDateFilter = (planDateFilter === dateStr) ? null : dateStr; renderers.todayplan(); }
+function fmtDateUA(d) { return d.toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit",year:"numeric"}); }
+
+function planAccordionHTML(itemNum) {
+  const p = planItemProgress(itemNum);
+  if (!p.svcs.length) return "<div class='plan-accordion'><div class='plan-svc-empty'>Немає розбитих послуг</div></div>";
+  const lines = p.svcs.map(s => {
+    const svcNum = gv(s,"Номер послуги");
+    const status = gv(s,"Статус") || "🆕 Новий";
+    let action = "<span class='plan-svc-done'>✓ Готово</span>";
+    if (status === "🆕 Новий") action = "<button class='plan-svc-btn' onclick=\"svcAction('" + svcNum + "','work')\">Взяти в роботу</button>";
+    else if (status === "⚙️ В роботі") action = "<button class='plan-svc-btn ghost' onclick=\"svcAction('" + svcNum + "','ready')\">Готово</button>";
+    return "<div class='plan-svc-line'><span class='plan-svc-name'>" + gv(s,"Назва") + "</span>" + action + "</div>";
+  }).join("");
+  return "<div class='plan-accordion'>" + lines + "</div>";
+}
+
+function planRowHTML(it, opts) {
+  opts = opts || {};
+  const itemNum = gv(it,"Номер виробу");
+  const orderNum = gv(it,"Номер замовлення");
+  const p = planItemProgress(itemNum);
+  const master = planItemMasterChip(itemNum);
+  const expanded = !!planExpanded[itemNum];
+  const overdue = planIsOverdue(orderNum);
+  const status = gv(it,"Статус");
+  const badgeClass = status === "✅ Готово" ? "b-ready" : overdue ? "b-late" : "b-work";
+  const badgeText = status === "✅ Готово" ? "Готово" : overdue ? "Прострочено" : "В роботі";
+  const masterChip = master
+    ? "<div class='plan-master-chip " + (RESTRICTED_MASTER_NAMES.indexOf(master)!==-1 ? "m-serhii" : "m-oleksandr") + "'>" + master + "</div>"
+    : "<div class='plan-master-chip m-none'>Не призн.</div>";
+
+  const right = opts.issueBtn
+    ? "<button class='plan-issue-btn' onclick=\"issueWholeOrder('" + orderNum + "')\">Видати</button>"
+    : opts.bell
+    ? "<div class='plan-bell' onclick=\"toggleNotified('" + itemNum + "',0)\">🔔</div>"
+    : "<div class='plan-row-arrow" + (expanded ? " up" : "") + "'>⌄</div>";
+
+  const clickAttr = opts.issueBtn || opts.bell ? "" : " onclick=\"planToggleExpand('" + itemNum + "')\"";
+
+  return "<div class='plan-row'" + clickAttr + " style='cursor:" + (opts.issueBtn || opts.bell ? "default" : "pointer") + "'>" +
+      "<div class='plan-row-num'>" + orderNum + "</div>" +
+      "<div class='plan-row-main'><div class='plan-row-name'>" + gv(it,"Бренд") + "</div>" +
+        "<div class='plan-row-meta'>" + planItemName(it) + " · " + p.done + "/" + p.total + " операції</div></div>" +
+      masterChip +
+      "<div class='plan-badge " + badgeClass + "'>" + badgeText + "</div>" +
+      right +
+    "</div>" +
+    (!opts.issueBtn && !opts.bell && expanded ? planAccordionHTML(itemNum) : "");
+}
+
+function planSectionHTML(key, title, items, opts) {
+  const collapsedDefault = items.length === 0;
+  const collapsed = (key in planCollapsed) ? planCollapsed[key] : collapsedDefault;
+  const rows = collapsed ? "" : items.map(it => planRowHTML(it, opts)).join("");
+  return "<div class='plan-card'>" +
+    "<div class='plan-card-head' onclick=\"planToggleSection('" + key + "')\">" +
+      "<div class='plan-card-head-left'><div class='plan-card-title'>" + title + "</div><div class='plan-card-count'>" + items.length + "</div></div>" +
+      "<div class='plan-chev" + (collapsed ? "" : " up") + "'>⌄</div>" +
+    "</div>" +
+    (collapsed ? "" : "<div>" + (items.length ? rows : "<div class='plan-empty'>Тут порожньо</div>") + "</div>") +
+  "</div>";
+}
+
+function planCalendarHTML() {
+  const y = planCalMonth.getFullYear(), m = planCalMonth.getMonth();
+  const first = new Date(y, m, 1);
+  const startOffset = (first.getDay() + 6) % 7; // понеділок = 0
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const monthNames = ["Січень","Лютий","Березень","Квітень","Травень","Червень","Липень","Серпень","Вересень","Жовтень","Листопад","Грудень"];
+
+  const dueDates = {};
+  ORDERS.forEach(o => {
+    if (isOrderDeleted(o)) return;
+    const num = gv(o,"Номер замовлення");
+    const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
+    if (its.every(i => gv(i,"Статус") === "📦 Виданий")) return;
+    const d = parseDeadline(gv(o,"Термін"));
+    if (d) dueDates[fmtDateUA(d)] = (dueDates[fmtDateUA(d)]||0) + 1;
+  });
+
+  let cells = "";
+  for (let i = 0; i < startOffset; i++) cells += "<div class='plan-cal-day muted'></div>";
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(y, m, d);
+    const dateStr = fmtDateUA(date);
+    const isToday = date.getTime() === today.getTime();
+    const isSel = planDateFilter === dateStr;
+    const hasDue = !!dueDates[dateStr];
+    cells += "<div class='plan-cal-day" + (isToday?" today":"") + (isSel && !isToday ? " selected":"") + "' onclick=\"planCalDayClick('" + dateStr + "')\">" + d + (hasDue ? "<span class='dot'></span>" : "") + "</div>";
+  }
+
+  return "<div class='plan-side-card'>" +
+    "<div class='plan-cal-head'>" + monthNames[m] + " " + y +
+      "<div class='plan-cal-nav'><span onclick='planCalPrevMonth()'>‹</span><span onclick='planCalNextMonth()'>›</span></div></div>" +
+    "<div class='plan-cal-grid'>" +
+      "<div class='plan-cal-dow'>Пн</div><div class='plan-cal-dow'>Вт</div><div class='plan-cal-dow'>Ср</div><div class='plan-cal-dow'>Чт</div><div class='plan-cal-dow'>Пт</div><div class='plan-cal-dow'>Сб</div><div class='plan-cal-dow'>Нд</div>" +
+      cells +
+    "</div>" +
+    (planDateFilter ? "<div class='plan-cal-filter-note'>Фільтр: " + planDateFilter + " <span onclick='planCalDayClick(\"" + planDateFilter + "\")'>× очистити</span></div>" : "") +
+  "</div>";
+}
+
+renderers.todayplan = function() {
+  const page = document.getElementById("page-todayplan");
+
+  let items = ITEMS.filter(it => gv(it,"Статус") !== "📦 Виданий" && !isOrderDeleted(ORDERS.find(o => gv(o,"Номер замовлення")===gv(it,"Номер замовлення")) || {}));
+  if (planFilter === "mine") items = items.filter(planItemIsMine);
+  if (planDateFilter) items = items.filter(it => planOrderTermStr(gv(it,"Номер замовлення")) === planDateFilter);
+
+  const working = items.filter(it => gv(it,"Статус") === "⚙️ В роботі" && !planIsOverdue(gv(it,"Номер замовлення")));
+  const ready = items.filter(it => gv(it,"Статус") === "✅ Готово");
+  const overdue = items.filter(it => planIsOverdue(gv(it,"Номер замовлення")));
+  const needNotify = ready.filter(it => !gv(it,"Сповіщено"));
+
+  page.innerHTML =
+    groupSwitcher("planning") +
+    "<div class='plan-wrap'>" +
+      "<div class='plan-main'>" +
+        "<div class='page-header'><div class='page-title'>План</div></div>" +
+        "<div class='plan-filter-row'>" +
+          "<div class='plan-f-toggle'>" +
+            "<span class='plan-f-opt" + (planFilter==="all"?" active":"") + "' onclick=\"planSetFilter('all')\">Всі роботи</span>" +
+            "<span class='plan-f-opt" + (planFilter==="mine"?" active":"") + "' onclick=\"planSetFilter('mine')\">Мої роботи</span>" +
+          "</div>" +
+        "</div>" +
+        "<div class='plan-tiles'>" +
+          "<div class='plan-tile'><div class='plan-tile-val'>" + working.length + "</div><div class='plan-tile-lbl'>В роботі</div></div>" +
+          "<div class='plan-tile'><div class='plan-tile-val'>" + ready.length + "</div><div class='plan-tile-lbl'>Видати</div></div>" +
+          "<div class='plan-tile'><div class='plan-tile-val'>" + needNotify.length + "</div><div class='plan-tile-lbl'>Повідомити</div></div>" +
+          "<div class='plan-tile late'><div class='plan-tile-val'>" + overdue.length + "</div><div class='plan-tile-lbl'>Прострочено</div></div>" +
+        "</div>" +
+        planSectionHTML("working", "В роботі сьогодні", working, {}) +
+        planSectionHTML("ready", "Готові до видачі", ready, { issueBtn: true }) +
+        planSectionHTML("notify", "Потрібно повідомити клієнта", needNotify, { bell: true }) +
+        planSectionHTML("overdue", "Прострочені", overdue, {}) +
+      "</div>" +
+      "<div class='plan-side'>" +
+        planCalendarHTML() +
+        "<div class='plan-side-card plan-money'>" +
+          "<div class='plan-money-row'><span class='plan-money-lbl'>Загальний борг клієнтів</span><span class='plan-money-val debt'>" + fmtUAH(planDebtTotal()) + "</span></div>" +
+          "<div class='plan-money-row'><span class='plan-money-lbl'>Гроші в роботі</span><span class='plan-money-val work'>" + fmtUAH(planMoneyByStatus("⚙️ В роботі")) + "</span></div>" +
+          "<div class='plan-money-row'><span class='plan-money-lbl'>Не почато</span><span class='plan-money-val new'>" + fmtUAH(planMoneyByStatus("🆕 Новий")) + "</span></div>" +
+        "</div>" +
+      "</div>" +
+    "</div>";
+};
+
 /* ═══════════════ МОЇ РОБОТИ ═══════════════ */
 let myWorksShowAll = false;
 function setMyWorksFilter(v) { myWorksShowAll = v; renderers.myworks(); }
@@ -5984,6 +6276,8 @@ function issueWholeOrder(num) {
   if (!pending.length) return;
   const names = masterNamesForRole();
   if (!isAdmin() && names.length === 1) { confirmIssueWholeOrder(num, names[0]); return; }
+  const bg = document.getElementById("odm-bg");
+  if (!bg.classList.contains("open")) { bg.classList.add("open"); settleOwnsModal = true; }
   const body = document.getElementById("odm-body");
   const wrap = document.createElement("div");
   wrap.className = "settle-overlay";
@@ -6025,6 +6319,9 @@ async function confirmIssueWholeOrder(num, master) {
       }
     } catch(e) { console.error("bulk issue failed", e); }
   }
+  if (currentPage === "todayplan") renderers.todayplan();
+  if (currentPage === "assign") renderers.assign();
+  if (currentPage === "myworks") renderers.myworks();
 }
 
 function backToOrders() {
@@ -6274,6 +6571,7 @@ async function confirmToggleNotified(itemNum, who) {
   const nowVal = new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
   it["Сповіщено"] = nowVal; it["Хто сповістив"] = who;
   if (detailOrderNum) openOrder(detailOrderNum);
+  if (currentPage === "todayplan") renderers.todayplan();
   try {
     await fetch(API_URL.replace("/order","/notify"), {
       method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
