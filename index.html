@@ -943,14 +943,24 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .plan-wrap { display: flex; gap: 20px; align-items: flex-start; padding: 0 28px 40px; }
 .plan-main { flex: 1; min-width: 0; }
 .plan-side { width: 260px; flex-shrink: 0; }
-.plan-filter-row { margin: 12px 0 16px; }
+.plan-filter-row { margin: 12px 0 16px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 .plan-f-toggle { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 9px; padding: 3px; }
 .plan-f-opt { padding: 7px 15px; border-radius: 7px; font-size: 12px; font-weight: 700; color: var(--txt-2); cursor: pointer; }
 .plan-f-opt.active { background: var(--cognac); color: #fff; }
+.plan-day-week { display: inline-flex; background: var(--cognac-light); border-radius: 9px; padding: 3px; }
+.plan-dw-opt { padding: 7px 15px; border-radius: 7px; font-size: 12px; font-weight: 700; color: var(--cognac); cursor: pointer; }
+.plan-dw-opt.active { background: var(--cognac); color: #fff; }
 .plan-tiles { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 18px; }
-.plan-tile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; text-align: center; }
-.plan-tile-val { font-family: 'Tenor Sans', serif; font-size: 20px; }
-.plan-tile.late .plan-tile-val { color: var(--st-postponed-fg); }
+.plan-tile { border-radius: 12px; padding: 12px 8px; text-align: center; }
+.plan-tile-val { font-family: 'Tenor Sans', serif; font-size: 20px; font-weight: 700; }
+.plan-tile.t-work { background: var(--cognac-light); }
+.plan-tile.t-work .plan-tile-val { color: var(--cognac); }
+.plan-tile.t-ready { background: var(--st-ready-bg); }
+.plan-tile.t-ready .plan-tile-val { color: var(--st-ready-fg); }
+.plan-tile.t-notify { background: var(--st-work-bg); }
+.plan-tile.t-notify .plan-tile-val { color: var(--st-work-fg); }
+.plan-tile.t-late { background: var(--st-postponed-bg); }
+.plan-tile.t-late .plan-tile-val { color: var(--st-postponed-fg); }
 .plan-tile-lbl { font-size: 10px; color: var(--txt-2); margin-top: 2px; text-transform: uppercase; letter-spacing: .03em; }
 
 .plan-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 14px; overflow: hidden; }
@@ -962,17 +972,14 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .plan-chev.up { transform: rotate(180deg); }
 .plan-empty { padding: 16px 18px; font-size: 12px; color: var(--txt-3); text-align: center; }
 
-.plan-row { display: flex; align-items: center; gap: 11px; padding: 11px 18px; border-top: 1px solid var(--line-soft); }
-.plan-row-num { font-size: 11px; color: var(--cognac); font-weight: 700; flex-shrink: 0; width: 56px; }
-.plan-row-main { flex: 1; min-width: 0; }
-.plan-row-name { font-size: 13px; font-weight: 600; }
-.plan-row-meta { font-size: 11px; color: var(--txt-2); margin-top: 2px; }
-.plan-master-chip { font-size: 9.5px; font-weight: 700; padding: 4px 9px; border-radius: 12px; white-space: nowrap; flex-shrink: 0; }
-.plan-master-chip.m-oleksandr { background: rgba(59,110,113,0.14); color: #2F6366; }
-.plan-master-chip.m-serhii { background: rgba(122,74,107,0.14); color: #6B3A5D; }
-.plan-master-chip.m-none { background: var(--line-soft); color: var(--txt-3); }
-.plan-badge { font-size: 9.5px; font-weight: 700; padding: 4px 10px; border-radius: 12px; white-space: nowrap; flex-shrink: 0; }
+.plan-row { display: grid; grid-template-columns: 56px 1fr auto auto; align-items: center; gap: 11px; padding: 11px 18px; border-top: 1px solid var(--line-soft); }
+.plan-row-num { font-size: 11px; color: var(--cognac); font-weight: 700; }
+.plan-row-main { min-width: 0; }
+.plan-row-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plan-row-meta { font-size: 11px; color: var(--txt-2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plan-badge { font-size: 9.5px; font-weight: 700; padding: 4px 10px; border-radius: 12px; white-space: nowrap; flex-shrink: 0; text-align: center; }
 .plan-badge.b-work { background: var(--st-work-bg); color: var(--st-work-fg); }
+.plan-badge.b-new { background: var(--st-new-bg); color: var(--st-new-fg); }
 .plan-badge.b-ready { background: var(--st-ready-bg); color: var(--st-ready-fg); }
 .plan-badge.b-late { background: var(--st-postponed-bg); color: var(--st-postponed-fg); }
 .plan-row-arrow { color: var(--txt-3); flex-shrink: 0; transition: transform .15s; }
@@ -981,13 +988,22 @@ input[type='date'] { -webkit-appearance: none; appearance: none; width: 100%; mi
 .plan-bell { width: 30px; height: 30px; border-radius: 9px; background: var(--st-work-bg); color: var(--st-work-fg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; }
 
 .plan-accordion { background: var(--bg); border-top: 1px solid var(--line-soft); padding: 9px 18px 10px 74px; }
-.plan-svc-line { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-top: 1px dashed var(--line); }
+.plan-svc-line { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 7px 0; border-top: 1px dashed var(--line); }
 .plan-svc-line:first-child { border-top: none; }
-.plan-svc-name { font-size: 12px; color: var(--txt); }
-.plan-svc-btn { padding: 6px 12px; border: none; border-radius: 8px; background: var(--cognac); color: #fff; font-size: 10.5px; font-weight: 700; cursor: pointer; font-family: 'Commissioner', sans-serif; }
+.plan-svc-name { font-size: 12px; color: var(--txt); flex: 1; min-width: 0; }
+.plan-svc-master-chip { font-size: 9.5px; font-weight: 700; padding: 4px 9px; border-radius: 12px; white-space: nowrap; flex-shrink: 0; margin-right: 10px; }
+.plan-svc-master-chip.m-oleksandr { background: rgba(59,110,113,0.14); color: #2F6366; }
+.plan-svc-master-chip.m-serhii { background: rgba(122,74,107,0.14); color: #6B3A5D; }
+.plan-svc-master-chip.m-none { background: var(--line-soft); color: var(--txt-3); }
+.plan-svc-btn { padding: 6px 12px; border: none; border-radius: 8px; background: var(--cognac); color: #fff; font-size: 10.5px; font-weight: 700; cursor: pointer; font-family: 'Commissioner', sans-serif; flex-shrink: 0; }
 .plan-svc-btn.ghost { background: var(--st-ready-bg); color: var(--st-ready-fg); }
-.plan-svc-done { font-size: 10.5px; color: var(--st-ready-fg); font-weight: 600; }
+.plan-svc-done { font-size: 10.5px; color: var(--st-ready-fg); font-weight: 600; flex-shrink: 0; }
 .plan-svc-empty { padding: 8px 0; font-size: 11.5px; color: var(--txt-3); }
+
+.plan-cal-page-block { padding: 0 16px 12px; margin-bottom: 12px; border-bottom: 1px solid var(--line); }
+.plan-cal-page-row2 { display: flex; align-items: baseline; gap: 8px; }
+.plan-cal-page-weekday { font-size: 14px; font-weight: 700; color: var(--txt); line-height: 1; }
+.plan-cal-page-date-big { font-family: 'Tenor Sans', serif; font-size: 20px; line-height: 1; color: var(--txt); }
 
 .plan-side-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 15px 16px; margin-bottom: 14px; }
 .plan-cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 11px; font-size: 12.5px; font-weight: 700; }
@@ -4102,6 +4118,7 @@ renderers.assign = function() {
 
 /* ═══════════════ ПЛАН ═══════════════ */
 let planFilter = "all";           // all | mine
+let planViewMode = "day";         // day | week
 let planExpanded = {};            // itemNum -> bool (розгорнутий акордеон послуг)
 let planCollapsed = {};           // sectionKey -> bool (згорнута секція цілком)
 let planCalMonth = new Date();    // місяць, що показує міні-календар
@@ -4161,6 +4178,18 @@ function planMoneyByStatus(status) {
 function planToggleExpand(itemNum) { planExpanded[itemNum] = !planExpanded[itemNum]; renderers.todayplan(); }
 function planToggleSection(key) { planCollapsed[key] = !planCollapsed[key]; renderers.todayplan(); }
 function planSetFilter(v) { planFilter = v; renderers.todayplan(); }
+function planSetViewMode(v) { planViewMode = v; renderers.todayplan(); }
+function planDateHeaderHTML() {
+  const today = new Date();
+  const weekdayNames = ["Неділя","Понеділок","Вівторок","Середа","Четвер","П'ятниця","Субота"];
+  if (planViewMode === "week") {
+    const end = new Date(today); end.setDate(today.getDate() + 6);
+    const fmt = d => (d.getDate()+"").padStart(2,"0") + "." + ((d.getMonth()+1)+"").padStart(2,"0");
+    return "<div class='plan-cal-page-block'><div class='plan-cal-page-row2'><span class='plan-cal-page-weekday'>" + fmt(today) + " – " + fmt(end) + "</span></div></div>";
+  }
+  const dd = (today.getDate()+"").padStart(2,"0") + "." + ((today.getMonth()+1)+"").padStart(2,"0");
+  return "<div class='plan-cal-page-block'><div class='plan-cal-page-row2'><span class='plan-cal-page-weekday'>" + weekdayNames[today.getDay()] + "</span><span class='plan-cal-page-date-big'>" + dd + "</span></div></div>";
+}
 function planCalPrevMonth() { planCalMonth = new Date(planCalMonth.getFullYear(), planCalMonth.getMonth()-1, 1); renderers.todayplan(); }
 function planCalNextMonth() { planCalMonth = new Date(planCalMonth.getFullYear(), planCalMonth.getMonth()+1, 1); renderers.todayplan(); }
 function planCalDayClick(dateStr) { planDateFilter = (planDateFilter === dateStr) ? null : dateStr; renderers.todayplan(); }
@@ -4172,10 +4201,14 @@ function planAccordionHTML(itemNum) {
   const lines = p.svcs.map(s => {
     const svcNum = gv(s,"Номер послуги");
     const status = gv(s,"Статус") || "🆕 Новий";
+    const assigned = gv(s,"Призначено");
+    const masterChip = assigned
+      ? "<div class='plan-svc-master-chip " + (RESTRICTED_MASTER_NAMES.indexOf(assigned)!==-1 ? "m-serhii" : "m-oleksandr") + "'>" + assigned + "</div>"
+      : "<div class='plan-svc-master-chip m-none'>Не призн.</div>";
     let action = "<span class='plan-svc-done'>✓ Готово</span>";
     if (status === "🆕 Новий") action = "<button class='plan-svc-btn' onclick=\"svcAction('" + svcNum + "','work')\">Взяти в роботу</button>";
     else if (status === "⚙️ В роботі") action = "<button class='plan-svc-btn ghost' onclick=\"svcAction('" + svcNum + "','ready')\">Готово</button>";
-    return "<div class='plan-svc-line'><span class='plan-svc-name'>" + gv(s,"Назва") + "</span>" + action + "</div>";
+    return "<div class='plan-svc-line'><span class='plan-svc-name'>" + gv(s,"Назва") + "</span>" + masterChip + action + "</div>";
   }).join("");
   return "<div class='plan-accordion'>" + lines + "</div>";
 }
@@ -4185,15 +4218,13 @@ function planRowHTML(it, opts) {
   const itemNum = gv(it,"Номер виробу");
   const orderNum = gv(it,"Номер замовлення");
   const p = planItemProgress(itemNum);
-  const master = planItemMasterChip(itemNum);
   const expanded = !!planExpanded[itemNum];
   const overdue = planIsOverdue(orderNum);
   const status = gv(it,"Статус");
-  const badgeClass = status === "✅ Готово" ? "b-ready" : overdue ? "b-late" : "b-work";
-  const badgeText = status === "✅ Готово" ? "Готово" : overdue ? "Прострочено" : "В роботі";
-  const masterChip = master
-    ? "<div class='plan-master-chip " + (RESTRICTED_MASTER_NAMES.indexOf(master)!==-1 ? "m-serhii" : "m-oleksandr") + "'>" + master + "</div>"
-    : "<div class='plan-master-chip m-none'>Не призн.</div>";
+  const badgeClass = status === "✅ Готово" ? "b-ready" : status === "🆕 Новий" ? "b-new" : overdue ? "b-late" : "b-work";
+  const badgeText = status === "✅ Готово" ? "Готово" : status === "🆕 Новий" ? "Новий" : overdue ? "Прострочено" : "В роботі";
+  const termStr = planOrderTermStr(orderNum);
+  const termSuffix = (planViewMode === "week" && termStr) ? " · термін " + termStr : "";
 
   const right = opts.issueBtn
     ? "<button class='plan-issue-btn' onclick=\"issueWholeOrder('" + orderNum + "')\">Видати</button>"
@@ -4206,8 +4237,7 @@ function planRowHTML(it, opts) {
   return "<div class='plan-row'" + clickAttr + " style='cursor:" + (opts.issueBtn || opts.bell ? "default" : "pointer") + "'>" +
       "<div class='plan-row-num'>" + orderNum + "</div>" +
       "<div class='plan-row-main'><div class='plan-row-name'>" + gv(it,"Бренд") + "</div>" +
-        "<div class='plan-row-meta'>" + planItemName(it) + " · " + p.done + "/" + p.total + " операції</div></div>" +
-      masterChip +
+        "<div class='plan-row-meta'>" + gv(it,"Тип") + " · " + p.done + "/" + p.total + " операції" + termSuffix + "</div></div>" +
       "<div class='plan-badge " + badgeClass + "'>" + badgeText + "</div>" +
       right +
     "</div>" +
@@ -4274,34 +4304,45 @@ renderers.todayplan = function() {
   if (planFilter === "mine") items = items.filter(planItemIsMine);
   if (planDateFilter) items = items.filter(it => planOrderTermStr(gv(it,"Номер замовлення")) === planDateFilter);
 
-  const working = items.filter(it => gv(it,"Статус") === "⚙️ В роботі" && !planIsOverdue(gv(it,"Номер замовлення")));
   const ready = items.filter(it => gv(it,"Статус") === "✅ Готово");
   const overdue = items.filter(it => planIsOverdue(gv(it,"Номер замовлення")));
   const needNotify = ready.filter(it => !gv(it,"Сповіщено"));
+
+  // «День»: тільки те, що зараз в роботі (без прострочених — вони своєю секцією).
+  // «Тиждень»: сюди ж додається ще не почате — суцільний список активних робіт, без розбивки по днях
+  // (послуга може виконуватись кілька днів поспіль, тому по днях планувати нечесно).
+  const working = planViewMode === "week"
+    ? items.filter(it => (gv(it,"Статус") === "⚙️ В роботі" || gv(it,"Статус") === "🆕 Новий") && !planIsOverdue(gv(it,"Номер замовлення")))
+    : items.filter(it => gv(it,"Статус") === "⚙️ В роботі" && !planIsOverdue(gv(it,"Номер замовлення")));
+  const workingTitle = planViewMode === "week" ? "Активні роботи цього тижня" : "В роботі сьогодні";
 
   page.innerHTML =
     groupSwitcher("planning") +
     "<div class='plan-wrap'>" +
       "<div class='plan-main'>" +
-        "<div class='page-header'><div class='page-title'>План</div></div>" +
         "<div class='plan-filter-row'>" +
           "<div class='plan-f-toggle'>" +
             "<span class='plan-f-opt" + (planFilter==="all"?" active":"") + "' onclick=\"planSetFilter('all')\">Всі роботи</span>" +
             "<span class='plan-f-opt" + (planFilter==="mine"?" active":"") + "' onclick=\"planSetFilter('mine')\">Мої роботи</span>" +
           "</div>" +
+          "<div class='plan-day-week'>" +
+            "<span class='plan-dw-opt" + (planViewMode==="day"?" active":"") + "' onclick=\"planSetViewMode('day')\">День</span>" +
+            "<span class='plan-dw-opt" + (planViewMode==="week"?" active":"") + "' onclick=\"planSetViewMode('week')\">Тиждень</span>" +
+          "</div>" +
         "</div>" +
         "<div class='plan-tiles'>" +
-          "<div class='plan-tile'><div class='plan-tile-val'>" + working.length + "</div><div class='plan-tile-lbl'>В роботі</div></div>" +
-          "<div class='plan-tile'><div class='plan-tile-val'>" + ready.length + "</div><div class='plan-tile-lbl'>Видати</div></div>" +
-          "<div class='plan-tile'><div class='plan-tile-val'>" + needNotify.length + "</div><div class='plan-tile-lbl'>Повідомити</div></div>" +
-          "<div class='plan-tile late'><div class='plan-tile-val'>" + overdue.length + "</div><div class='plan-tile-lbl'>Прострочено</div></div>" +
+          "<div class='plan-tile t-work'><div class='plan-tile-val'>" + working.length + "</div><div class='plan-tile-lbl'>В роботі</div></div>" +
+          "<div class='plan-tile t-ready'><div class='plan-tile-val'>" + ready.length + "</div><div class='plan-tile-lbl'>Видати</div></div>" +
+          "<div class='plan-tile t-notify'><div class='plan-tile-val'>" + needNotify.length + "</div><div class='plan-tile-lbl'>Повідомити</div></div>" +
+          "<div class='plan-tile t-late'><div class='plan-tile-val'>" + overdue.length + "</div><div class='plan-tile-lbl'>Прострочено</div></div>" +
         "</div>" +
-        planSectionHTML("working", "В роботі сьогодні", working, {}) +
+        planSectionHTML("working", workingTitle, working, {}) +
         planSectionHTML("ready", "Готові до видачі", ready, { issueBtn: true }) +
         planSectionHTML("notify", "Потрібно повідомити клієнта", needNotify, { bell: true }) +
         planSectionHTML("overdue", "Прострочені", overdue, {}) +
       "</div>" +
       "<div class='plan-side'>" +
+        planDateHeaderHTML() +
         planCalendarHTML() +
         "<div class='plan-side-card plan-money'>" +
           "<div class='plan-money-row'><span class='plan-money-lbl'>Загальний борг клієнтів</span><span class='plan-money-val debt'>" + fmtUAH(planDebtTotal()) + "</span></div>" +
