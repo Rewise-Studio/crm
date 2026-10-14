@@ -2175,7 +2175,7 @@ input.eo-nm{width:auto}
 .pl-ch em{font-style:normal;font-size:11px;font-weight:600;background:var(--hover);color:var(--txt-2);border-radius:10px;padding:2px 8px;margin-left:8px}
 .pl-none{padding:18px 16px;font-size:13px;color:var(--txt-3);text-align:center}
 .pl-quiet{font-size:12px;color:var(--txt-3);text-align:center;padding:6px 0 12px;cursor:pointer}
-.pl-r{position:relative;display:grid;grid-template-columns:70px minmax(0,1.1fr) minmax(0,1fr) 66px 100px 76px;align-items:center;gap:10px;padding:11px 36px 11px 16px;border-top:1px solid var(--line-soft);cursor:pointer;min-height:56px}
+.pl-r{position:relative;display:grid;grid-template-columns:70px minmax(0,1.1fr) minmax(0,1fr) 66px 92px 92px;align-items:center;gap:10px;padding:11px 36px 11px 16px;border-top:1px solid var(--line-soft);cursor:pointer;min-height:56px}
 .pl-r.head{border-top:none;padding-top:10px;padding-bottom:4px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--txt-2);font-weight:700;cursor:default;min-height:0}
 .pl-r .nu{font-size:12.5px;font-weight:700;color:var(--cognac);line-height:1.25;white-space:nowrap}
 .pl-r .tx{min-width:0}.pl-r .t1{font-size:14.5px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2598,6 +2598,51 @@ body.kb-open .nav.has-home-bar{position:fixed!important;bottom:0!important;trans
 /* майстер речі поверх вікна редагування замовлення */
 .iw-ovl{z-index:320}
 @media (max-width:768px),(orientation:portrait) and (max-width:1180px),(orientation:landscape) and (max-height:520px){.rc-home{padding-bottom:calc(124px + env(safe-area-inset-bottom))}}
+
+/* Команди оповіщення («Готово / Нагадування / Прийнято») прибрано з картки замовлення */
+.n-notify-group{display:none!important}
+
+/* ───────── Картка замовлення: чек, кнопки виробів, меню видачі ───────── */
+.iv-rcp{background:#faf7f0;border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:12px}
+.iv-rh{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cognac);margin-bottom:10px}
+.iv-ri{margin-bottom:10px}
+.iv-rn{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:3px}
+.iv-rl{display:flex;justify-content:space-between;gap:10px;font-size:14.5px;padding:3px 0 3px 12px;color:var(--txt)}
+.iv-rl0{padding-left:0}
+.iv-p{font-weight:600;white-space:nowrap}
+.iv-ok{color:#4b7a2e}.iv-wk{color:#D9A24C;font-size:10px}.iv-nw{color:#5E9BD6}
+.iv-sep{border-top:1px dashed #d9cfb8;margin:10px 0 8px}
+.iv-rs{display:flex;justify-content:space-between;font-size:13.5px;color:var(--txt-2);padding:2px 0}
+.iv-big{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;font-size:15px;font-weight:600;color:var(--txt)}
+.iv-big b{font-size:28px;font-weight:500}
+.iv-bok b{color:#4b7a2e}
+.iv-st{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--txt-2);margin-left:auto;white-space:nowrap}
+.iv-st i{width:8px;height:8px;border-radius:50%;background:#5E9BD6}
+.iv-st.wk i{background:#D9A24C}.iv-st.rd i{background:#7FB05A}.iv-st.is i{background:#a9a294}
+.iv-b{border-radius:9px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;min-width:96px;cursor:pointer;margin-left:10px}
+.iv-b-new{background:rgba(79,134,198,.09);border:1px solid rgba(79,134,198,.4);color:var(--st-new-fg,#2f5f94)}
+.iv-b-done{background:rgba(106,160,68,.09);border:1px solid rgba(106,160,68,.42);color:var(--st-ready-fg,#3f6a24)}
+.iv-b-give{background:rgba(74,66,56,.07);border:1px solid rgba(74,66,56,.35);color:var(--txt)}
+.iv-b-big{width:100%;margin:0;padding:14px;font-size:16px;border-radius:12px}
+.iv-all{margin-top:12px}
+.n-item .n-ihead .n-iname{flex:1;min-width:0}
+.iv-sh{position:absolute;inset:0;background:rgba(40,34,26,.5);display:flex;align-items:flex-end;justify-content:center;z-index:7;border-radius:14px;overflow:hidden}
+.iv-sheet{width:100%;background:var(--surface,#fff);border-radius:22px 22px 0 0;padding:22px 26px 26px;max-height:100%;overflow:auto}
+.iv-sheet h3{margin:0;font-family:'Tenor Sans',serif;font-weight:400;font-size:24px;color:var(--txt)}
+.iv-sub{color:var(--txt-3);font-size:13px;margin:2px 0 14px}
+.iv-say{background:var(--bg);border-radius:16px;padding:16px 18px;text-align:center;margin-bottom:14px}
+.iv-say small{font-size:12px;color:var(--txt-2);letter-spacing:.1em;text-transform:uppercase}
+.iv-say b{display:block;font-size:44px;font-weight:500;margin:4px 0 2px;color:var(--txt)}
+.iv-say span{font-size:13.5px;color:var(--txt-2)}
+.iv-lbl{font-size:11px;color:var(--cognac);letter-spacing:.12em;text-transform:uppercase;margin:4px 0 8px}
+.iv-pm{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.iv-pm div{flex:1;min-width:90px;border:1px solid var(--line);border-radius:12px;padding:13px;text-align:center;font-size:14.5px;cursor:pointer;color:var(--txt)}
+.iv-pm div.on{background:var(--cognac);color:#fff;border-color:var(--cognac)}
+.iv-row2{display:flex;gap:10px;margin-top:14px}
+.iv-cancel{flex:.5;border:1px solid var(--line);border-radius:12px;background:var(--surface,#fff);font-family:inherit;font-size:15px;color:var(--txt);cursor:pointer;padding:14px}
+.iv-go{flex:2;border:0;border-radius:12px;padding:15px;font-family:inherit;font-size:16px;font-weight:600;background:var(--cognac);color:#fff;cursor:pointer}
+.n-item.collapsed .n-ihead{margin-bottom:0;align-items:center}
+.pl-b.pl-sm{white-space:nowrap}
 
 </style>
 </head>
@@ -9608,7 +9653,7 @@ loadPrice();
         var dim = W !== "all" && k !== W;
         var tag = st === "✅ Готово" ? "<i class='dn'>Готово</i>" : st === "⚙️ В роботі" ? "<i class='wk'>В роботі</i>" : "<i>Не розпочато</i>";
         var btn = "";
-        if (st !== "✅ Готово" && k === AW && !dim) btn = st === "⚙️ В роботі" ? plBtn("pl-b-done pl-sm", "Закрити", "plSvc('" + jq(sn) + "','done')") : plBtn("pl-b-new pl-sm", "Взяти", "plSvc('" + jq(sn) + "','go')");
+        if (st !== "✅ Готово" && k === AW && !dim) btn = st === "⚙️ В роботі" ? plBtn("pl-b-done pl-sm", "Завершити", "plSvc('" + jq(sn) + "','done')") : plBtn("pl-b-new pl-sm", "Взяти", "plSvc('" + jq(sn) + "','go')");
         out += "<div class='pl-ln" + (dim ? " dim" : "") + "'><span class='pl-wn'>" + h(gv(s, "Назва")) + "</span>" +
           "<span class='pl-who'>" + plChip(k, as) + (as ? h(as) : "<u>не призначено</u>") + "</span>" +
           "<em>" + money(extractAmt(gv(s, "Ціна"))) + "</em>" + tag + "<span class='pl-bs'>" + btn + "</span></div>";
@@ -9638,7 +9683,7 @@ loadPrice();
     if (kind === "new") btn = plBtn("pl-b-new", "Взяти", "plAct('take','" + jq(nu) + "')");
     else if (kind === "ready") btn = plBtn("pl-b-give", "Видати", "plAct('give','" + jq(nu) + "')");
     else if (kind === "notify") btn = plBtn("pl-b-bell", "🔔", "plAct('bell','" + jq(nu) + "')");
-    else btn = plBtn("pl-b-done", "Закрити", "plAct('done','" + jq(nu) + "')");
+    else btn = plBtn("pl-b-done", "Завершити", "plAct('done','" + jq(nu) + "')");
     var open = !!PL.exp[nu];
     return "<div class='pl-r" + (late ? " late" : "") + (kind === "ready" && m.debt ? " debt" : "") + (open ? " open" : "") + "' onclick=\"openOrder('" + jq(nu) + "')\">" +
       "<div class='nu'>" + h(nu) + "</div>" +
@@ -10225,6 +10270,250 @@ loadPrice();
       if (!editable(document.activeElement)) document.body.classList.remove("kb-open");
     }, 150);
   });
+})();
+
+/* ───────── Картка замовлення: чек, кнопки у виробів, меню видачі ───────── */
+(function () {
+  function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function money(n) { return Number(n || 0).toLocaleString("uk-UA") + " ₴"; }
+  function jq2(s) { return String(s).replace(/\\/g, "\\\\").replace(/'/g, "\\'"); }
+
+  function itemsOf(num) { return ITEMS.filter(function (i) { return gv(i, "Номер замовлення") === num; }); }
+  function itemNumOf(num, it, idx) { return gv(it, "Номер виробу") || (num + "-" + (idx + 1)); }
+  function itemIssued(it) { return gv(it, "Статус") === "📦 Виданий"; }
+  /* 0 новий, 1 в роботі, 2 готово, 3 видано */
+  function itemStage(num, it, idx) {
+    if (itemIssued(it)) return 3;
+    var svcs = servicesOfItem(itemNumOf(num, it, idx));
+    if (svcs.length) {
+      var ix = svcs.map(function (s) { return serviceStatusIndex(gv(s, "Статус")); });
+      if (ix.every(function (v) { return v === 2; })) return 2;
+      if (ix.some(function (v) { return v >= 1; })) return 1;
+      return 0;
+    }
+    return Math.min(2, itemStatusIndex(gv(it, "Статус")));
+  }
+  function payInfo(num) {
+    var o = ORDERS.find(function (x) { return gv(x, "Номер замовлення") === num; });
+    var total = itemsOf(num).reduce(function (s, it) { return s + extractAmt(gv(it, "Сума")); }, 0);
+    var payStr = gv(o, "Оплата");
+    var prepay = extractAmt(payStr);
+    var settle = extractAmt(gv(o, "Сума доплати"));
+    var ps = computePayStatus(total, payStr, prepay, settle);
+    return { o: o, total: total, payStr: payStr, prepay: prepay, settle: settle, ps: ps };
+  }
+
+  /* ---- чек ---- */
+  function receiptHTML(num) {
+    var its = itemsOf(num), P = payInfo(num), nsv = 0, rdy = 0, h = "";
+    its.forEach(function (it, idx) {
+      var name = [gv(it, "Тип"), gv(it, "Бренд")].filter(Boolean).join(" ") || "Виріб";
+      var svcs = servicesOfItem(itemNumOf(num, it, idx));
+      var issued = itemIssued(it);
+      h += "<div class='iv-ri'><div class='iv-rn'>" + esc(name) + "</div>";
+      if (svcs.length) {
+        svcs.forEach(function (sv) {
+          var ix = serviceStatusIndex(gv(sv, "Статус")); nsv++; if (ix === 2 || issued) rdy++;
+          var mk = (ix === 2 || issued) ? "<span class='iv-ok'>✓</span>" : (ix === 1 ? "<span class='iv-wk'>●</span>" : "<span class='iv-nw'>○</span>");
+          h += "<div class='iv-rl'><span>" + mk + " " + esc(gv(sv, "Назва") || "Послуга") + "</span><span class='iv-p'>" + money(extractAmt(gv(sv, "Ціна"))) + "</span></div>";
+        });
+      } else {
+        nsv++; var st = itemStage(num, it, idx); if (st >= 2) rdy++;
+        h += "<div class='iv-rl'><span>" + (st >= 2 ? "<span class='iv-ok'>✓</span>" : "<span class='iv-nw'>○</span>") + " " + esc(gv(it, "Послуги")) + "</span><span class='iv-p'>" + money(extractAmt(gv(it, "Сума"))) + "</span></div>";
+      }
+      h += "</div>";
+    });
+    var cnt = (rdy === nsv) ? (nsv + " " + (nsv === 1 ? "послуга" : "послуги")) : (rdy + " з " + nsv + " готові");
+    var out = "<div class='iv-rcp'><div class='iv-rh'><span>Чек · " + esc(num) + "</span><span>" + cnt + "</span></div>" + h +
+      "<div class='iv-sep'></div><div class='iv-rs'><span>Разом</span><span>" + money(P.total) + "</span></div>";
+    if (P.ps.isPaid) {
+      out += "<div class='iv-big iv-bok'><span>Сплачено повністю</span><b>✓</b></div>";
+    } else {
+      if (P.ps.isPrepay && P.prepay) out += "<div class='iv-rs'><span>Передплата</span><span>− " + money(P.prepay) + "</span></div>";
+      if (P.settle) out += "<div class='iv-rs'><span>Доплачено</span><span>− " + money(P.settle) + "</span></div>";
+      out += "<div class='iv-big'><span>" + (rdy === nsv ? "До сплати" : "Залишок до сплати") + "</span><b>" + money(P.ps.toPay) + "</b></div>";
+    }
+    return out + "</div>";
+  }
+
+  /* ---- пост-обробка картки ---- */
+  function decorate(num) {
+    var body = document.getElementById("odm-body");
+    if (!body) return;
+    var right = body.querySelector(".ord-right");
+    if (!right) return;
+    var its = itemsOf(num);
+    if (!its.length) return;
+    /* без блоку «Наступна дія» та старих кнопок видачі/сповіщення */
+    var nx = right.querySelector(".ord-next"); if (nx) nx.remove();
+    var acts = right.querySelector(".n-actions"); if (acts) acts.remove();
+    /* чек над виробами */
+    var sec = right.querySelector(".n-sec");
+    if (sec) {
+      var tmp = document.createElement("div"); tmp.innerHTML = receiptHTML(num);
+      sec.parentNode.insertBefore(tmp.firstChild, sec);
+      var lb = sec.querySelector(".n-sec-label"); if (lb) lb.textContent = "Вироби";
+    }
+    /* рядки виробів: статус + кнопка */
+    var blocks = right.querySelectorAll(".n-item");
+    var allReady = true, anyPending = false;
+    blocks.forEach(function (bl, idx) {
+      var it = its[idx]; if (!it) return;
+      var st = itemStage(num, it, idx);
+      if (st < 2) allReady = false;
+      if (st < 3) anyPending = true;
+      bl.classList.add("collapsed");
+      var head = bl.querySelector(".n-ihead"); if (!head) return;
+      var pr = head.querySelector(".n-iprice"); if (pr) pr.style.display = "none";
+      var rb = head.querySelector(".n-iready-badge"); if (rb) rb.style.display = "none";
+      var labels = ["Новий", "В роботі", "Готово", "Видано"], cls = ["nw", "wk", "rd", "is"];
+      var stEl = document.createElement("span"); stEl.className = "iv-st " + cls[st]; stEl.innerHTML = "<i></i>" + labels[st];
+      var chev = head.querySelector(".n-item-chev");
+      head.insertBefore(stEl, chev);
+      if (st < 3) {
+        var b = document.createElement("button");
+        b.className = "iv-b " + (st === 0 ? "iv-b-new" : (st === 1 ? "iv-b-done" : "iv-b-give"));
+        b.textContent = st === 0 ? "Взяти" : (st === 1 ? "Завершити" : "Видати");
+        b.setAttribute("onclick", "event.stopPropagation();ivAct('" + jq2(num) + "'," + idx + "," + st + ")");
+        head.insertBefore(b, chev);
+      }
+      var mini = bl.querySelector(".n-issue-mini"); if (mini) mini.remove();
+    });
+    /* «Видати замовлення» — тільки коли все готово */
+    if (allReady && anyPending) {
+      var wrap = document.createElement("div"); wrap.className = "iv-all";
+      wrap.innerHTML = "<button class='iv-b iv-b-give iv-b-big' onclick=\"ivIssue('" + jq2(num) + "',-1)\">Видати замовлення</button>";
+      right.appendChild(wrap);
+    }
+    /* ліва колонка: без «Прийняти доплату» та рядків із грошима (вони в чеку) */
+    var pa = body.querySelector("#pay-actions-wrap"); if (pa) pa.remove();
+    body.querySelectorAll(".ord-left .n-row").forEach(function (r) {
+      var l = r.querySelector(".n-rl"); var t = l ? l.textContent : "";
+      if (t !== "Термін" && t !== "Отримання") r.style.display = "none";
+    });
+  }
+
+  var _open = window.openOrder;
+  window.openOrder = function (num) {
+    _open(num);
+    try { decorate(num); } catch (e) { console.error("iv decorate", e); }
+  };
+
+  /* ---- дії над виробом ---- */
+  function pickMaster(title, cbName, num, idx) {
+    var names = masterNamesForRole();
+    if (!isAdmin() && names.length === 1) { window[cbName](num, idx, names[0]); return; }
+    var body = document.getElementById("odm-body");
+    var wrap = document.createElement("div"); wrap.className = "settle-overlay";
+    var opts = names.length
+      ? names.map(function (m) { return "<button class='rating-opt' onclick=\"" + cbName + "('" + jq2(num) + "'," + idx + ",'" + jq2(m) + "')\">" + esc(m) + "</button>"; }).join("")
+      : "<div class='d-bonus-hint'>Додайте майстрів у лист «Майстри»</div>";
+    wrap.innerHTML = "<div class='settle-card'><div class='dblock-label'>" + title + "</div><div class='rating-opts'>" + opts + "</div>" +
+      "<button onclick='closeSettle()' style='width:100%;background:none;border:1px solid var(--field-border);border-radius:8px;color:var(--txt-2);padding:11px;cursor:pointer;font-family:Commissioner,sans-serif;font-size:12px'>Скасувати</button></div>";
+    body.appendChild(wrap);
+  }
+  window.ivAct = function (num, idx, st) {
+    if (st === 0) pickMaster("Хто бере виріб у роботу?", "ivTakeGo", num, idx);
+    else if (st === 1) ivDone(num, idx);
+    else ivIssue(num, idx);
+  };
+  window.ivTakeGo = async function (num, idx, master) {
+    closeSettle();
+    var it = itemsOf(num)[idx]; if (!it) return;
+    var svcs = servicesOfItem(itemNumOf(num, it, idx));
+    if (!svcs.length) { assignMaster(num, idx, "work", master); return; }
+    for (var i = 0; i < svcs.length; i++) {
+      if (serviceStatusIndex(gv(svcs[i], "Статус")) === 0) await confirmServiceStatus(gv(svcs[i], "Номер послуги"), "⚙️ В роботі", master);
+    }
+  };
+  async function ivDone(num, idx) {
+    var it = itemsOf(num)[idx]; if (!it) return;
+    var svcs = servicesOfItem(itemNumOf(num, it, idx));
+    if (!svcs.length) { setItemStatus(num, idx, 2); return; }
+    for (var i = 0; i < svcs.length; i++) {
+      if (serviceStatusIndex(gv(svcs[i], "Статус")) < 2) await confirmServiceStatus(gv(svcs[i], "Номер послуги"), "✅ Готово", gv(svcs[i], "Майстер") || "");
+    }
+  }
+
+  /* ---- меню видачі ---- */
+  var IV = null;
+  window.ivIssue = function (num, idx) {
+    var its = itemsOf(num);
+    var sel = (idx >= 0) ? [idx] : its.map(function (it, i) { return i; }).filter(function (i) { return !itemIssued(its[i]); });
+    if (!sel.length) return;
+    var P = payInfo(num);
+    var subTotal = 0, k = 0, rows = [];
+    sel.forEach(function (i) {
+      var it = its[i], name = [gv(it, "Тип"), gv(it, "Бренд")].filter(Boolean).join(" ") || "Виріб";
+      var sv = servicesOfItem(itemNumOf(num, it, i));
+      subTotal += extractAmt(gv(it, "Сума"));
+      if (sv.length) sv.forEach(function (s) { k++; rows.push([name + " · " + (gv(s, "Назва") || "Послуга"), extractAmt(gv(s, "Ціна"))]); });
+      else { k++; rows.push([name + " · " + gv(it, "Послуги"), extractAmt(gv(it, "Сума"))]); }
+    });
+    var issuedTotal = 0;
+    its.forEach(function (it) { if (itemIssued(it)) issuedTotal += extractAmt(gv(it, "Сума")); });
+    var paidSoFar = (P.ps.isPaid ? P.total : ((P.ps.isPrepay ? P.prepay : 0) + P.settle));
+    var covered = Math.max(0, paidSoFar - issuedTotal);
+    var due = Math.max(0, subTotal - covered);
+    var names = masterNamesForRole();
+    IV = { num: num, sel: sel, due: due, subTotal: subTotal, covered: Math.min(covered, subTotal), method: "", master: (!isAdmin() && names.length === 1) ? names[0] : (names.length === 1 ? names[0] : ""), names: names, rows: rows, k: k };
+    ivRender();
+  };
+  function ivRender() {
+    var body = document.getElementById("odm-body"); if (!body || !IV) return;
+    var old = body.querySelector(".iv-sh"); if (old) old.remove();
+    var d = IV.due, one = IV.sel.length === 1 && itemsOf(IV.num).length > 1;
+    var its = itemsOf(IV.num);
+    var title = "Видача " + (one ? esc([gv(its[IV.sel[0]], "Тип"), gv(its[IV.sel[0]], "Бренд")].filter(Boolean).join(" ")) + " · " : "") + esc(IV.num);
+    var sub = IV.k + " " + (IV.k === 1 ? "послуга" : "послуги") + " у " + IV.sel.length + " " + (IV.sel.length === 1 ? "речі" : "речах");
+    var say = d > 0
+      ? "<small>Назвіть клієнту</small><b>" + money(d) + "</b><span>" + (IV.covered > 0 ? "Разом " + money(IV.subTotal) + ", мінус оплачено " + money(IV.covered) : "Разом " + money(IV.subTotal)) + "</span>"
+      : "<small>Нічого платити не треба</small><b>✓ сплачено</b><span>Разом " + money(IV.subTotal) + ", усе вже оплачено</span>";
+    var rowsH = IV.rows.map(function (r) { return "<div class='iv-rl iv-rl0'><span>" + esc(r[0]) + "</span><span class='iv-p'>" + money(r[1]) + "</span></div>"; }).join("");
+    var pay = "";
+    if (d > 0) {
+      pay = "<div class='iv-pm'>" + ["Готівка", "Картка", "ФОП"].map(function (m) {
+        return "<div class='" + (IV.method === m ? "on" : "") + "' onclick=\"ivSet('method','" + m + "')\">" + m + "</div>";
+      }).join("") + "</div>";
+    }
+    var who = "";
+    if (IV.names.length > 1 || (isAdmin() && IV.names.length)) {
+      who = "<div class='iv-lbl'>Хто видає</div><div class='iv-pm'>" + IV.names.map(function (m) {
+        return "<div class='" + (IV.master === m ? "on" : "") + "' onclick=\"ivSet('master','" + jq2(m) + "')\">" + esc(m) + "</div>";
+      }).join("") + "</div>";
+    }
+    var wrap = document.createElement("div"); wrap.className = "iv-sh";
+    wrap.setAttribute("onclick", "if(event.target===this)ivClose()");
+    wrap.innerHTML = "<div class='iv-sheet'><h3>" + title + "</h3><div class='iv-sub'>" + sub + "</div><div class='iv-say'>" + say + "</div>" +
+      rowsH + "<div class='iv-sep'></div>" + pay + who +
+      "<div class='iv-row2'><button class='iv-cancel' onclick='ivClose()'>Назад</button><button class='iv-go' onclick='ivConfirm()'>" + (d > 0 ? "Отримано " + money(d) + " · Видати" : "Видати") + "</button></div></div>";
+    body.appendChild(wrap);
+  }
+  window.ivSet = function (k, v) { if (!IV) return; IV[k] = v; ivRender(); };
+  window.ivClose = function () { var s = document.querySelector(".iv-sh"); if (s) s.remove(); IV = null; };
+  window.ivConfirm = async function () {
+    if (!IV) return;
+    if (IV.due > 0 && !IV.method) { toast("Оберіть спосіб оплати"); return; }
+    if (!IV.master) { toast("Оберіть, хто видає"); return; }
+    var S = IV; var num = S.num;
+    var o = ORDERS.find(function (x) { return gv(x, "Номер замовлення") === num; });
+    var P = payInfo(num);
+    var total = P.total;
+    var whole = S.sel.length === itemsOf(num).filter(function (it) { return !itemIssued(it); }).length;
+    ivClose();
+    if (S.due > 0 && o) {
+      var newSettle = P.settle + S.due;
+      o["Сума доплати"] = String(newSettle); o["Спосіб доплати"] = S.method;
+      try {
+        await fetch(API_URL.replace("/order", "/settle"), { method: "POST", mode: "cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ order_num: num, amount: newSettle, method: S.method }) });
+      } catch (e) { console.error("settle failed", e); }
+    }
+    if (S.sel.length === 1 && !whole) { await assignMaster(num, S.sel[0], "issue", S.master); }
+    else if (whole && S.sel.length > 1) { await confirmIssueWholeOrder(num, S.master); }
+    else { await assignMaster(num, S.sel[0], "issue", S.master); }
+    var P2 = payInfo(num);
+    if (P2.ps.isPaid && itemsOf(num).every(itemIssued)) setTimeout(function () { try { promptAccrueStep(num, total); } catch (e) {} }, 400);
+  };
 })();
 
 </script>
