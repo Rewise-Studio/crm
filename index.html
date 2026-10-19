@@ -4,44 +4,286 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Rewise CRM</title>
-<script>
-/* TEST-GUARD: вмикається ТІЛЬКИ на тестовому адресі (/crm-test/). На бойовому адресі нічого не робить. */
+<script id="diag-js">
+/* ДІАГНОСТИКА ШВИДКОСТІ. Нічого не змінює в роботі додатку, лише вимірює.
+   Відкрити: 5 швидких тапів у лівому верхньому куті екрана (або по REWISE · STUDIO на екрані входу). */
 (function () {
-  var isTest = /\/crm-test(\/|$)/.test(location.pathname);
-  if (!isTest) return;
-  window.IS_TEST_ENV = true;
-  var realFetch = window.fetch.bind(window);
-  var lastToast = 0;
-  function toast() {
-    var now = Date.now();
-    if (now - lastToast < 2500) return;
-    lastToast = now;
-    var t = document.createElement("div");
-    t.textContent = "ТЕСТ: зміни не збережено і нікуди не надіслано";
-    t.style.cssText = "position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#B3261E;color:#fff;padding:10px 16px;border-radius:12px;font:500 14px sans-serif;z-index:2147483647;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.3)";
-    (document.body || document.documentElement).appendChild(t);
-    setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 2200);
+  if (window.RWDIAG) return;
+  var P = window.performance;
+  if (!P || !P.now) return;
+  var D = window.RWDIAG = { marks: {}, reqs: [], measureSize: false, last: null };
+  var LS = "rw_diag_runs";
+
+  function now() { return Math.round(P.now()); }
+  function sec(ms) { return (ms == null || isNaN(ms)) ? "н/д" : (ms / 1000).toFixed(2) + " с"; }
+  function pad(s, n) { s = String(s); while (s.length < n) s += " "; return s; }
+  function short(n) {
+    var s = String(n).replace(/^https?:\/\//, "").split("?")[0];
+    return s.length > 44 ? "…" + s.slice(-43) : s;
   }
-  window.fetch = function (url, opts) {
-    var method = ((opts && opts.method) || "GET").toUpperCase();
-    if (method !== "GET" && method !== "HEAD") {
-      toast();
-      return Promise.resolve(new Response(JSON.stringify({ ok: true, success: true, test: true }), { status: 200, headers: { "Content-Type": "application/json" } }));
+  D.mark = function (n) { if (D.marks[n] == null) D.marks[n] = now(); };
+  D.mark("head");
+
+  window.addEventListener("load", function () {
+    D.mark("load");
+    try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { D.mark("fonts"); }); } catch (e) {}
+  });
+
+  function label(url) {
+    var m = /sheet=([^&]+)/.exec(url);
+    if (url.indexOf("/gviz/") > -1 && m) {
+      try { return "Таблиця «" + decodeURIComponent(m[1]) + "»"; } catch (e) { return "Таблиця " + m[1]; }
     }
-    return realFetch(url, opts);
-  };
-  document.title = "ТЕСТ · Rewise CRM";
-  function ribbon() {
-    var r = document.createElement("div");
-    r.textContent = "ТЕСТ";
-    r.style.cssText = "position:fixed;top:env(safe-area-inset-top,0px);left:50%;transform:translateX(-50%);background:#B3261E;color:#fff;font:700 11px sans-serif;letter-spacing:2px;padding:2px 14px;border-radius:0 0 10px 10px;z-index:2147483647;pointer-events:none";
-    document.body.appendChild(r);
-    var s = document.createElement("div");
-    s.style.cssText = "position:fixed;left:0;right:0;top:0;height:3px;background:#B3261E;z-index:2147483646;pointer-events:none";
-    document.body.appendChild(s);
+    if (url.indexOf("/settings/get") > -1) return "Налаштування (сервер)";
+    var g = /[?&]gid=(\d+)/.exec(url);
+    if (url.indexOf("/gviz/") > -1 && g) return "Таблиця (gid " + g[1] + ")";
+    return short(url);
   }
-  if (document.body) ribbon(); else document.addEventListener("DOMContentLoaded", ribbon);
+
+  var realFetch = window.fetch;
+  if (realFetch) {
+    window.fetch = function (u) {
+      var url = typeof u === "string" ? u : ((u && u.url) || "");
+      var rec = { l: label(url), url: url, t0: now(), ms: null, st: "…", kb: null };
+      D.reqs.push(rec);
+      return realFetch.apply(this, arguments).then(function (r) {
+        rec.ms = now() - rec.t0; rec.st = r.status;
+        if (D.measureSize) {
+          try { r.clone().blob().then(function (b) { rec.kb = Math.round(b.size / 1024); }); } catch (e) {}
+        }
+        return r;
+      }, function (e) { rec.ms = now() - rec.t0; rec.st = "ПОМИЛКА"; throw e; });
+    };
+  }
+
+  var BLOCK = [/fonts\.googleapis\.com/, /html2canvas/, /Sortable/];
+  function isBlock(n) { for (var i = 0; i < BLOCK.length; i++) if (BLOCK[i].test(n)) return true; return false; }
+
+  function groupReqs(list) {
+    var order = [], by = {};
+    list.forEach(function (r) {
+      if (!by[r.l]) { by[r.l] = { l: r.l, n: 0, t0: r.t0, ms: 0, full: 0, st: r.st, kb: null }; order.push(r.l); }
+      var g = by[r.l]; g.n++;
+      if (r.ms != null && r.ms > g.ms) g.ms = r.ms;
+      if (r.full != null && r.full > g.full) g.full = r.full;
+      if (r.t0 < g.t0) g.t0 = r.t0;
+      if (r.st !== 200 && g.st === 200) g.st = r.st; else if (g.n === 1) g.st = r.st;
+      if (r.kb != null) g.kb = r.kb;
+    });
+    return order.map(function (k) { return by[k]; });
+  }
+
+  function enrich(list, res) {
+    var map = {};
+    res.forEach(function (e) { map[e.name] = e; });
+    list.forEach(function (r) {
+      var e = map[r.url];
+      if (e) r.full = Math.round(e.responseEnd - e.startTime);
+    });
+  }
+
+  function reqLines(list) {
+    var out = [];
+    groupReqs(list).sort(function (a, b) { return (b.full || b.ms) - (a.full || a.ms); }).forEach(function (g) {
+      out.push("  " + pad(g.l, 30) + " ст.+" + pad(sec(g.t0), 8) + " повністю " + pad(sec(g.full || g.ms), 8) +
+        (g.n > 1 ? " ПОВТОРІВ:" + (g.n - 1) : "") + (g.kb != null ? " " + g.kb + " КБ" : "") + (g.st !== 200 ? " [" + g.st + "]" : ""));
+    });
+    return out;
+  }
+
+  function envInfo() {
+    var c = navigator.connection || {};
+    var pwa = false;
+    try { pwa = !!(navigator.standalone || (window.matchMedia && matchMedia("(display-mode: standalone)").matches)); } catch (e) {}
+    var ua = navigator.userAgent || "";
+    var dev = /iPad/.test(ua) ? "iPad" : /iPhone/.test(ua) ? "iPhone" : /Android/.test(ua) ? "Android" : /Macintosh/.test(ua) ? (("ontouchend" in document) ? "iPad/Mac" : "Mac") : "ПК";
+    return dev + ", " + (pwa ? "додаток з екрана Додому" : "браузер") +
+      ", мережа: " + (c.effectiveType || "н/д") + (c.rtt != null ? " rtt " + c.rtt + " мс" : "") + (c.downlink != null ? " " + c.downlink + " Мбіт/с" : "") +
+      (navigator.onLine === false ? ", ОФЛАЙН" : "");
+  }
+
+  D.build = function () {
+    var nav = (P.getEntriesByType("navigation") || [])[0] || {};
+    var paints = {};
+    (P.getEntriesByType("paint") || []).forEach(function (p) { paints[p.name] = Math.round(p.startTime); });
+    var res = P.getEntriesByType("resource") || [];
+    var m = D.marks;
+    var fp = paints["first-paint"], fcp = paints["first-contentful-paint"];
+    var L = [], V = [];
+
+    L.push("RW ДІАГНОСТИКА ШВИДКОСТІ · " + new Date().toLocaleString("uk-UA"));
+    L.push(envInfo());
+    L.push("Відкриття: " + (nav.type || "н/д") + (nav.transferSize === 0 ? " (HTML з кешу)" : "") +
+      (nav.encodedBodySize ? ", HTML " + Math.round(nav.encodedBodySize / 1024) + " КБ" : ""));
+    L.push("");
+    L.push("ХРОНОЛОГІЯ (від початку відкриття)");
+    L.push("  Сервер відповів:              " + sec(nav.responseStart));
+    L.push("  HTML завантажено:             " + sec(nav.responseEnd));
+    L.push("  Білий екран закінчився (FP):  " + sec(fp));
+    L.push("  Перший контент (FCP):         " + sec(fcp));
+    L.push("  Скрипт додатку стартував:     " + sec(m["app-start"]));
+    L.push("  Інтерфейс намальовано:        " + sec(m.shown));
+    L.push("  Старт запитів даних:          " + sec(m["load-start"]));
+    L.push("  Усі відповіді отримані:       " + sec(m.fetched));
+    L.push("  Дані показані на екрані:      " + sec(m.rendered));
+    L.push("  Сторінка повністю (load):     " + sec(m.load));
+    L.push("  Шрифти застосовані:           " + sec(m.fonts));
+
+    var blk = [], rest = [];
+    res.forEach(function (e) {
+      if (e.name.indexOf("/gviz/") > -1 || e.name.indexOf("/settings/") > -1) return;
+      var row = { n: short(e.name), s: Math.round(e.startTime), en: Math.round(e.responseEnd), d: Math.round(e.duration),
+        cache: e.decodedBodySize > 0 && e.transferSize === 0, kb: e.transferSize ? Math.round(e.transferSize / 1024) : 0 };
+      if (isBlock(e.name)) blk.push(row); else rest.push(row);
+    });
+    L.push("");
+    L.push("РЕСУРСИ, ЩО БЛОКУЮТЬ ПОКАЗ (з <head>)");
+    var worst = null;
+    blk.sort(function (a, b) { return b.en - a.en; }).forEach(function (r) {
+      if (!worst) worst = r;
+      L.push("  " + pad(r.n, 46) + " до " + pad(sec(r.en), 8) + " (" + sec(r.d) + ")" + (r.cache ? " кеш" : ""));
+    });
+    if (!blk.length) L.push("  н/д (браузер не дав даних)");
+    rest.sort(function (a, b) { return b.d - a.d; });
+    L.push("ІНШІ НАЙПОВІЛЬНІШІ РЕСУРСИ");
+    rest.slice(0, 5).forEach(function (r) {
+      L.push("  " + pad(r.n, 46) + " до " + pad(sec(r.en), 8) + " (" + sec(r.d) + ")" + (r.cache ? " кеш" : ""));
+    });
+
+    var startup = D.reqs.filter(function (r) { return m.fetched == null || r.t0 <= m.fetched; });
+    enrich(startup, res);
+    L.push("");
+    L.push("ЗАПИТИ ДАНИХ ПРИ ЗАПУСКУ");
+    var rl = reqLines(startup);
+    if (rl.length) { for (var i = 0; i < rl.length; i++) L.push(rl[i]); } else L.push("  немає");
+
+    if (D.last) {
+      L.push("");
+      L.push("ПОВТОРНЕ ЗАВАНТАЖЕННЯ ДАНИХ (кнопка): " + sec(D.last.ms));
+      var rl2 = reqLines(D.last.reqs);
+      for (var j = 0; j < rl2.length; j++) L.push(rl2[j]);
+    }
+
+    /* ВИСНОВОК */
+    if (fp != null) V.push("Білий екран тривав " + sec(fp) + (worst && worst.en >= fp * 0.6 ? ". Найдовше тримав: " + worst.n + " (до " + sec(worst.en) + ")" : "") + ".");
+    if (nav.responseEnd != null) V.push("Сама сторінка (HTML) була готова на " + sec(nav.responseEnd) + ".");
+    if (m["load-start"] != null && m.fetched != null) {
+      var gs = groupReqs(startup).sort(function (a, b) { return (b.full || b.ms) - (a.full || a.ms); })[0];
+      V.push("Запити даних зайняли " + sec(m.fetched - m["load-start"]) + (gs ? ", найповільніший: " + gs.l + " " + sec(gs.full || gs.ms) : "") + ".");
+    }
+    if (m.fetched != null && m.rendered != null) V.push("Обробка і показ даних: " + sec(m.rendered - m.fetched) + ".");
+    if (m.rendered != null) V.push("Разом до готового екрана: " + sec(m.rendered) + ".");
+    L.push("");
+    L.push("ВИСНОВОК");
+    for (var k = 0; k < V.length; k++) L.push("  " + V[k]);
+
+    var hist = D.history();
+    if (hist.length) {
+      L.push("");
+      L.push("ІСТОРІЯ ЗАПУСКІВ (білий екран / готово / найповільніше)");
+      hist.slice(-12).reverse().forEach(function (h) {
+        L.push("  " + h.d + "  " + pad(sec(h.fp), 8) + pad(sec(h.rd), 8) + h.slow + (h.net ? "  [" + h.net + "]" : ""));
+      });
+    }
+    return L.join("\n");
+  };
+
+  D.history = function () {
+    try { return JSON.parse(localStorage.getItem(LS) || "[]"); } catch (e) { return []; }
+  };
+
+  D.finish = function () {
+    D.mark("rendered");
+    setTimeout(function () {
+      try {
+        var paints = {};
+        (P.getEntriesByType("paint") || []).forEach(function (p) { paints[p.name] = Math.round(p.startTime); });
+        var res = P.getEntriesByType("resource") || [];
+        var startup = D.reqs.filter(function (r) { return D.marks.fetched == null || r.t0 <= D.marks.fetched; });
+        enrich(startup, res);
+        var gs = groupReqs(startup).sort(function (a, b) { return (b.full || b.ms) - (a.full || a.ms); })[0];
+        var c = navigator.connection || {};
+        var h = D.history();
+        var dt = new Date();
+        h.push({ d: ("0" + dt.getDate()).slice(-2) + "." + ("0" + (dt.getMonth() + 1)).slice(-2) + " " + ("0" + dt.getHours()).slice(-2) + ":" + ("0" + dt.getMinutes()).slice(-2),
+          fp: paints["first-paint"], rd: D.marks.rendered, slow: gs ? gs.l + " " + sec(gs.full || gs.ms) : "", net: c.effectiveType || "" });
+        while (h.length > 30) h.shift();
+        localStorage.setItem(LS, JSON.stringify(h));
+      } catch (e) {}
+    }, 400);
+  };
+
+  D.rerun = function (done) {
+    var i0 = D.reqs.length, t0 = now();
+    D.measureSize = true;
+    var p = (typeof window.loadData === "function") ? window.loadData() : Promise.resolve();
+    Promise.resolve(p).then(function () {
+      setTimeout(function () {
+        var list = D.reqs.slice(i0);
+        enrich(list, P.getEntriesByType("resource") || []);
+        D.last = { ms: now() - t0, reqs: list };
+        D.measureSize = false;
+        if (done) done();
+      }, 600);
+    }, function () { D.measureSize = false; if (done) done(); });
+  };
+
+  function btn(txt, fn, accent) {
+    var b = document.createElement("button");
+    b.textContent = txt;
+    b.style.cssText = "font:600 14px sans-serif;padding:11px 14px;border-radius:10px;border:1px solid #a3865c;cursor:pointer;margin:0 8px 8px 0;" +
+      (accent ? "background:#a3865c;color:#fff" : "background:#fff;color:#2b2722");
+    b.addEventListener("click", fn);
+    return b;
+  }
+
+  D.open = function () {
+    var old = document.getElementById("rw-diag");
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+    var w = document.createElement("div");
+    w.id = "rw-diag";
+    w.style.cssText = "position:fixed;left:0;right:0;top:0;bottom:0;z-index:2147483600;background:#f6f3ec;color:#2b2722;overflow:auto;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));-webkit-overflow-scrolling:touch";
+    var bar = document.createElement("div");
+    var pre = document.createElement("pre");
+    pre.style.cssText = "font:12px/1.5 Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;margin:6px 0 0;-webkit-user-select:text;user-select:text";
+    function refresh() { pre.textContent = D.build(); }
+    bar.appendChild(btn("Копіювати звіт", function () {
+      var t = D.build();
+      function fb() {
+        var ta = document.createElement("textarea");
+        ta.value = t; ta.style.cssText = "position:fixed;left:0;top:0;opacity:0";
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        try { document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+      try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).catch(fb); else fb(); } catch (e) { fb(); }
+      this.textContent = "Скопійовано";
+    }, true));
+    bar.appendChild(btn("Перевірити запити зараз", function () {
+      var b = this; b.textContent = "Вимірюю…";
+      D.rerun(function () { b.textContent = "Перевірити ще раз"; refresh(); });
+    }));
+    bar.appendChild(btn("Очистити історію", function () { try { localStorage.removeItem(LS); } catch (e) {} refresh(); }));
+    bar.appendChild(btn("Закрити", function () { if (w.parentNode) w.parentNode.removeChild(w); }));
+    w.appendChild(bar); w.appendChild(pre);
+    document.body.appendChild(w);
+    refresh();
+  };
+
+  /* прихований жест: 5 швидких тапів за 3 секунди в лівому верхньому куті екрана (або по лого входу) */
+  var taps = [];
+  document.addEventListener("click", function (ev) {
+    var t = ev.target;
+    var corner = ev.clientX < 70 && ev.clientY < 44;
+    var logo = !!(t && t.closest && t.closest(".login-logo"));
+    if (!corner && !logo) return;
+    var n = Date.now();
+    taps.push(n);
+    while (taps.length && n - taps[0] > 3000) taps.shift();
+    if (taps.length >= 5) { taps = []; D.open(); }
+  }, true);
 })();
+
 </script>
 
 <link rel="manifest" href="manifest.json">
@@ -2643,6 +2885,21 @@ body.kb-open .nav.has-home-bar{position:fixed!important;bottom:0!important;trans
 .iv-go{flex:2;border:0;border-radius:12px;padding:15px;font-family:inherit;font-size:16px;font-weight:600;background:var(--cognac);color:#fff;cursor:pointer}
 .n-item.collapsed .n-ihead{margin-bottom:0;align-items:center}
 .pl-b.pl-sm{white-space:nowrap}
+.iv-res{border-radius:12px;padding:11px 14px;margin-bottom:12px;font-size:13.5px;line-height:1.5}
+.iv-res b{font-weight:600}
+.iv-r1{background:#e4efd9;color:#3f6a24}.iv-r2{background:#dbe8f7;color:#2f5f94}.iv-r3{background:#fbe3e0;color:#b3261e}
+.iv-chips{display:flex;gap:8px;margin-bottom:10px}
+.iv-chips div{flex:1;border:1px solid var(--line);border-radius:10px;padding:10px 6px;text-align:center;font-size:13.5px;cursor:pointer;color:var(--txt)}
+.iv-chips div.on{background:var(--cognac);color:#fff;border-color:var(--cognac)}
+.iv-rcv{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin-bottom:10px}
+.iv-rcv label{font-size:12px;color:var(--txt-2);letter-spacing:.08em;text-transform:uppercase;flex:1}
+.iv-rcv input{width:150px;border:0;font:inherit;font-size:30px;font-weight:500;text-align:right;color:var(--txt);background:transparent;outline:none}
+.iv-rcv span{font-size:24px;color:var(--txt-2)}
+.iv-pin{width:110px;border:1px solid var(--field-border,#d9cfb8);border-radius:9px;font:inherit;font-size:18px;text-align:right;padding:5px 10px;background:var(--surface,#fff);color:var(--txt)}
+.iv-cur{margin-left:4px;color:var(--txt-2)}
+.iv-rl s{color:var(--txt-3);font-weight:400;font-size:13px}
+.iv-penrow{display:flex;justify-content:flex-end;margin-top:2px}
+.iv-pen{border:1px solid var(--line);border-radius:9px;background:var(--surface,#fff);font-family:inherit;font-size:13px;padding:7px 12px;color:var(--txt-2);cursor:pointer}
 
 </style>
 </head>
@@ -2757,6 +3014,7 @@ body.kb-open .nav.has-home-bar{position:fixed!important;bottom:0!important;trans
 <script src="js/photo.js?v=1"></script>
 <script src="js/summary.js?v=1"></script>
 <script>
+if (window.RWDIAG) RWDIAG.mark("app-start");
 /* ═══════════════ КОНСТАНТИ ═══════════════ */
 const SHEET_ID = "1kDJ893PFa_DTNKt-r8wQES_JFXbJSDNU8niRLz70Aao";
 const PRICE_GID = "934403054";
@@ -3054,6 +3312,7 @@ function fetchWithRetry(url, opts, tries) {
 
 async function loadData() {
   const failedSheets = [];
+  if (window.RWDIAG) RWDIAG.mark("load-start");
   try {
     const _cb = "&_=" + Date.now();
     const base = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&sheet=";
@@ -3072,6 +3331,7 @@ async function loadData() {
       gvSafe("Послуги"),
       fetchWithRetry(API_URL.replace("/order", "/settings/get"), { cache: "no-store" }).catch(() => null)
     ]);
+    if (window.RWDIAG) RWDIAG.mark("fetched");
     ORDERS = await parseSheet(r1, ["Номер замовлення","Дата створення","Приймальник","Ім'я клієнта","Телефон","Оплата","Термін","Статус","Примітка","Месенджер","Спосіб передоплати","Сума доплати","Спосіб доплати","Сповіщено","Нараховано бонусів","Списано бонусів","Рейтинг вручну","Нотатка майстра","День народження","Пошта"]);
     ITEMS = await parseSheet(r2, ["Номер замовлення","Номер виробу","Тип","Бренд","Послуги","Сума","Статус","Дата прийому","Дата в роботі","Дата готово","Дата видачі","Сповіщено","Майстер","Хто видав","Колір","Матеріал","Стан","Доставка","Коментар","Хто сповістив"]);
     PARTNERS = await parsePartners(r3);
@@ -8002,7 +8262,8 @@ function toast(msg) {
 }
 
 showPage("orders");
-loadData().then(() => { if (renderers[currentPage]) renderers[currentPage](); });
+if (window.RWDIAG) RWDIAG.mark("shown");
+loadData().then(() => { if (renderers[currentPage]) renderers[currentPage](); if (window.RWDIAG) RWDIAG.finish(); });
 loadPrice();
 
 /* ═══════════════ ПРЕДЗАПОВНЕННЯ З URL (для Siri/Команд) ═══════════════
@@ -9512,6 +9773,9 @@ loadPrice();
     });
     return best;
   }
+  /* Послуга потребує виконавця, лише якщо її ще не зроблено. Готові без виконавця не рахуємо. */
+  function svcNeedsAsg(s) { return !gv(s, "Призначено") && serviceStatusIndex(gv(s, "Статус")) < 2; }
+  function svcWho(s) { return gv(s, "Призначено") || (serviceStatusIndex(gv(s, "Статус")) >= 2 ? gv(s, "Майстер") : ""); }
   function plModel(o) {
     var num = gv(o, "Номер замовлення"); if (!num) return null;
     var its = itemsOf(num);
@@ -9533,7 +9797,7 @@ loadPrice();
       debt: state === "ready" && age !== null && age > PL_DEBT_DAYS && pay.toPay > 0,
       o: o, num: num, its: its, pend: pend, svcs: svcs, info: info, state: state,
       mine: svcs.some(function (s) { return isMineAssignment(gv(s, "Призначено")); }),
-      unas: svcs.some(function (s) { return !gv(s, "Призначено"); }),
+      unas: svcs.some(svcNeedsAsg),
       notify: pend.some(function (i) { return gv(i, "Статус") === "✅ Готово" && !gv(i, "Сповіщено"); }),
       d: parseDeadline(info.term)
     };
@@ -10104,14 +10368,14 @@ loadPrice();
   window.plAsgExp = function (num) { PL.ax[num] = !PL.ax[num]; renderers.assign(); };
   window.plAsgTab = function (t) { assignTab = t; renderers.assign(); };
   function plAsgRow(m) {
-    var i = m.info, n = m.svcs.length, k = m.svcs.filter(function (s) { return gv(s, "Призначено"); }).length, un = n - k;
+    var i = m.info, n = m.svcs.length, k = m.svcs.filter(function (s) { return !svcNeedsAsg(s); }).length, un = n - k;
     var f = m.pend[0] || m.its[0], nu = String(m.num), open = !!PL.ax[nu];
     var t2 = f ? ([gv(f, "Бренд"), gv(f, "Тип")].filter(Boolean).join(" · ") || "Виріб") : "—";
     if (m.its.length > 1) t2 += " · +" + (m.its.length - 1) + " " + pluralUk(m.its.length - 1, "річ", "речі", "речей");
     var tm, late = false;
     if (m.d) { var dl = Math.round((plToday() - m.d) / 864e5); late = dl > 0; tm = p2(m.d.getDate()) + "." + p2(m.d.getMonth() + 1) + "<small>" + rcWd(m.d) + (late ? " · +" + dl + "д" : "") + "</small>"; }
     else tm = String(i.term).indexOf("Терміново") !== -1 ? "⚡<small>терміново</small>" : "—";
-    var bar = ""; m.svcs.forEach(function (s) { bar += "<b" + (gv(s, "Призначено") ? " class='f'" : "") + "></b>"; });
+    var bar = ""; m.svcs.forEach(function (s) { bar += "<b" + (!svcNeedsAsg(s) ? " class='f'" : "") + "></b>"; });
     var lab = !n ? "—" : un ? un + " з " + n + " без виконавця" : "усе розподілено";
     return "<div class='pl-r pl-asr" + (open ? " open" : "") + "' onclick=\"plAsgExp('" + jq(nu) + "')\">" +
       "<div class='nu'>" + h(nu) + "</div>" +
@@ -10131,12 +10395,12 @@ loadPrice();
       out += "<div class='pl-ic'><div class='pl-ih'><span>" + h(nm) + "</span><span>" + money(sum) + "</span></div>";
       if (!svs.length) out += "<div class='pl-ln'><span class='pl-wn'>Послуги не розбито</span></div>";
       svs.forEach(function (s) {
-        var sn = gv(s, "Номер послуги"), as = gv(s, "Призначено"), locked = as && !isAdmin();
+        var sn = gv(s, "Номер послуги"), as = svcWho(s), locked = gv(s, "Призначено") && !isAdmin();
         var pills = names.map(function (n) {
           var on = n === as, dis = locked && !on;
           return "<button class='pl-pill" + (on ? " on" : "") + "'" + (dis ? " disabled" : " onclick=\"event.stopPropagation();assignService('" + jq(sn) + "','" + jq(n) + "')\"") + ">" + h(n) + "</button>";
         }).join("");
-        out += "<div class='pl-ln pl-la" + (as ? "" : " un") + "'><span class='pl-wn'>" + h(gv(s, "Назва")) + "</span><em>" + money(extractAmt(gv(s, "Ціна"))) + "</em><span class='pl-pp'>" + pills + "</span></div>";
+        out += "<div class='pl-ln pl-la" + (svcNeedsAsg(s) ? " un" : "") + "'><span class='pl-wn'>" + h(gv(s, "Назва")) + "</span><em>" + money(extractAmt(gv(s, "Ціна"))) + "</em><span class='pl-pp'>" + pills + "</span></div>";
       });
       out += "</div>";
     });
@@ -10303,6 +10567,15 @@ loadPrice();
     return { o: o, total: total, payStr: payStr, prepay: prepay, settle: settle, ps: ps };
   }
 
+  /* гроші клієнта, що ще лежать на замовленні: передплата + отримане мінус вартість виданого */
+  function acctInfo(num) {
+    var P = payInfo(num), its = itemsOf(num), issued = 0, pending = 0;
+    its.forEach(function (it) { var v = extractAmt(gv(it, "Сума")); if (itemIssued(it)) issued += v; else pending += v; });
+    var paid = (P.ps.isPaid && !P.settle) ? P.total : ((P.ps.isPrepay ? P.prepay : 0) + P.settle);
+    if (P.ps.isPaid && P.settle) paid = P.total + P.settle;
+    return { P: P, issued: issued, pending: pending, paid: paid, acct: paid - issued };
+  }
+
   /* ---- чек ---- */
   function receiptHTML(num) {
     var its = itemsOf(num), P = payInfo(num), nsv = 0, rdy = 0, h = "";
@@ -10324,14 +10597,22 @@ loadPrice();
       h += "</div>";
     });
     var cnt = (rdy === nsv) ? (nsv + " " + (nsv === 1 ? "послуга" : "послуги")) : (rdy + " з " + nsv + " готові");
-    var out = "<div class='iv-rcp'><div class='iv-rh'><span>Чек · " + esc(num) + "</span><span>" + cnt + "</span></div>" + h +
+    var A = acctInfo(num);
+    var anyIssued = A.issued > 0;
+    var out = "<div class='iv-rcp'><div class='iv-rh'><span>Чек \u00B7 " + esc(num) + "</span><span>" + cnt + "</span></div>" + h +
       "<div class='iv-sep'></div><div class='iv-rs'><span>Разом</span><span>" + money(P.total) + "</span></div>";
-    if (P.ps.isPaid) {
-      out += "<div class='iv-big iv-bok'><span>Сплачено повністю</span><b>✓</b></div>";
+    if (P.ps.isPaid && !P.settle) {
+      out += "<div class='iv-rs'><span>Сплачено</span><span>\u2212 " + money(P.total) + "</span></div>";
     } else {
-      if (P.ps.isPrepay && P.prepay) out += "<div class='iv-rs'><span>Передплата</span><span>− " + money(P.prepay) + "</span></div>";
-      if (P.settle) out += "<div class='iv-rs'><span>Доплачено</span><span>− " + money(P.settle) + "</span></div>";
-      out += "<div class='iv-big'><span>" + (rdy === nsv ? "До сплати" : "Залишок до сплати") + "</span><b>" + money(P.ps.toPay) + "</b></div>";
+      if (P.ps.isPrepay && P.prepay) out += "<div class='iv-rs'><span>Передплата</span><span>\u2212 " + money(P.prepay) + "</span></div>";
+      if (P.settle) out += "<div class='iv-rs'><span>" + (anyIssued ? "Отримано при видачі" : "Доплачено") + "</span><span>\u2212 " + money(P.settle) + "</span></div>";
+    }
+    var due = Math.max(0, A.pending - Math.max(0, A.acct));
+    if (A.pending === 0) {
+      out += "<div class='iv-big " + (A.acct >= 0 ? "iv-bok" : "") + "'><span>" + (A.acct > 0 ? "Здача клієнту" : (A.acct < 0 ? "Борг" : "Розраховано повністю")) + "</span><b>" + (A.acct > 0 ? money(A.acct) : (A.acct < 0 ? money(-A.acct) : "\u2713")) + "</b></div>";
+    } else {
+      out += "<div class='iv-big " + (due === 0 ? "iv-bok" : "") + "'><span>" + (due === 0 ? "Решта покрита" : (rdy === nsv ? "До сплати" : "Залишок до сплати")) + "</span><b>" + (due === 0 ? "\u2713" : money(due)) + "</b></div>";
+      if (A.acct > 0 && anyIssued) out += "<div class='iv-rs'><span>На рахунку замовлення</span><span>" + money(A.acct) + (A.acct > A.pending ? " \u00B7 здача " + money(A.acct - A.pending) : "") + "</span></div>";
     }
     return out + "</div>";
   }
@@ -10437,45 +10718,66 @@ loadPrice();
 
   /* ---- меню видачі ---- */
   var IV = null;
+  function ivSubTotal() { return IV.rows.reduce(function (a, r) { return a + r.price; }, 0); }
+  function ivDue() { return Math.max(0, ivSubTotal() - IV.covered); }
   window.ivIssue = function (num, idx) {
     var its = itemsOf(num);
     var sel = (idx >= 0) ? [idx] : its.map(function (it, i) { return i; }).filter(function (i) { return !itemIssued(its[i]); });
     if (!sel.length) return;
-    var P = payInfo(num);
-    var subTotal = 0, k = 0, rows = [];
+    var A = acctInfo(num);
+    var rows = [], legacy = false;
     sel.forEach(function (i) {
       var it = its[i], name = [gv(it, "Тип"), gv(it, "Бренд")].filter(Boolean).join(" ") || "Виріб";
       var sv = servicesOfItem(itemNumOf(num, it, i));
-      subTotal += extractAmt(gv(it, "Сума"));
-      if (sv.length) sv.forEach(function (s) { k++; rows.push([name + " · " + (gv(s, "Назва") || "Послуга"), extractAmt(gv(s, "Ціна"))]); });
-      else { k++; rows.push([name + " · " + gv(it, "Послуги"), extractAmt(gv(it, "Сума"))]); }
+      if (sv.length) sv.forEach(function (s) { var pr = extractAmt(gv(s, "Ціна")); rows.push({ name: name + " · " + (gv(s, "Назва") || "Послуга"), svcNum: gv(s, "Номер послуги"), item: i, price0: pr, price: pr }); });
+      else { var pr2 = extractAmt(gv(it, "Сума")); legacy = true; rows.push({ name: name + " · " + gv(it, "Послуги"), svcNum: "", item: i, price0: pr2, price: pr2 }); }
     });
-    var issuedTotal = 0;
-    its.forEach(function (it) { if (itemIssued(it)) issuedTotal += extractAmt(gv(it, "Сума")); });
-    var paidSoFar = (P.ps.isPaid ? P.total : ((P.ps.isPrepay ? P.prepay : 0) + P.settle));
-    var covered = Math.max(0, paidSoFar - issuedTotal);
-    var due = Math.max(0, subTotal - covered);
     var names = masterNamesForRole();
-    IV = { num: num, sel: sel, due: due, subTotal: subTotal, covered: Math.min(covered, subTotal), method: "", master: (!isAdmin() && names.length === 1) ? names[0] : (names.length === 1 ? names[0] : ""), names: names, rows: rows, k: k };
+    IV = { num: num, sel: sel, rows: rows, covered: Math.max(0, A.acct), amt: 0, touched: false, method: "", edit: false, names: names,
+      master: (names.length === 1) ? names[0] : "", legacy: legacy };
+    IV.amt = ivDue();
     ivRender();
   };
+  function ivHint() {
+    var due = ivDue(), sub = ivSubTotal(), ex = IV.amt - due;
+    var A = acctInfo(IV.num);
+    var otherPending = A.pending - IV.rows.reduce(function (a, r) { return a + r.price0; }, 0);
+    var acct2 = IV.covered + IV.amt - sub;
+    if (ex > 0) {
+      var t = "<b>Залишається на рахунку: " + money(acct2) + "</b><br>";
+      if (otherPending > 0) t += (acct2 >= otherPending) ? ("Цього вистачає на решту замовлення (" + money(otherPending) + ")" + (acct2 > otherPending ? ", здача " + money(acct2 - otherPending) : "")) : ("На решту (" + money(otherPending) + ") ще треба доплатити " + money(otherPending - acct2));
+      else t += "Це здача клієнту — поверніть " + money(acct2);
+      return "<div class='iv-res iv-r2' id='iv-res'>" + t + "</div>";
+    }
+    if (ex < 0) return "<div class='iv-res iv-r3' id='iv-res'><b>Не вистачає " + money(-ex) + "</b><br>Борг " + money(-ex) + " залишиться на замовленні</div>";
+    return "<div class='iv-res iv-r1' id='iv-res'><b>Рівно за " + (IV.sel.length > 1 ? "ці речі" : "цю річ") + "</b>" + (otherPending > 0 ? "<br>На решту замовлення (" + money(otherPending) + ") ще нічого не внесено" : "") + "</div>";
+  }
   function ivRender() {
     var body = document.getElementById("odm-body"); if (!body || !IV) return;
     var old = body.querySelector(".iv-sh"); if (old) old.remove();
-    var d = IV.due, one = IV.sel.length === 1 && itemsOf(IV.num).length > 1;
-    var its = itemsOf(IV.num);
+    var its = itemsOf(IV.num), one = IV.sel.length === 1 && its.length > 1;
     var title = "Видача " + (one ? esc([gv(its[IV.sel[0]], "Тип"), gv(its[IV.sel[0]], "Бренд")].filter(Boolean).join(" ")) + " · " : "") + esc(IV.num);
-    var sub = IV.k + " " + (IV.k === 1 ? "послуга" : "послуги") + " у " + IV.sel.length + " " + (IV.sel.length === 1 ? "речі" : "речах");
-    var say = d > 0
-      ? "<small>Назвіть клієнту</small><b>" + money(d) + "</b><span>" + (IV.covered > 0 ? "Разом " + money(IV.subTotal) + ", мінус оплачено " + money(IV.covered) : "Разом " + money(IV.subTotal)) + "</span>"
-      : "<small>Нічого платити не треба</small><b>✓ сплачено</b><span>Разом " + money(IV.subTotal) + ", усе вже оплачено</span>";
-    var rowsH = IV.rows.map(function (r) { return "<div class='iv-rl iv-rl0'><span>" + esc(r[0]) + "</span><span class='iv-p'>" + money(r[1]) + "</span></div>"; }).join("");
-    var pay = "";
-    if (d > 0) {
-      pay = "<div class='iv-pm'>" + ["Готівка", "Картка", "ФОП"].map(function (m) {
-        return "<div class='" + (IV.method === m ? "on" : "") + "' onclick=\"ivSet('method','" + m + "')\">" + m + "</div>";
-      }).join("") + "</div>";
-    }
+    var due = ivDue(), sub = ivSubTotal();
+    var sub2 = IV.rows.length + " " + (IV.rows.length === 1 ? "послуга" : "послуги") + " у " + IV.sel.length + " " + (IV.sel.length === 1 ? "речі" : "речах");
+    var say = due > 0
+      ? "<small>Назвіть клієнту</small><b>" + money(due) + "</b><span>" + (IV.covered > 0 ? "Разом " + money(sub) + ", мінус на рахунку " + money(Math.min(IV.covered, sub)) : "Разом " + money(sub)) + "</span>"
+      : "<small>Нічого платити не треба</small><b>✓ з рахунку</b><span>Разом " + money(sub) + (IV.covered > 0 ? ", покрито з рахунку замовлення (" + money(IV.covered) + ")" : "") + "</span>";
+    var edit = isAdmin();
+    var rowsH = IV.rows.map(function (r, ri) {
+      var chg = r.price !== r.price0;
+      var cell;
+      if (IV.edit && edit && r.svcNum) cell = "<input class='iv-pin' type='number' inputmode='numeric' value='" + r.price + "' oninput=\"ivPrice(" + ri + ",this.value)\"><span class='iv-cur'>₴</span>";
+      else cell = (chg ? "<s>" + money(r.price0) + "</s> " : "") + "<b>" + money(r.price) + "</b>";
+      return "<div class='iv-rl iv-rl0'><span>" + esc(r.name) + "</span><span class='iv-p'>" + cell + "</span></div>";
+    }).join("");
+    var pen = (edit && !IV.legacy) ? "<div class='iv-penrow'><button class='iv-pen' onclick='ivToggleEdit()'>" + (IV.edit ? "✓ Готово" : "✎ Змінити ціни") + "</button></div>" : "";
+    var chips = "", rcv = "";
+    var rnd = Math.ceil(due / 500) * 500; if (rnd === due) rnd = due + 500;
+    chips = "<div class='iv-chips'><div class='" + (!IV.touched ? "on" : "") + "' onclick='ivAmt(\"exact\")'>" + (due > 0 ? "Рівно " + money(due) : "Нічого") + "</div><div onclick='ivAmt(\"round\")'>Округлити до " + money(rnd) + "</div><div onclick='document.getElementById(\"iv-amt\").focus();document.getElementById(\"iv-amt\").select()'>Своя сума</div></div>";
+    rcv = "<div class='iv-rcv'><label>Отримано від клієнта</label><input id='iv-amt' type='number' inputmode='numeric' value='" + IV.amt + "' oninput='ivTyped(this.value)'><span>₴</span></div>";
+    var pay = "<div class='iv-pm' id='iv-pm'" + (IV.amt > 0 ? "" : " style='display:none'") + ">" + ["Готівка", "Картка", "ФОП"].map(function (m) {
+      return "<div class='" + (IV.method === m ? "on" : "") + "' onclick=\"ivSet('method','" + m + "')\">" + m + "</div>";
+    }).join("") + "</div>";
     var who = "";
     if (IV.names.length > 1 || (isAdmin() && IV.names.length)) {
       who = "<div class='iv-lbl'>Хто видає</div><div class='iv-pm'>" + IV.names.map(function (m) {
@@ -10484,35 +10786,76 @@ loadPrice();
     }
     var wrap = document.createElement("div"); wrap.className = "iv-sh";
     wrap.setAttribute("onclick", "if(event.target===this)ivClose()");
-    wrap.innerHTML = "<div class='iv-sheet'><h3>" + title + "</h3><div class='iv-sub'>" + sub + "</div><div class='iv-say'>" + say + "</div>" +
-      rowsH + "<div class='iv-sep'></div>" + pay + who +
-      "<div class='iv-row2'><button class='iv-cancel' onclick='ivClose()'>Назад</button><button class='iv-go' onclick='ivConfirm()'>" + (d > 0 ? "Отримано " + money(d) + " · Видати" : "Видати") + "</button></div></div>";
+    wrap.innerHTML = "<div class='iv-sheet'><h3>" + title + "</h3><div class='iv-sub'>" + sub2 + "</div><div class='iv-say' id='iv-say'>" + say + "</div>" +
+      rowsH + pen + "<div class='iv-sep'></div>" + chips + rcv + ivHint() + pay + who +
+      "<div class='iv-row2'><button class='iv-cancel' onclick='ivClose()'>Назад</button><button class='iv-go' id='iv-go' onclick='ivConfirm()'>" + ivGoTxt() + "</button></div></div>";
     body.appendChild(wrap);
   }
+  function ivGoTxt() { return IV.amt > 0 ? "Отримано " + money(IV.amt) + " · Видати" : "Видати"; }
+  window.ivToggleEdit = function () { IV.edit = !IV.edit; ivRender(); };
+  window.ivPrice = function (ri, v) {
+    var n = parseInt(v || "0", 10); if (isNaN(n) || n < 0) n = 0;
+    IV.rows[ri].price = n;
+    if (!IV.touched) IV.amt = ivDue();
+    ivRender();
+    var e = document.querySelectorAll(".iv-pin")[ri]; if (e) { e.focus(); var l = e.value; e.value = ""; e.value = l; }
+  };
+  window.ivAmt = function (mode) {
+    var due = ivDue();
+    if (mode === "exact") { IV.touched = false; IV.amt = due; }
+    else { var r = Math.ceil(due / 500) * 500; if (r === due) r += 500; IV.touched = true; IV.amt = r; }
+    ivRender();
+  };
+  window.ivTyped = function (v) {
+    var n = parseInt(v || "0", 10); if (isNaN(n) || n < 0) n = 0;
+    IV.amt = n; IV.touched = true;
+    var h = document.getElementById("iv-res"); if (h) h.outerHTML = ivHint();
+    var g = document.getElementById("iv-go"); if (g) g.textContent = ivGoTxt();
+    var pm = document.getElementById("iv-pm"); if (pm) pm.style.display = n > 0 ? "" : "none";
+  };
   window.ivSet = function (k, v) { if (!IV) return; IV[k] = v; ivRender(); };
   window.ivClose = function () { var s = document.querySelector(".iv-sh"); if (s) s.remove(); IV = null; };
   window.ivConfirm = async function () {
     if (!IV) return;
-    if (IV.due > 0 && !IV.method) { toast("Оберіть спосіб оплати"); return; }
+    if (IV.amt > 0 && !IV.method) { toast("Оберіть спосіб оплати"); return; }
     if (!IV.master) { toast("Оберіть, хто видає"); return; }
-    var S = IV; var num = S.num;
+    var S = IV, num = S.num;
     var o = ORDERS.find(function (x) { return gv(x, "Номер замовлення") === num; });
-    var P = payInfo(num);
-    var total = P.total;
-    var whole = S.sel.length === itemsOf(num).filter(function (it) { return !itemIssued(it); }).length;
+    var A = acctInfo(num), P = A.P, total0 = P.total;
+    var pendingIdx = itemsOf(num).map(function (it, i) { return i; }).filter(function (i) { return !itemIssued(itemsOf(num)[i]); });
+    var whole = S.sel.length === pendingIdx.length;
     ivClose();
-    if (S.due > 0 && o) {
-      var newSettle = P.settle + S.due;
-      o["Сума доплати"] = String(newSettle); o["Спосіб доплати"] = S.method;
-      try {
-        await fetch(API_URL.replace("/order", "/settle"), { method: "POST", mode: "cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ order_num: num, amount: newSettle, method: S.method }) });
-      } catch (e) { console.error("settle failed", e); }
+    /* 1) змінені ціни послуг */
+    var chg = S.rows.filter(function (r) { return r.svcNum && r.price !== r.price0; });
+    if (chg.length) {
+      chg.forEach(function (r) {
+        var sv = SERVICES.find(function (x) { return gv(x, "Номер послуги") === r.svcNum; });
+        if (sv) sv["Ціна"] = String(r.price);
+      });
+      var touched = {};
+      chg.forEach(function (r) { touched[r.item] = true; });
+      Object.keys(touched).forEach(function (k) {
+        var it = itemsOf(num)[parseInt(k, 10)]; if (!it) return;
+        var sum = servicesOfItem(itemNumOf(num, it, parseInt(k, 10))).reduce(function (a, x) { return a + extractAmt(gv(x, "Ціна")); }, 0);
+        it["Сума"] = sum.toLocaleString("uk-UA") + " ₴";
+      });
+      for (var ci = 0; ci < chg.length; ci++) {
+        try { await fetch(API_URL.replace("/order", "/service/price"), { method: "POST", mode: "cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ svc_num: chg[ci].svcNum, price: chg[ci].price }) }); }
+        catch (e) { console.error("price failed", e); }
+      }
     }
-    if (S.sel.length === 1 && !whole) { await assignMaster(num, S.sel[0], "issue", S.master); }
-    else if (whole && S.sel.length > 1) { await confirmIssueWholeOrder(num, S.master); }
-    else { await assignMaster(num, S.sel[0], "issue", S.master); }
-    var P2 = payInfo(num);
-    if (P2.ps.isPaid && itemsOf(num).every(itemIssued)) setTimeout(function () { try { promptAccrueStep(num, total); } catch (e) {} }, 400);
+    /* 2) отримані гроші: «Сума доплати» накопичується */
+    if (S.amt > 0 && o) {
+      var newSettle = P.settle + S.amt;
+      o["Сума доплати"] = String(newSettle); o["Спосіб доплати"] = S.method;
+      try { await fetch(API_URL.replace("/order", "/settle"), { method: "POST", mode: "cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ order_num: num, amount: newSettle, method: S.method }) }); }
+      catch (e) { console.error("settle failed", e); }
+    }
+    /* 3) видача */
+    if (whole && S.sel.length > 1) await confirmIssueWholeOrder(num, S.master);
+    else await assignMaster(num, S.sel[0], "issue", S.master);
+    var B = acctInfo(num);
+    if (B.pending === 0 && B.acct >= 0) setTimeout(function () { try { promptAccrueStep(num, B.issued); } catch (e) {} }, 400);
   };
 })();
 
