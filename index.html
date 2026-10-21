@@ -2901,6 +2901,15 @@ body.kb-open .nav.has-home-bar{position:fixed!important;bottom:0!important;trans
 .iv-penrow{display:flex;justify-content:flex-end;margin-top:2px}
 .iv-pen{border:1px solid var(--line);border-radius:9px;background:var(--surface,#fff);font-family:inherit;font-size:13px;padding:7px 12px;color:var(--txt-2);cursor:pointer}
 
+.eo-card .icard-dup{margin-left:auto}.eo-card .itemcard-rm{margin-left:0}
+.eo-card{transition:background .6s,border-color .6s}.eo-card.eo-fresh{background:#f6faf1;border-color:#b9d4a0}
+
+/* Меню видачі: на весь екран знизу, кнопки завжди видно, вміст прокручується */
+.iv-sh{position:fixed;inset:0;z-index:310;border-radius:0;display:flex;align-items:flex-end;justify-content:center}
+.iv-sheet{max-width:780px;max-height:94vh;max-height:94dvh;padding:0;display:flex;flex-direction:column;overflow:hidden}
+.iv-scr{overflow:auto;-webkit-overflow-scrolling:touch;padding:22px 26px 6px;flex:1;min-height:0}
+.iv-row2{margin-top:0;padding:12px 26px calc(18px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--surface,#fff)}
+
 </style>
 </head>
 <body data-theme="light">
@@ -8826,7 +8835,7 @@ loadPrice();
   /* Історія послуг по виду виробу (Тип): лічильник за назвами з листів «Послуги» і «Вироби».
      Видалені замовлення не враховуємо. Для старих виробів без рядків у «Послуги» беремо текст «Послуги» виробу. */
   var WZ_HC = null, WZ_HK = "";
-  function wzStripQty(n) { return String(n || "").replace(/\s*×\s*\d+\s*$/, ""); }
+  function wzStripQty(n) { return String(n || "").replace(/\s*×\s*(\d+|½)\s*$/, ""); }
   function wzHist() {
     var key = ORDERS.length + ":" + ITEMS.length + ":" + SERVICES.length;
     if (WZ_HC && WZ_HK === key) return WZ_HC;
@@ -8868,7 +8877,12 @@ loadPrice();
     }
     return -1;
   }
-  function wzSync(s) { s.qty = s.qty || 1; s.price = s.unit * s.qty; s.name = s.baseName + (s.qty > 1 ? " × " + s.qty : ""); }
+  /* кількість: ціле число, а для послуг «за пару» ще й ½ */
+  function wzQtyLbl(q) { return q === 0.5 ? "½" : String(q); }
+  function wzIsPair(s) { return s.u === "за пару"; }
+  function wzUp(q) { return q < 1 ? 1 : q + 1; }
+  function wzDown(s) { var q = s.qty || 1; if (q > 1) return q - 1; if (q === 1 && wzIsPair(s)) return 0.5; return 0; }
+  function wzSync(s) { s.qty = s.qty || 1; s.price = Math.round(s.unit * s.qty); s.name = s.baseName + (s.qty !== 1 ? " × " + wzQtyLbl(s.qty) : ""); }
   function wzFloor(it, s) {
     if (s.kind === "core") { var p = opPriceFor(it, s.op); return p ? (parseInt(p.price) || 0) : 0; }
     return s.custom ? 0 : (s.base || 0);
@@ -8877,7 +8891,7 @@ loadPrice();
   window.wzAdd = function (id, li) {
     var it = wzItem(id), l = WZ_LIST[li]; if (!it || !l) return;
     var i = wzFindSvc(it, l.name);
-    if (i >= 0) { it.services[i].qty = (it.services[i].qty || 1) + 1; wzSync(it.services[i]); }
+    if (i >= 0) { it.services[i].qty = wzUp(it.services[i].qty || 1); wzSync(it.services[i]); }
     else it.services.push({ kind: "other", name: l.name, baseName: l.name, base: parseInt(l.price) || 0, unit: parseInt(l.price) || 0, qty: 1, price: parseInt(l.price) || 0, u: wzUnitLbl(l.unit) });
     renderItems(); updateReceipt();
   };
@@ -8885,14 +8899,14 @@ loadPrice();
     var it = wzItem(id), l = WZ_LIST[li]; if (!it || !l) return;
     var i = wzFindSvc(it, l.name); if (i < 0) return;
     var s = it.services[i];
-    s.qty = (s.qty || 1) - 1;
+    s.qty = wzDown(s);
     if (s.qty <= 0) it.services.splice(i, 1); else wzSync(s);
     renderItems(); updateReceipt();
   };
   window.wzQty = function (id, si, d) {
     var it = wzItem(id); if (!it || !it.services[si]) return;
     var s = it.services[si]; if (s.kind === "core") return;
-    s.qty = (s.qty || 1) + d;
+    s.qty = d < 0 ? wzDown(s) : wzUp(s.qty || 1);
     if (s.qty <= 0) { it.services.splice(si, 1); it.wzPr = {}; } else wzSync(s);
     renderItems(); updateReceipt();
   };
@@ -9188,7 +9202,7 @@ loadPrice();
       var raised = unit > base && base > 0, nm = core ? sv.name : (sv.baseName || sv.name);
       rows += "<div class='w2-rl'><span class='n'>" + h(nm) + "</span><span class='pc1" + (raised ? " up" : "") + "' onclick='wzPrToggle(" + it.id + "," + si + ")'>" + money(unit) + "</span>" +
         "<span class='w2-q'>" + (core ? "<u onclick='wzRm(" + it.id + "," + si + ")'>×</u><em>1</em><u class='ph'>+</u>" :
-          "<u onclick='wzQty(" + it.id + "," + si + ",-1)'>" + (qty === 1 ? "×" : "−") + "</u><em>" + qty + "</em><u onclick='wzQty(" + it.id + "," + si + ",1)'>+</u>") + "</span>" +
+          "<u onclick='wzQty(" + it.id + "," + si + ",-1)'>" + ((qty === 0.5 || (qty === 1 && !wzIsPair(sv))) ? "×" : "−") + "</u><em>" + wzQtyLbl(qty) + "</em><u onclick='wzQty(" + it.id + "," + si + ",1)'>+</u>") + "</span>" +
         "<span class='s'>" + money(sv.price) + "</span></div>";
       if (it.wzPr && it.wzPr[si]) {
         rows += "<div class='wz-prw'>Ціна за 1" + (base ? " (не нижче прайсу " + money(base) + ")" : "") + "<span class='wz-step'><button " + (unit <= base ? "disabled" : "") + " onclick='wzPrStep(" + it.id + "," + si + ",-50)'>−</button><span class='n' style='min-width:56px' onclick='wzPrKeypad(" + it.id + "," + si + ")'>" + unit + "</span><button onclick='wzPrStep(" + it.id + "," + si + ",50)'>+</button></span></div>";
@@ -9241,7 +9255,7 @@ loadPrice();
     }
     if (hit) {
       var i = wzFindSvc(it, hit.name);
-      if (i >= 0) { it.services[i].qty = (it.services[i].qty || 1) + 1; wzSync(it.services[i]); }
+      if (i >= 0) { it.services[i].qty = wzUp(it.services[i].qty || 1); wzSync(it.services[i]); }
       else it.services.push({ kind: "other", name: hit.name, baseName: hit.name, base: parseInt(hit.price) || 0, unit: parseInt(hit.price) || 0, qty: 1, price: parseInt(hit.price) || 0, u: wzUnitLbl(hit.unit) });
       say("Така послуга є в прайсі: додано за ціною прайсу (" + money(hit.price) + ")");
     } else {
@@ -9375,7 +9389,8 @@ loadPrice();
   /* --- розмітка карток речей --- */
   function eoCardHTML(it, i) {
     var h2 = "<div class='edit-item eo-card'><div class='edit-item-head'><span class='itemcard-num'>№" + (i + 1) + "</span>" +
-      "<span class='eo-ty'>" + escHtml(it.type || "Нова річ") + "</span><span class='eo-br'>" + escHtml(it.brand || "") + "</span>" +
+      "<span class='eo-ty'>" + escHtml(it.type || "Нова річ") + "</span><span class='eo-br'>" + escHtml(it.brand || "") + "</span>" + eoCopyTag(it) +
+      "<button class='icard-dup' title='Дублювати річ' onclick='eoDup(" + i + ")'>⧉" + (eoGroupN(it) ? "<i>+" + eoGroupN(it) + "</i>" : "") + "</button>" +
       "<button class='itemcard-rm' onclick='editRemoveItem(" + i + ")'>×</button></div><div class='eo-svcs'>";
     if (!it.detailed && !it.svcs.length) {
       h2 += "<div class='eo-sv'><span class='nm'>" + escHtml(it.servicesRaw || "Послуги не вказано") + "</span><span class='pr'>" + eoFmt(it.total) + "</span></div>";
@@ -9392,7 +9407,8 @@ loadPrice();
       h2 += "<div class='eo-sv del'><span class='nm'>" + escHtml(String(d.name).replace(/^📝\s*/, "")) + "<i class='eo-tag d'>буде видалено</i></span>" +
         "<span class='pr'>—</span><button class='eo-x' title='Повернути' onclick='eoUndo(" + i + "," + j + ")'>↺</button></div>";
     });
-    h2 += "</div><div class='eo-foot'><button class='eo-chg' onclick='eoChange(" + i + ")'>Змінити послуги</button>" +
+    h2 += "</div>" + (it.dupFrom && !it.num ? "<div class='eo-note'>Це копія: послуги й ціни перенесено. Щоб змінити їх, натисніть «Змінити послуги».</div>" : "") +
+      "<div class='eo-foot'><button class='eo-chg' onclick='eoChange(" + i + ")'>Змінити послуги</button>" +
       "<span class='eo-sum' id='eo-sum-" + i + "'>Сума виробу: " + eoFmt(it.detailed || it.svcs.length ? eoSvcSum(it) : it.total) + "</span></div></div>";
     return h2;
   }
@@ -9439,6 +9455,50 @@ loadPrice();
     eoChange(editState.items.length - 1);
   };
 
+  /* --- дублювання речі при редагуванні --- */
+  var EO_UID = 0, eoSnackEl = null, eoSnackT = 0;
+  function eoRoot(x) { return x.dupFrom || x.uid; }
+  function eoGroupN(x) {
+    var r = eoRoot(x); if (!r || !editState) return 0;
+    return editState.items.filter(function (y) { return eoRoot(y) === r; }).length - 1;
+  }
+  function eoCopyTag(it) {
+    if (!it.dupFrom || !editState) return "";
+    var ri = -1; editState.items.forEach(function (y, q) { if (y.uid === it.dupFrom) ri = q; });
+    return ri >= 0 ? "<span class='icard-cp'>копія №" + (ri + 1) + "</span>" : "";
+  }
+  function eoSay(msg, undoFn) {
+    if (!eoSnackEl) { eoSnackEl = document.createElement("div"); eoSnackEl.className = "dup-snack"; document.body.appendChild(eoSnackEl); }
+    eoSnackEl.innerHTML = "";
+    var t = document.createElement("span"); t.textContent = msg; eoSnackEl.appendChild(t);
+    if (undoFn) { var u = document.createElement("u"); u.textContent = "Скасувати"; u.onclick = function () { undoFn(); eoSnackEl.classList.remove("on"); }; eoSnackEl.appendChild(u); }
+    eoSnackEl.classList.add("on"); clearTimeout(eoSnackT); eoSnackT = setTimeout(function () { eoSnackEl.classList.remove("on"); }, 4500);
+  }
+  window.eoDup = function (i) {
+    var src = editState && editState.items[i]; if (!src) return;
+    if (!src.uid) src.uid = ++EO_UID;
+    var c = { num: "", uid: ++EO_UID, dupFrom: eoRoot(src), type: src.type, brand: src.brand, material: src.material, servicesRaw: src.servicesRaw,
+      total: src.detailed ? eoSvcSum(src) : src.total, detailed: !!src.detailed, svcs: [], dels: [] };
+    src.svcs.forEach(function (s) { c.svcs.push({ num: "", name: s.name, price: s.price, orig: 0, isNew: true }); });
+    var last = i;
+    editState.items.forEach(function (y, q) { if (eoRoot(y) === c.dupFrom) last = q; });
+    editState.items.splice(last + 1, 0, c);
+    renderEditForm();
+    var body = document.getElementById("odm-body");
+    var cards = body ? body.querySelectorAll(".eo-card") : [];
+    var el = cards[last + 1];
+    if (el) {
+      el.classList.add("eo-fresh");
+      try { el.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch (e) {}
+      setTimeout(function () { el.classList.remove("eo-fresh"); }, 1800);
+    }
+    var cu = c.uid;
+    eoSay("Копію додано, речей: " + editState.items.length, function () {
+      editState.items = editState.items.filter(function (y) { return y.uid !== cu; });
+      renderEditForm();
+    });
+  };
+
   /* --- відкриття майстра для речі --- */
   var EO_WZ = null;
   function eoMakeSvc(cat, tmp, s) {
@@ -9449,9 +9509,9 @@ loadPrice();
     var hit = flat.filter(function (x) { return x.name === name; })[0];
     if (hit && op) return { kind: "core", op: op, name: name, price: price };
     if (hit) return { kind: "other", name: name, baseName: hit.name, base: parseInt(hit.price) || 0, unit: price, qty: 1, price: price, u: wzUnitLbl(hit.unit) };
-    var m = name.match(/^(.*) × (\d+)$/);
+    var m = name.match(/^(.*) × (\d+|½)$/);
     if (m) {
-      var bn = m[1], q = parseInt(m[2]) || 1;
+      var bn = m[1], q = m[2] === "½" ? 0.5 : (parseInt(m[2]) || 1);
       var h2 = flat.filter(function (x) { return x.name === bn; })[0];
       if (h2) return { kind: "other", name: name, baseName: bn, base: parseInt(h2.price) || 0, unit: Math.round(price / q), qty: q, price: price, u: wzUnitLbl(h2.unit) };
     }
@@ -9526,13 +9586,17 @@ loadPrice();
     var oldByNum = {}; var maxN = 0;
     oldItems.forEach(function (it) { var n = gv(it, "Номер виробу"); oldByNum[n] = it; if (eoSufNum(n) > maxN) maxN = eoSufNum(n); });
     var nextN = maxN + 1;
-    var payloadItems = [], newList = [], svcCalls = [], keepNums = {};
+    var payloadItems = [], newList = [], svcCalls = [], keepNums = {}, usedNew = {};
 
-    e.items.forEach(function (it, idx) {
+    /* нові речі йдуть у запиті після наявних: так номери збігаються з тим, що присвоїть сервер */
+    var ordered = e.items.filter(function (x) { return x.num && oldByNum[x.num]; })
+      .concat(e.items.filter(function (x) { return !(x.num && oldByNum[x.num]); }));
+    ordered.forEach(function (it, idx) {
       var num = it.num, obj = num ? oldByNum[num] : null;
       if (!obj) {
         var cand = e.num + "-" + (idx + 1);
-        if (oldByNum[cand]) { cand = e.num + "-" + nextN; nextN++; }
+        while (oldByNum[cand] || usedNew[cand]) { cand = e.num + "-" + nextN; nextN++; }
+        usedNew[cand] = 1;
         num = cand;
         obj = { "Номер замовлення": e.num, "Номер виробу": num, "Статус": "🆕 Новий", "Дата прийому": "", "Дата в роботі": "", "Дата готово": "", "Дата видачі": "", "Сповіщено": "" };
       }
@@ -10754,7 +10818,7 @@ loadPrice();
   }
   function ivRender() {
     var body = document.getElementById("odm-body"); if (!body || !IV) return;
-    var old = body.querySelector(".iv-sh"); if (old) old.remove();
+    var old = document.querySelector(".iv-sh"); if (old) old.remove();
     var its = itemsOf(IV.num), one = IV.sel.length === 1 && its.length > 1;
     var title = "Видача " + (one ? esc([gv(its[IV.sel[0]], "Тип"), gv(its[IV.sel[0]], "Бренд")].filter(Boolean).join(" ")) + " · " : "") + esc(IV.num);
     var due = ivDue(), sub = ivSubTotal();
@@ -10773,7 +10837,7 @@ loadPrice();
     var pen = (edit && !IV.legacy) ? "<div class='iv-penrow'><button class='iv-pen' onclick='ivToggleEdit()'>" + (IV.edit ? "✓ Готово" : "✎ Змінити ціни") + "</button></div>" : "";
     var chips = "", rcv = "";
     var rnd = Math.ceil(due / 500) * 500; if (rnd === due) rnd = due + 500;
-    chips = "<div class='iv-chips'><div class='" + (!IV.touched ? "on" : "") + "' onclick='ivAmt(\"exact\")'>" + (due > 0 ? "Рівно " + money(due) : "Нічого") + "</div><div onclick='ivAmt(\"round\")'>Округлити до " + money(rnd) + "</div><div onclick='document.getElementById(\"iv-amt\").focus();document.getElementById(\"iv-amt\").select()'>Своя сума</div></div>";
+    chips = "<div class='iv-chips'><div class='" + (!IV.touched ? "on" : "") + "' onclick='ivAmt(\"exact\")'>" + (due > 0 ? "Рівно " + money(due) : "Нічого") + "</div><div onclick='document.getElementById(\"iv-amt\").focus();document.getElementById(\"iv-amt\").select()'>Своя сума</div></div>";
     rcv = "<div class='iv-rcv'><label>Отримано від клієнта</label><input id='iv-amt' type='number' inputmode='numeric' value='" + IV.amt + "' oninput='ivTyped(this.value)'><span>₴</span></div>";
     var pay = "<div class='iv-pm' id='iv-pm'" + (IV.amt > 0 ? "" : " style='display:none'") + ">" + ["Готівка", "Картка", "ФОП"].map(function (m) {
       return "<div class='" + (IV.method === m ? "on" : "") + "' onclick=\"ivSet('method','" + m + "')\">" + m + "</div>";
@@ -10786,10 +10850,10 @@ loadPrice();
     }
     var wrap = document.createElement("div"); wrap.className = "iv-sh";
     wrap.setAttribute("onclick", "if(event.target===this)ivClose()");
-    wrap.innerHTML = "<div class='iv-sheet'><h3>" + title + "</h3><div class='iv-sub'>" + sub2 + "</div><div class='iv-say' id='iv-say'>" + say + "</div>" +
-      rowsH + pen + "<div class='iv-sep'></div>" + chips + rcv + ivHint() + pay + who +
+    wrap.innerHTML = "<div class='iv-sheet'><div class='iv-scr'><h3>" + title + "</h3><div class='iv-sub'>" + sub2 + "</div><div class='iv-say' id='iv-say'>" + say + "</div>" +
+      rowsH + pen + "<div class='iv-sep'></div>" + chips + rcv + ivHint() + pay + who + "</div>" +
       "<div class='iv-row2'><button class='iv-cancel' onclick='ivClose()'>Назад</button><button class='iv-go' id='iv-go' onclick='ivConfirm()'>" + ivGoTxt() + "</button></div></div>";
-    body.appendChild(wrap);
+    document.body.appendChild(wrap);
   }
   function ivGoTxt() { return IV.amt > 0 ? "Отримано " + money(IV.amt) + " · Видати" : "Видати"; }
   window.ivToggleEdit = function () { IV.edit = !IV.edit; ivRender(); };
