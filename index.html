@@ -2910,6 +2910,10 @@ body.kb-open .nav.has-home-bar{position:fixed!important;bottom:0!important;trans
 .iv-scr{overflow:auto;-webkit-overflow-scrolling:touch;padding:22px 26px 6px;flex:1;min-height:0}
 .iv-row2{margin-top:0;padding:12px 26px calc(18px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--surface,#fff)}
 
+.iv-penrow{gap:8px}
+.iv-pen.pri{background:var(--cognac);border-color:var(--cognac);color:#fff}
+.iv-rcp .iv-pin{width:104px;font-size:15px;padding:4px 8px}
+
 </style>
 </head>
 <body data-theme="light">
@@ -10641,6 +10645,72 @@ loadPrice();
   }
 
   /* ---- чек ---- */
+  /* ---- правка цін в чеку (адмін, будь-який статус замовлення) ---- */
+  var RCE = null;
+  function rceHasSvc(num) {
+    var its = itemsOf(num);
+    for (var i = 0; i < its.length; i++) { if (servicesOfItem(itemNumOf(num, its[i], i)).length) return true; }
+    return false;
+  }
+  function rceOn(num) { return !!(RCE && RCE.num === num && isAdmin()); }
+  function rcePriceCell(num, sv) {
+    var cur = extractAmt(gv(sv, "Ціна")), sn = gv(sv, "Номер послуги");
+    if (rceOn(num) && sn) {
+      var v = (RCE.vals[sn] !== undefined) ? RCE.vals[sn] : cur;
+      return "<input class='iv-pin' type='number' inputmode='numeric' value='" + v + "' oninput=\"rcePrice('" + jq2(sn) + "',this.value)\"><span class='iv-cur'>\u20B4</span>";
+    }
+    return money(cur);
+  }
+  function rcePenRow(num) {
+    if (!isAdmin() || !rceHasSvc(num)) return "";
+    if (rceOn(num)) {
+      return "<div class='iv-penrow'><button class='iv-pen' onclick=\"rceCancel('" + jq2(num) + "')\">Скасувати</button>" +
+        "<button class='iv-pen pri' onclick=\"rceSave('" + jq2(num) + "')\">Зберегти ціни</button></div>";
+    }
+    return "<div class='iv-penrow'><button class='iv-pen' onclick=\"rceStart('" + jq2(num) + "')\">\u270E Змінити ціни</button></div>";
+  }
+  function rceRerender(num) {
+    var el = document.querySelector(".iv-rcp"); if (!el) return;
+    var tmp = document.createElement("div"); tmp.innerHTML = receiptHTML(num);
+    if (tmp.firstChild) el.parentNode.replaceChild(tmp.firstChild, el);
+  }
+  window.rceStart = function (num) { if (!isAdmin()) return; RCE = { num: num, vals: {} }; rceRerender(num); };
+  window.rceCancel = function (num) { RCE = null; rceRerender(num); };
+  window.rcePrice = function (sn, v) {
+    if (!RCE) return;
+    var n = parseInt(v || "0", 10); if (isNaN(n) || n < 0) n = 0;
+    RCE.vals[sn] = n;
+  };
+  window.rceSave = async function (num) {
+    if (!RCE || RCE.num !== num || !isAdmin()) return;
+    var changes = [];
+    Object.keys(RCE.vals).forEach(function (sn) {
+      var sv = SERVICES.find(function (x) { return gv(x, "Номер послуги") === sn; });
+      if (sv && extractAmt(gv(sv, "Ціна")) !== RCE.vals[sn]) changes.push({ sv: sv, sn: sn, price: RCE.vals[sn] });
+    });
+    RCE = null;
+    if (!changes.length) { rceRerender(num); return; }
+    changes.forEach(function (c) { c.sv["Ціна"] = String(c.price); });
+    var its = itemsOf(num);
+    its.forEach(function (it, idx) {
+      var svs = servicesOfItem(itemNumOf(num, it, idx));
+      if (!svs.length) return;
+      var touched = changes.some(function (c) { return svs.indexOf(c.sv) !== -1; });
+      if (!touched) return;
+      var sum = svs.reduce(function (a, x) { return a + extractAmt(gv(x, "Ціна")); }, 0);
+      it["Сума"] = sum.toLocaleString("uk-UA") + " \u20B4";
+    });
+    openOrder(num);
+    var bad = 0;
+    for (var i = 0; i < changes.length; i++) {
+      try {
+        var r = await fetch(API_URL.replace("/order", "/service/price"), { method: "POST", mode: "cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ svc_num: changes[i].sn, price: changes[i].price }) });
+        if (!r.ok) bad++;
+      } catch (e) { console.error("price failed", e); bad++; }
+    }
+    toast(bad ? "Не всі ціни збережено (" + bad + "). Перевірте замовлення" : "Ціни оновлено");
+  };
+
   function receiptHTML(num) {
     var its = itemsOf(num), P = payInfo(num), nsv = 0, rdy = 0, h = "";
     its.forEach(function (it, idx) {
@@ -10652,7 +10722,7 @@ loadPrice();
         svcs.forEach(function (sv) {
           var ix = serviceStatusIndex(gv(sv, "Статус")); nsv++; if (ix === 2 || issued) rdy++;
           var mk = (ix === 2 || issued) ? "<span class='iv-ok'>✓</span>" : (ix === 1 ? "<span class='iv-wk'>●</span>" : "<span class='iv-nw'>○</span>");
-          h += "<div class='iv-rl'><span>" + mk + " " + esc(gv(sv, "Назва") || "Послуга") + "</span><span class='iv-p'>" + money(extractAmt(gv(sv, "Ціна"))) + "</span></div>";
+          h += "<div class='iv-rl'><span>" + mk + " " + esc(gv(sv, "Назва") || "Послуга") + "</span><span class='iv-p'>" + rcePriceCell(num, sv) + "</span></div>";
         });
       } else {
         nsv++; var st = itemStage(num, it, idx); if (st >= 2) rdy++;
@@ -10660,6 +10730,7 @@ loadPrice();
       }
       h += "</div>";
     });
+    h += rcePenRow(num);
     var cnt = (rdy === nsv) ? (nsv + " " + (nsv === 1 ? "послуга" : "послуги")) : (rdy + " з " + nsv + " готові");
     var A = acctInfo(num);
     var anyIssued = A.issued > 0;
