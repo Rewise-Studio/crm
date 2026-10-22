@@ -1,1 +1,292 @@
+<!doctype html>
+<html lang="uk"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Мої роботи">
+<meta name="theme-color" content="#f6f3ec">
+<meta name="robots" content="noindex">
+<title>Мої роботи</title>
+<link rel="apple-touch-icon" id="ati" href="">
+<link href="https://fonts.googleapis.com/css2?family=Commissioner:wght@300;400;500;600;700&family=Tenor+Sans&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:#f6f3ec;font-family:'Commissioner',system-ui,sans-serif;color:#2b2722;-webkit-text-size-adjust:100%}
+#app{min-height:100%;display:flex;flex-direction:column;max-width:1100px;margin:0 auto;padding-bottom:env(safe-area-inset-bottom,0)}
+.hd{padding:calc(16px + env(safe-area-inset-top,0px)) 16px 8px;display:flex;align-items:center;gap:10px}
+.hd h1{font-family:'Tenor Sans',serif;font-weight:400;font-size:22px;margin:0;flex:1}
+.av{width:34px;height:34px;border-radius:50%;background:#e6dcc6;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;color:#6b4f2c}
+.dt{padding:0 16px 10px;color:#6b655b;font-size:13px}
+.bn{margin:0 14px 12px;background:#fff;border:1px solid #e3d6bb;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.45}
+.bn b{display:block;font-size:14px;margin-bottom:2px}
+.bn .go{margin-top:9px;display:inline-block;background:#a3865c;color:#fff;border-radius:10px;padding:9px 14px;font-weight:600;font-size:13px;border:0;font-family:inherit;cursor:pointer}
+.bn small{display:block;margin-top:7px;color:#8a8376;font-size:12px}
+.sum{display:flex;gap:8px;padding:0 16px 12px}
+.sum div{flex:1;border-radius:12px;padding:8px 10px;cursor:pointer;border:2px solid transparent}
+.sum b{display:block;font-family:Georgia,serif;font-weight:400;font-size:22px;line-height:1}
+.sum small{font-size:11px}
+.s-n{background:#dbe8f7;color:#2f5f94}.s-w{background:#f7e6c8;color:#8a5a12}.s-r{background:#e4efd9;color:#3f6a24}
+.sum div.sel{border-color:#a3865c}
+.tabs{display:flex;gap:5px;padding:0 14px 10px;align-items:center}
+.tabs>div{padding:7px 11px;border-radius:18px;border:1px solid #c9c1ae;background:#fff;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.tabs>div.on{background:#a3865c;border-color:#a3865c;color:#fff}
+.vw{margin-left:auto;display:flex;border:1px solid #c9c1ae;border-radius:18px;overflow:hidden;background:#fff;flex:none}
+.tabs .vw div{padding:7px 11px;font-size:13px;cursor:pointer;color:#6b655b;border:0;border-radius:0;background:none}
+.tabs .vw div.on{background:#a3865c;color:#fff}
+.vw .tx{display:none}
+.list{flex:1;padding:0 12px 24px}
+.card{background:#fff;border:1px solid #f1ecdf;border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.card.late{border-left:4px solid #b3261e}
+.nr{display:flex;align-items:baseline;gap:8px}
+.nr .n{font-family:'Tenor Sans',serif;font-size:18px;letter-spacing:.02em}
+.nr .k{font-size:11px;color:#8a8376}
+.nr .tm{margin-left:auto;font-size:11.5px;font-weight:600}
+.nr .tm.l{color:#b3261e}
+.sv{font-size:13.5px;font-weight:600;margin:4px 0 1px}
+.it{font-size:11.5px;color:#6b655b}
+.ft{display:flex;align-items:center;gap:8px;margin-top:8px}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:#6b655b;flex:1}
+.st i{width:7px;height:7px;border-radius:50%;background:#5E9BD6}
+.st.wk i{background:#D9A24C}.st.rd i{background:#7FB05A}
+.b{border-radius:9px;padding:7px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;min-width:84px}
+.b-new{background:rgba(79,134,198,.09);border:1px solid rgba(79,134,198,.4);color:#2f5f94}
+.b-done{background:rgba(106,160,68,.09);border:1px solid rgba(106,160,68,.42);color:#3f6a24}
+.dn{font-size:12.5px;color:#8a8376}
+.b[disabled]{opacity:.5}
+.lst{background:#fff;border:1px solid #f1ecdf;border-radius:14px;overflow:hidden}
+.row{display:grid;grid-template-columns:70px minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid #f1ecdf}
+.row:first-child{border-top:0}
+.row.late{box-shadow:inset 4px 0 0 #b3261e}
+.row .n{font-family:'Tenor Sans',serif;font-size:14px;line-height:1.15}
+.row .n small{display:block;font-family:'Commissioner',sans-serif;font-size:10.5px;color:#8a8376}
+.row .t{min-width:0}
+.row .t b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;font-weight:600}
+.row .t span{display:block;font-size:11.5px;color:#6b655b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .ph{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.row .d{display:none}
+.row .b{min-width:0;padding:6px 8px;font-size:12px;width:100%}
+.row .st{flex:none;font-size:11px}
+.row .dn{text-align:center}
+.empty{padding:30px;text-align:center;color:#8a8376}
+.snack{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));max-width:520px;margin:0 auto;background:#2b2722;color:#fff;border-radius:12px;padding:12px 14px;font-size:14px;display:flex;justify-content:space-between;align-items:center;z-index:5}
+.snack u{color:#e6c98f;cursor:pointer}
+.msg{padding:60px 24px;text-align:center;color:#6b655b;line-height:1.6}
+.msg h2{font-family:'Tenor Sans',serif;font-weight:400;color:#2b2722}
+.errb{margin:0 14px 10px;background:#fbe9e7;color:#8c1d18;border-radius:10px;padding:8px 12px;font-size:12.5px}
+@media (min-width:700px){
+ .hd{padding:calc(22px + env(safe-area-inset-top,0px)) 28px 10px}
+ .hd h1{font-size:28px}
+ .dt{padding:0 28px 12px;font-size:15px}
+ .bn{margin:0 24px 14px}
+ .sum{padding:0 28px 14px;gap:12px}
+ .tabs{padding:0 28px 12px}
+ .tabs>div{padding:7px 14px;font-size:13px}
+ .vw .tx{display:inline}
+ .list{padding:0 20px 28px}
+ .list.cg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-content:start}
+ .list.cg .card{margin:0}
+ .sv{font-size:14px}.it{font-size:12px}
+ .nr .n{font-size:19px}
+ .row{grid-template-columns:84px minmax(0,1fr) 108px 96px 104px;gap:10px;padding:9px 16px}
+ .row .n{font-size:15px}
+ .row .ph{display:contents}
+ .row .d{display:block}
+ .row .tmi{display:none!important}
+ .row .t b{display:block;white-space:nowrap;text-overflow:ellipsis}
+ .row .d{font-size:12px;font-weight:600;text-align:right}
+ .row .d.l{color:#b3261e}
+ .row .b{padding:7px 8px;font-size:12.5px}
+}
+</style></head>
+<body>
+<div id="app"></div>
+<script>
+var API = "https://price-production-97b5.up.railway.app";
+var KEY = "", ST = null, TAB = "today", STF = "", VW = "cards", SNACK = null, ERR = "", BUSY = {};
+var DAYS = ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
+var MONTHS = ["січня", "лютого", "березня", "квітня", "травня", "червня", "липня", "серпня", "вересня", "жовтня", "листопада", "грудня"];
+var DAYS_FULL = ["Неділя", "Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"];
 
+function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+function initKey() {
+  var m = /[?&]k=([A-Za-z0-9]+)/.exec(location.search);
+  if (m) { KEY = m[1]; lsSet("rw_master_key", KEY); }
+  else { KEY = lsGet("rw_master_key") || ""; }
+  VW = lsGet("rw_master_view") === "list" ? "list" : "cards";
+}
+
+function parseTerm(s) {
+  var m = /(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?/.exec(s || "");
+  if (!m) return null;
+  var y = m[3] ? parseInt(m[3], 10) : new Date().getFullYear();
+  if (y < 100) y += 2000;
+  return new Date(y, parseInt(m[2], 10) - 1, parseInt(m[1], 10));
+}
+function today0() { var d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function pad2(n) { return ("0" + n).slice(-2); }
+function termInfo(s) {
+  var d = parseTerm(s.term);
+  var urgent = String(s.term || "").indexOf("Терміново") !== -1;
+  if (!d) return { label: s.term ? s.term : "Без терміну", late: false, due: urgent, d: null };
+  var t0 = today0(), diff = Math.round((t0 - d) / 86400000);
+  var lbl = DAYS[d.getDay()] + " " + pad2(d.getDate()) + "." + pad2(d.getMonth() + 1);
+  var late = diff > 0 && s.st !== "rd";
+  if (late) lbl += " · +" + diff + "д";
+  return { label: lbl, late: late, due: diff >= 0 || urgent, d: d };
+}
+
+function call(path, body) {
+  return fetch(API + path, { method: "POST", mode: "cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    .then(function (r) { return r.json().then(function (j) { j._http = r.status; return j; }); });
+}
+
+function load(silent) {
+  if (!KEY) { render(); return; }
+  call("/master/plan", { k: KEY }).then(function (j) {
+    if (j.status === "ok") {
+      ST = j; ERR = "";
+      try { applyIdentity(j.name); } catch (e) {}
+    } else if (j.code === "bad_key") { ST = { bad: true }; }
+    else { ERR = "Не вдалося оновити. Спробуйте ще раз"; }
+    render();
+  }).catch(function () { ERR = ST ? "Немає зв'язку. Показано останні дані" : "Немає зв'язку"; render(); });
+}
+
+/* Іконка на екран «Додому»: назва береться з імені майстра */
+var identityDone = "";
+function iconURL(size) {
+  var c = document.createElement("canvas"); c.width = size; c.height = size;
+  var x = c.getContext("2d");
+  x.fillStyle = "#1f1c18"; x.fillRect(0, 0, size, size);
+  x.fillStyle = "#e8d9b8"; x.textAlign = "center"; x.textBaseline = "middle";
+  x.font = Math.round(size * 0.4) + "px 'Tenor Sans', Georgia, serif";
+  x.fillText("RW", size / 2, size / 2);
+  return c.toDataURL("image/png");
+}
+function applyIdentity(name) {
+  if (identityDone === name) return;
+  identityDone = name;
+  document.title = name;
+  var t = document.querySelector('meta[name="apple-mobile-web-app-title"]'); if (t) t.setAttribute("content", name);
+  document.getElementById("ati").setAttribute("href", iconURL(180));
+  var man = { name: "Мої роботи: " + name, short_name: name, start_url: location.pathname + "?k=" + KEY, scope: location.pathname,
+    display: "standalone", background_color: "#f6f3ec", theme_color: "#f6f3ec",
+    icons: [{ src: iconURL(192), sizes: "192x192", type: "image/png" }, { src: iconURL(512), sizes: "512x512", type: "image/png" }] };
+  var blob = new Blob([JSON.stringify(man)], { type: "application/manifest+json" });
+  var l = document.getElementById("mf");
+  if (!l) { l = document.createElement("link"); l.id = "mf"; l.rel = "manifest"; document.head.appendChild(l); }
+  l.href = URL.createObjectURL(blob);
+}
+
+function cnt(s) { return (ST.services || []).filter(function (x) { return x.st === s; }).length; }
+function visible() {
+  var all = ST.services || [], out;
+  if (STF) out = all.filter(function (x) { return x.st === STF; });
+  else if (TAB === "rd") out = all.filter(function (x) { return x.st === "rd"; });
+  else if (TAB === "all") out = all.filter(function (x) { return x.st !== "rd"; });
+  else out = all.filter(function (x) { return x.st === "work" || (x.st === "new" && termInfo(x).due); });
+  out = out.slice();
+  out.sort(function (a, b) {
+    var ta = termInfo(a), tb = termInfo(b);
+    if (ta.late !== tb.late) return ta.late ? -1 : 1;
+    var da = ta.d ? ta.d.getTime() : 9e15, db = tb.d ? tb.d.getTime() : 9e15;
+    if (da !== db) return da - db;
+    return a.id < b.id ? -1 : 1;
+  });
+  return out;
+}
+function btnHTML(x) {
+  var dis = BUSY[x.id] ? " disabled" : "";
+  if (x.st === "new") return "<button class='b b-new'" + dis + " onclick=\"act('" + x.id + "')\">Взяти</button>";
+  if (x.st === "work") return "<button class='b b-done'" + dis + " onclick=\"act('" + x.id + "')\">Завершити</button>";
+  return "<span class='dn'>✓ Готово</span>";
+}
+function stLbl(x) { return { new: "Новий", work: "В роботі", rd: "Готово" }[x.st]; }
+function stCls(x) { return { new: "", work: "wk", rd: "rd" }[x.st]; }
+function cardHTML(x) {
+  var ti = termInfo(x);
+  return "<div class='card" + (ti.late ? " late" : "") + "'><div class='nr'><span class='n'>" + esc(x.order) + "</span><span class='k'>" + esc(x.item) + "</span><span class='tm" + (ti.late ? " l" : "") + "'>" + esc(ti.label) + "</span></div>" +
+    "<div class='sv'>" + esc(x.svc) + "</div><div class='it'>" + esc(x.what) + "</div>" +
+    "<div class='ft'><span class='st " + stCls(x) + "'><i></i>" + stLbl(x) + "</span>" + btnHTML(x) + "</div></div>";
+}
+function rowHTML(x) {
+  var ti = termInfo(x);
+  return "<div class='row" + (ti.late ? " late" : "") + "'><div class='n'>" + esc(x.order) + "<small>" + esc(x.item) + "</small></div>" +
+    "<div class='t'><b>" + esc(x.svc) + "</b><span>" + esc(x.what) + "<span class='tmi' style='display:inline;color:" + (ti.late ? "#b3261e" : "#6b655b") + "'> · " + esc(ti.label) + "</span></span></div>" +
+    "<div class='d" + (ti.late ? " l" : "") + "'>" + esc(ti.label) + "</div>" +
+    "<div class='ph'><span class='st " + stCls(x) + "'><i></i>" + stLbl(x) + "</span>" + btnHTML(x) + "</div></div>";
+}
+
+function render() {
+  var el = document.getElementById("app");
+  if (!KEY) { el.innerHTML = "<div class='msg'><h2>Мої роботи</h2>Відкрийте особисте посилання, яке вам надіслав адміністратор.</div>"; return; }
+  if (!ST) { el.innerHTML = "<div class='msg'>" + (ERR ? esc(ERR) : "Завантаження...") + "</div>"; return; }
+  if (ST.bad) { el.innerHTML = "<div class='msg'><h2>Посилання недійсне</h2>Попросіть адміністратора надіслати нове посилання.</div>"; return; }
+  var d = new Date();
+  var ini = (ST.name || "?").trim().charAt(0).toUpperCase();
+  var banner = "";
+  if (!ST.tg && ST.bot) {
+    banner = "<div class='bn'><b>Підключіть Telegram</b>Щоб отримувати повідомлення про нові роботи й список на день.<br>" +
+      "<button class='go' onclick='tgConnect()'>Підключити Telegram</button><small>Відкриється бот, натисніть «Start» і поверніться сюди.</small></div>";
+  }
+  var v = visible();
+  var body;
+  if (!v.length) body = "<div class='empty'>Тут порожньо</div>";
+  else if (VW === "list") body = "<div class='lst'>" + v.map(rowHTML).join("") + "</div>";
+  else body = v.map(cardHTML).join("");
+  var tabs = [["today", "Сьогодні"], ["all", "Усі мої"], ["rd", "Готові"]].map(function (t) {
+    return "<div class='" + ((TAB === t[0] && !STF) ? "on" : "") + "' onclick=\"setTab('" + t[0] + "')\">" + t[1] + "</div>";
+  }).join("");
+  el.innerHTML =
+    "<div class='hd'><h1>Мої роботи</h1><div class='av'>" + esc(ini) + "</div></div>" +
+    "<div class='dt'>" + DAYS_FULL[d.getDay()] + ", " + d.getDate() + " " + MONTHS[d.getMonth()] + "</div>" +
+    (ERR ? "<div class='errb'>" + esc(ERR) + "</div>" : "") + banner +
+    "<div class='sum'><div class='s-n" + (STF === "new" ? " sel" : "") + "' onclick=\"tile('new')\"><b>" + cnt("new") + "</b><small>Нові</small></div>" +
+    "<div class='s-w" + (STF === "work" ? " sel" : "") + "' onclick=\"tile('work')\"><b>" + cnt("work") + "</b><small>В роботі</small></div>" +
+    "<div class='s-r" + (STF === "rd" ? " sel" : "") + "' onclick=\"tile('rd')\"><b>" + cnt("rd") + "</b><small>Готово</small></div></div>" +
+    "<div class='tabs'>" + tabs + "<div class='vw'><div class='" + (VW === "cards" ? "on" : "") + "' onclick=\"setView('cards')\">▦<span class='tx'> Картки</span></div>" +
+    "<div class='" + (VW === "list" ? "on" : "") + "' onclick=\"setView('list')\">☰<span class='tx'> Список</span></div></div></div>" +
+    "<div class='list" + (VW === "list" ? "" : " cg") + "'>" + body + "</div>" +
+    (SNACK ? "<div class='snack'><span>" + esc(SNACK.t) + "</span><u onclick='undo()'>Скасувати</u></div>" : "");
+}
+
+function setTab(t) { STF = ""; TAB = t; render(); }
+function tile(s) { STF = (STF === s ? "" : s); render(); }
+function setView(v) { VW = v; lsSet("rw_master_view", v); render(); }
+function tgConnect() { window.open("https://t.me/" + ST.bot + "?start=" + KEY, "_blank"); }
+
+function findS(id) { return (ST.services || []).filter(function (x) { return x.id === id; })[0]; }
+function send(id, to) {
+  BUSY[id] = true;
+  return call("/master/action", { k: KEY, svc_num: id, to: to }).then(function (j) {
+    delete BUSY[id];
+    if (j.status !== "ok") throw new Error(j.message || "error");
+  });
+}
+function act(id) {
+  var x = findS(id); if (!x || BUSY[id]) return;
+  var old = x.st, to = old === "new" ? "work" : "rd";
+  x.st = to;
+  SNACK = { t: (to === "work" ? "Взято в роботу: " : "Завершено: ") + x.order + " " + x.item, id: id, old: old };
+  render();
+  clearTimeout(window.__sn); window.__sn = setTimeout(function () { SNACK = null; render(); }, 4000);
+  send(id, to).catch(function () { x.st = old; SNACK = null; ERR = "Не вдалося зберегти. Спробуйте ще раз"; render(); });
+}
+function undo() {
+  if (!SNACK) return;
+  var x = findS(SNACK.id), old = SNACK.old; if (!x) return;
+  var cur = x.st; x.st = old; SNACK = null; render();
+  send(x.id, old).catch(function () { x.st = cur; ERR = "Не вдалося скасувати. Спробуйте ще раз"; render(); });
+}
+
+initKey(); render(); load();
+setInterval(function () { if (!document.hidden && !SNACK) load(true); }, 45000);
+document.addEventListener("visibilitychange", function () { if (!document.hidden) load(true); });
+</script>
+</body></html>
