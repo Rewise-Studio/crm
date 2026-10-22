@@ -2914,6 +2914,25 @@ body.kb-open .nav.has-home-bar{position:fixed!important;bottom:0!important;trans
 .iv-pen.pri{background:var(--cognac);border-color:var(--cognac);color:#fff}
 .iv-rcp .iv-pin{width:104px;font-size:15px;padding:4px 8px}
 
+/* Налаштування: Майстри */
+.mg-sub{font-size:13px;color:#8a8376;margin:2px 0 14px}
+.mg-lb{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a3865c;margin:2px 0 8px}
+.mg-card{background:#fff;border:1px solid #ebe4d4;border-radius:14px;padding:14px 16px;margin-bottom:10px}
+.mg-t{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.mg-t b{font-size:16px;font-weight:500}
+.mg-pill{font-size:11.5px;border-radius:99px;padding:3px 10px}
+.mg-pill.g{background:#e4efd9;color:#3f6a24}.mg-pill.n{background:#f0eadc;color:#8a8376}
+.mg-bt{display:flex;gap:8px;flex-wrap:wrap}
+.mg-btn{border:1px solid #a3865c;background:#fff;color:#7a5a2c;border-radius:10px;padding:9px 13px;font:inherit;font-size:13px;cursor:pointer}
+.mg-btn.p{background:#a3865c;color:#fff}
+.mg-link{font-size:11.5px;color:#8a8376;margin-top:8px;word-break:break-all;background:#faf8f4;border-radius:8px;padding:7px 9px}
+.mg-hint{font-size:12.5px;color:#6b655b;background:rgba(163,134,92,.12);border-radius:10px;padding:10px 12px;line-height:1.5;margin-top:10px}
+.mg-hint2{font-size:12.5px;color:#6b655b;margin-bottom:8px;line-height:1.45}
+.mg-tok{background:#fff;border:1px solid #ebe4d4;border-radius:14px;padding:14px 16px;margin-bottom:10px}
+.mg-trow{display:flex;gap:8px}
+.mg-trow input{flex:1;min-width:0;border:1px solid #ebe4d4;border-radius:10px;padding:10px 12px;font:inherit;font-size:14px}
+.mg-err{background:#fbe9e7;color:#8c1d18;border-radius:10px;padding:10px 12px;font-size:13px;margin:10px 0}
+
 </style>
 </head>
 <body data-theme="light">
@@ -5896,7 +5915,7 @@ async function saveEditOrder() {
 // Вкладка прайсу винесено у js/pricelist.js (підключено наприкінці, після основного коду)
 
 /* ═══════════════ ВКЛАДКА НАЛАШТУВАННЯ ═══════════════ */
-let settingsSection = "params"; // params | price
+let settingsSection = "params"; // params | price | masters
 let priceOpenCat = "";
 let priceOpenDept = "";
 
@@ -5912,6 +5931,7 @@ renderers.settings = function() {
     "<div class='filters'>" +
       "<button class='ftab" + (settingsSection==="params"?" active":"") + "' onclick=\"setSettingsSection('params')\">Параметри</button>" +
       "<button class='ftab" + (settingsSection==="price"?" active":"") + "' onclick=\"setSettingsSection('price')\">Прайс</button>" +
+      "<button class='ftab" + (settingsSection==="masters"?" active":"") + "' onclick=\"setSettingsSection('masters')\">Майстри</button>" +
     "</div>";
 
   page.innerHTML =
@@ -5920,9 +5940,85 @@ renderers.settings = function() {
     "<div class='tab-scroll' id='settings-body'></div>";
 
   if (settingsSection === "price") renderPriceEditor();
+  else if (settingsSection === "masters") renderMastersEditor();
   else renderParamsEditor();
 };
 function setSettingsSection(s) { settingsSection = s; renderers.settings(); }
+
+/* ─── Майстри: особисті посилання на додаток «Мої роботи» ─── */
+function mgrEsc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+var MGR = { loaded: false, list: [], msg: "", loading: false };
+function mgrToken() { try { return localStorage.getItem("rw_admin_token") || ""; } catch (e) { return ""; } }
+function mgrBase() { return location.href.split("#")[0].split("?")[0].replace(/[^\/]*$/, "") + "master/"; }
+function mgrLink(key) { return mgrBase() + "?k=" + key; }
+function mgrCall(path, body) {
+  return fetch(API_URL.replace("/order", path), {
+    method: "POST", mode: "cors",
+    headers: { "Content-Type": "application/json", "X-Admin-Token": mgrToken() },
+    body: JSON.stringify(body || {})
+  }).then(function (r) { return r.json().then(function (j) { j._http = r.status; return j; }); });
+}
+function mgrLoad() {
+  if (!mgrToken()) { MGR.loaded = false; MGR.list = []; renderMastersEditor(); return; }
+  MGR.loading = true; renderMastersEditor();
+  mgrCall("/master/links").then(function (j) {
+    MGR.loading = false;
+    if (j.status === "ok") { MGR.list = j.masters || []; MGR.loaded = true; MGR.msg = ""; }
+    else if (j.code === "bad_token") { try { localStorage.removeItem("rw_admin_token"); } catch (e) {} MGR.msg = "Ключ адміністратора невірний. Введіть ще раз."; MGR.loaded = false; }
+    else if (j.code === "not_configured") { MGR.msg = "На сервері ще не задано ADMIN_TOKEN і MASTER_SECRET (Railway, вкладка Variables)."; MGR.loaded = false; }
+    else { MGR.msg = "Не вдалося завантажити: " + (j.message || "помилка"); MGR.loaded = false; }
+    renderMastersEditor();
+  }).catch(function () { MGR.loading = false; MGR.msg = "Немає зв'язку з сервером."; MGR.loaded = false; renderMastersEditor(); });
+}
+function mgrSaveToken() {
+  var el = document.getElementById("mg-token"); if (!el || !el.value.trim()) return;
+  try { localStorage.setItem("rw_admin_token", el.value.trim()); } catch (e) {}
+  mgrLoad();
+}
+function mgrCopy(i) {
+  var m = MGR.list[i]; if (!m) return;
+  var link = mgrLink(m.key);
+  function ok() { toast("Посилання для " + m.name + " скопійовано"); }
+  if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(link).then(ok, function () { mgrCopyOld(link, ok); }); }
+  else mgrCopyOld(link, ok);
+}
+function mgrCopyOld(link, ok) {
+  var t = document.createElement("textarea"); t.value = link; t.style.position = "fixed"; t.style.opacity = "0";
+  document.body.appendChild(t); t.select(); try { document.execCommand("copy"); ok(); } catch (e) { toast("Не вдалося скопіювати"); }
+  document.body.removeChild(t);
+}
+function mgrReset(i) {
+  var m = MGR.list[i]; if (!m) return;
+  if (!confirm("Створити нове посилання для " + m.name + "? Старе одразу перестане працювати, майстру треба надіслати нове.")) return;
+  mgrCall("/master/reset", { name: m.name }).then(function (j) {
+    if (j.status === "ok") { m.key = j.key; toast("Створено нове посилання для " + m.name); renderMastersEditor(); }
+    else toast("Не вдалося: " + (j.message || "помилка"));
+  }).catch(function () { toast("Немає зв'язку з сервером"); });
+}
+function renderMastersEditor() {
+  var box = document.getElementById("settings-body"); if (!box) return;
+  var h = "<div class='mg-sub'>Особисті посилання для додатка «Мої роботи»</div>";
+  if (!mgrToken()) {
+    h += "<div class='mg-tok'><div class='mg-lb'>Ключ адміністратора</div><div class='mg-hint2'>Потрібен один раз на цьому пристрої. Це значення змінної ADMIN_TOKEN у Railway.</div>" +
+      "<div class='mg-trow'><input id='mg-token' type='password' autocomplete='off' placeholder='Ключ'><button class='mg-btn p' onclick='mgrSaveToken()'>Зберегти</button></div></div>";
+    if (MGR.msg) h += "<div class='mg-err'>" + mgrEsc(MGR.msg) + "</div>";
+    box.innerHTML = h; return;
+  }
+  if (MGR.loading && !MGR.loaded) { box.innerHTML = h + "<div class='orders-loading'>Завантаження...</div>"; return; }
+  if (MGR.msg && !MGR.loaded) {
+    box.innerHTML = h + "<div class='mg-err'>" + mgrEsc(MGR.msg) + "</div><button class='mg-btn' onclick='mgrLoad()'>Спробувати ще раз</button>"; return;
+  }
+  if (!MGR.loaded) { mgrLoad(); box.innerHTML = h + "<div class='orders-loading'>Завантаження...</div>"; return; }
+  h += "<div class='mg-lb'>Виконавці</div>";
+  if (!MGR.list.length) h += "<div class='orders-empty'>Додайте майстрів у лист «Майстри»</div>";
+  MGR.list.forEach(function (m, i) {
+    h += "<div class='mg-card'><div class='mg-t'><b>" + mgrEsc(m.name) + "</b><span class='mg-pill " + (m.tg ? "g" : "n") + "'>" + (m.tg ? "Telegram підключено" : "Telegram не підключено") + "</span></div>" +
+      "<div class='mg-bt'><button class='mg-btn p' onclick='mgrCopy(" + i + ")'>Скопіювати посилання</button><button class='mg-btn' onclick='mgrReset(" + i + ")'>Створити нове посилання</button></div>" +
+      "<div class='mg-link'>" + mgrEsc(mgrBase()) + "?k=•••••••••••••</div></div>";
+  });
+  h += "<div class='mg-hint'>Надішліть майстру його посилання в месенджері. Хто має посилання, бачить лише роботи цього майстра (без цін і клієнтів). Якщо посилання потрапило не туди, створіть нове: старе одразу перестане працювати.</div>";
+  box.innerHTML = h;
+}
 
 function renderPriceEditor() {
   const box = document.getElementById("settings-body");
