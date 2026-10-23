@@ -71,12 +71,25 @@ body{background:#f6f3ec;font-family:'Commissioner',system-ui,sans-serif;color:#2
 .row .st{flex:none;font-size:11px}
 .row .dn{text-align:center}
 .empty{padding:30px;text-align:center;color:#8a8376}
+.zp{margin:2px 14px 12px;background:#1f1c18;color:#e8d9b8;border-radius:16px;padding:12px 14px}
+.zp .l{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a89f8f}
+.zp .v{font-family:'Tenor Sans',serif;font-size:30px;margin:2px 0 8px}
+.zp .pr{display:flex;gap:6px;flex-wrap:wrap}
+.zp .pr div{padding:5px 11px;border-radius:14px;border:1px solid #5a5045;font-size:12px;cursor:pointer;color:#cfc3ad}
+.zp .pr div.on{background:#a3865c;border-color:#a3865c;color:#fff}
+.zp .n{font-size:11.5px;color:#a89f8f;margin-top:8px}
+.sv{display:flex;gap:8px;align-items:baseline}
+.sv .pc{margin-left:auto;font-size:13.5px;font-weight:700;white-space:nowrap}
+.it .chev{margin-left:auto;font-size:11px;color:#a89f8f;cursor:pointer;white-space:nowrap}
+.cl{margin-top:8px;background:#faf8f4;border-radius:9px;padding:7px 10px;font-size:12.5px;color:#4a443a}
+.card .it{display:flex;gap:6px;align-items:center}
 .snack{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));max-width:520px;margin:0 auto;background:#2b2722;color:#fff;border-radius:12px;padding:12px 14px;font-size:14px;display:flex;justify-content:space-between;align-items:center;z-index:5}
 .snack u{color:#e6c98f;cursor:pointer}
 .msg{padding:60px 24px;text-align:center;color:#6b655b;line-height:1.6}
 .msg h2{font-family:'Tenor Sans',serif;font-weight:400;color:#2b2722}
 .errb{margin:0 14px 10px;background:#fbe9e7;color:#8c1d18;border-radius:10px;padding:8px 12px;font-size:12.5px}
 @media (min-width:700px){
+ .zp{margin:0 24px 14px;max-width:420px}
  .hd{padding:calc(22px + env(safe-area-inset-top,0px)) 28px 10px}
  .hd h1{font-size:28px}
  .dt{padding:0 28px 12px;font-size:15px}
@@ -105,11 +118,12 @@ body{background:#f6f3ec;font-family:'Commissioner',system-ui,sans-serif;color:#2
 <div id="app"></div>
 <script>
 var API = "https://price-production-97b5.up.railway.app";
-var KEY = "", ST = null, TAB = "today", STF = "", VW = "cards", SNACK = null, ERR = "", BUSY = {};
+var KEY = "", ST = null, PER = "day", OPEN = {}, ADJ = 0, TAB = "today", STF = "", VW = "cards", SNACK = null, ERR = "", BUSY = {};
 var DAYS = ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 var MONTHS = ["січня", "лютого", "березня", "квітня", "травня", "червня", "липня", "серпня", "вересня", "жовтня", "листопада", "грудня"];
 var DAYS_FULL = ["Неділя", "Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"];
 
+function money(n) { return String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " \u20B4"; }
 function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
@@ -150,7 +164,7 @@ function load(silent) {
   if (!KEY) { render(); return; }
   call("/master/plan", { k: KEY }).then(function (j) {
     if (j.status === "ok") {
-      ST = j; ERR = "";
+      ST = j; ERR = ""; ADJ = 0;
       try { applyIdentity(j.name); } catch (e) {}
     } else if (j.code === "bad_key") { ST = { bad: true }; }
     else { ERR = "Не вдалося оновити. Спробуйте ще раз"; }
@@ -203,22 +217,24 @@ function visible() {
 }
 function btnHTML(x) {
   var dis = BUSY[x.id] ? " disabled" : "";
-  if (x.st === "new") return "<button class='b b-new'" + dis + " onclick=\"act('" + x.id + "')\">Взяти</button>";
-  if (x.st === "work") return "<button class='b b-done'" + dis + " onclick=\"act('" + x.id + "')\">Завершити</button>";
-  return "<span class='dn'>✓ Готово</span>";
+  if (x.st === "new") return "<button class='b b-new'" + dis + " onclick=\"event.stopPropagation();act('" + x.id + "')\">Взяти</button>";
+  if (x.st === "work") return "<button class='b b-done'" + dis + " onclick=\"event.stopPropagation();act('" + x.id + "')\">Завершити</button>";
+  return "<span class='dn'>\u2713 \u0412\u0440\u0430\u0445\u043e\u0432\u0430\u043d\u043e</span>";
 }
 function stLbl(x) { return { new: "Новий", work: "В роботі", rd: "Готово" }[x.st]; }
 function stCls(x) { return { new: "", work: "wk", rd: "rd" }[x.st]; }
 function cardHTML(x) {
-  var ti = termInfo(x);
-  return "<div class='card" + (ti.late ? " late" : "") + "'><div class='nr'><span class='n'>" + esc(x.order) + "</span><span class='k'>" + esc(x.item) + "</span><span class='tm" + (ti.late ? " l" : "") + "'>" + esc(ti.label) + "</span></div>" +
-    "<div class='sv'>" + esc(x.svc) + "</div><div class='it'>" + esc(x.what) + "</div>" +
+  var ti = termInfo(x), op = !!OPEN[x.id];
+  return "<div class='card" + (ti.late ? " late" : "") + "' onclick=\"toggleCl('" + x.id + "')\"><div class='nr'><span class='n'>" + esc(x.order) + "</span><span class='k'>" + esc(x.item) + "</span><span class='tm" + (ti.late ? " l" : "") + "'>" + esc(ti.label) + "</span></div>" +
+    "<div class='sv'><span>" + esc(x.svc) + "</span><span class='pc'>" + money(x.price) + "</span></div>" +
+    "<div class='it'>" + esc(x.what) + "<span class='chev'>\u041a\u043b\u0456\u0454\u043d\u0442 " + (op ? "\u25B4" : "\u25BE") + "</span></div>" +
+    (op ? "<div class='cl'>\u041a\u043b\u0456\u0454\u043d\u0442: <b>" + esc(x.client || "-") + "</b></div>" : "") +
     "<div class='ft'><span class='st " + stCls(x) + "'><i></i>" + stLbl(x) + "</span>" + btnHTML(x) + "</div></div>";
 }
 function rowHTML(x) {
   var ti = termInfo(x);
   return "<div class='row" + (ti.late ? " late" : "") + "'><div class='n'>" + esc(x.order) + "<small>" + esc(x.item) + "</small></div>" +
-    "<div class='t'><b>" + esc(x.svc) + "</b><span>" + esc(x.what) + "<span class='tmi' style='display:inline;color:" + (ti.late ? "#b3261e" : "#6b655b") + "'> · " + esc(ti.label) + "</span></span></div>" +
+    "<div class='t'><b>" + esc(x.svc) + "</b><span>" + esc(x.what) + " \u00b7 " + money(x.price) + (x.client ? " \u00b7 " + esc(x.client) : "") + "<span class='tmi' style='display:inline;color:" + (ti.late ? "#b3261e" : "#6b655b") + "'> · " + esc(ti.label) + "</span></span></div>" +
     "<div class='d" + (ti.late ? " l" : "") + "'>" + esc(ti.label) + "</div>" +
     "<div class='ph'><span class='st " + stCls(x) + "'><i></i>" + stLbl(x) + "</span>" + btnHTML(x) + "</div></div>";
 }
@@ -247,6 +263,7 @@ function render() {
     "<div class='hd'><h1>Мої роботи</h1><div class='av'>" + esc(ini) + "</div></div>" +
     "<div class='dt'>" + DAYS_FULL[d.getDay()] + ", " + d.getDate() + " " + MONTHS[d.getMonth()] + "</div>" +
     (ERR ? "<div class='errb'>" + esc(ERR) + "</div>" : "") + banner +
+    zpHTML() +
     "<div class='sum'><div class='s-n" + (STF === "new" ? " sel" : "") + "' onclick=\"tile('new')\"><b>" + cnt("new") + "</b><small>Нові</small></div>" +
     "<div class='s-w" + (STF === "work" ? " sel" : "") + "' onclick=\"tile('work')\"><b>" + cnt("work") + "</b><small>В роботі</small></div>" +
     "<div class='s-r" + (STF === "rd" ? " sel" : "") + "' onclick=\"tile('rd')\"><b>" + cnt("rd") + "</b><small>Готово</small></div></div>" +
@@ -256,6 +273,25 @@ function render() {
     (SNACK ? "<div class='snack'><span>" + esc(SNACK.t) + "</span><u onclick='undo()'>Скасувати</u></div>" : "");
 }
 
+function earnVal() {
+  var e = (ST && ST.earn) || {};
+  return Math.max(0, (e[PER] || 0) + ADJ);
+}
+function zpHTML() {
+  var ps = [["day", "\u0421\u044c\u043e\u0433\u043e\u0434\u043d\u0456"], ["week", "\u0422\u0438\u0436\u0434\u0435\u043d\u044c"], ["month", "\u041c\u0456\u0441\u044f\u0446\u044c"]];
+  return "<div class='zp'><div class='l'>\u041c\u0456\u0439 \u0437\u0430\u0440\u043e\u0431\u0456\u0442\u043e\u043a</div><div class='v'>" + money(earnVal()) + "</div><div class='pr'>" +
+    ps.map(function (p) { return "<div class='" + (PER === p[0] ? "on" : "") + "' onclick=\"setPer('" + p[0] + "')\">" + p[1] + "</div>"; }).join("") +
+    "</div><div class='n'>" + esc(perLbl()) + ". \u0420\u0430\u0445\u0443\u0454\u0442\u044c\u0441\u044f \u043f\u043e\u0432\u043d\u0430 \u0441\u0443\u043c\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0438\u0445 \u0440\u043e\u0431\u0456\u0442</div></div>";
+}
+function perLbl() {
+  var d = new Date();
+  if (PER === "day") return d.getDate() + " " + MONTHS[d.getMonth()];
+  if (PER === "month") return ["\u0421\u0456\u0447\u0435\u043d\u044c", "\u041b\u044e\u0442\u0438\u0439", "\u0411\u0435\u0440\u0435\u0437\u0435\u043d\u044c", "\u041a\u0432\u0456\u0442\u0435\u043d\u044c", "\u0422\u0440\u0430\u0432\u0435\u043d\u044c", "\u0427\u0435\u0440\u0432\u0435\u043d\u044c", "\u041b\u0438\u043f\u0435\u043d\u044c", "\u0421\u0435\u0440\u043f\u0435\u043d\u044c", "\u0412\u0435\u0440\u0435\u0441\u0435\u043d\u044c", "\u0416\u043e\u0432\u0442\u0435\u043d\u044c", "\u041b\u0438\u0441\u0442\u043e\u043f\u0430\u0434", "\u0413\u0440\u0443\u0434\u0435\u043d\u044c"][d.getMonth()] + " " + d.getFullYear();
+  var wd = (d.getDay() + 6) % 7, a = new Date(d.getFullYear(), d.getMonth(), d.getDate() - wd), b = new Date(a.getFullYear(), a.getMonth(), a.getDate() + 6);
+  return a.getDate() + "\u2013" + b.getDate() + " " + MONTHS[b.getMonth()];
+}
+function setPer(p) { PER = p; render(); }
+function toggleCl(id) { OPEN[id] = !OPEN[id]; render(); }
 function setTab(t) { STF = ""; TAB = t; render(); }
 function tile(s) { STF = (STF === s ? "" : s); render(); }
 function setView(v) { VW = v; lsSet("rw_master_view", v); render(); }
@@ -273,16 +309,17 @@ function act(id) {
   var x = findS(id); if (!x || BUSY[id]) return;
   var old = x.st, to = old === "new" ? "work" : "rd";
   x.st = to;
+  if (to === "rd") ADJ += (x.price || 0); else if (old === "rd") ADJ -= (x.price || 0);
   SNACK = { t: (to === "work" ? "Взято в роботу: " : "Завершено: ") + x.order + " " + x.item, id: id, old: old };
   render();
   clearTimeout(window.__sn); window.__sn = setTimeout(function () { SNACK = null; render(); }, 4000);
-  send(id, to).catch(function () { x.st = old; SNACK = null; ERR = "Не вдалося зберегти. Спробуйте ще раз"; render(); });
+  send(id, to).then(function () { load(true); }).catch(function () { x.st = old; if (to === "rd") ADJ -= (x.price || 0); SNACK = null; ERR = "Не вдалося зберегти. Спробуйте ще раз"; render(); });
 }
 function undo() {
   if (!SNACK) return;
   var x = findS(SNACK.id), old = SNACK.old; if (!x) return;
-  var cur = x.st; x.st = old; SNACK = null; render();
-  send(x.id, old).catch(function () { x.st = cur; ERR = "Не вдалося скасувати. Спробуйте ще раз"; render(); });
+  var cur = x.st; x.st = old; if (cur === "rd") ADJ -= (x.price || 0); else if (old === "rd") ADJ += (x.price || 0); SNACK = null; render();
+  send(x.id, old).then(function () { load(true); }).catch(function () { x.st = cur; ERR = "Не вдалося скасувати. Спробуйте ще раз"; render(); });
 }
 
 initKey(); render(); load();
