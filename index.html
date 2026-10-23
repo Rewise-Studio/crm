@@ -10807,6 +10807,7 @@ loadPrice();
     toast(bad ? "Не всі ціни збережено (" + bad + "). Перевірте замовлення" : "Ціни оновлено");
   };
 
+  function nopen(t) { return String(t == null ? "" : t).replace(/\uD83D\uDCDD\s*/g, ""); }
   function receiptHTML(num) {
     var its = itemsOf(num), P = payInfo(num), nsv = 0, rdy = 0, h = "";
     its.forEach(function (it, idx) {
@@ -10818,11 +10819,11 @@ loadPrice();
         svcs.forEach(function (sv) {
           var ix = serviceStatusIndex(gv(sv, "Статус")); nsv++; if (ix === 2 || issued) rdy++;
           var mk = (ix === 2 || issued) ? "<span class='iv-ok'>✓</span>" : (ix === 1 ? "<span class='iv-wk'>●</span>" : "<span class='iv-nw'>○</span>");
-          h += "<div class='iv-rl'><span>" + mk + " " + esc(gv(sv, "Назва") || "Послуга") + "</span><span class='iv-p'>" + rcePriceCell(num, sv) + "</span></div>";
+          h += "<div class='iv-rl'><span>" + mk + " " + esc(nopen(gv(sv, "Назва")) || "Послуга") + "</span><span class='iv-p'>" + rcePriceCell(num, sv) + "</span></div>";
         });
       } else {
         nsv++; var st = itemStage(num, it, idx); if (st >= 2) rdy++;
-        h += "<div class='iv-rl'><span>" + (st >= 2 ? "<span class='iv-ok'>✓</span>" : "<span class='iv-nw'>○</span>") + " " + esc(gv(it, "Послуги")) + "</span><span class='iv-p'>" + money(extractAmt(gv(it, "Сума"))) + "</span></div>";
+        h += "<div class='iv-rl'><span>" + (st >= 2 ? "<span class='iv-ok'>✓</span>" : "<span class='iv-nw'>○</span>") + " " + esc(nopen(gv(it, "Послуги"))) + "</span><span class='iv-p'>" + money(extractAmt(gv(it, "Сума"))) + "</span></div>";
       }
       h += "</div>";
     });
