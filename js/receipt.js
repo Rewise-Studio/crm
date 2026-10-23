@@ -82,7 +82,7 @@ function updateReceipt() {
   NO.items.forEach((item, idx) => {
     if (!item.services.length) return;
     item.services.forEach(s => total += s.price);
-    const svcs = item.services.map(s => "<div class='r-svcrow'><span>"+escHtml(s.name)+"</span><span class='rs-price'>"+s.price+" ₴</span></div>").join("");
+    const svcs = item.services.map(s => "<div class='r-svcrow'><span>"+escHtml(rcName(s.name))+"</span><span class='rs-price'>"+s.price+" ₴</span></div>").join("");
     const label = [item.model, item.brand].filter(Boolean).join(" · ");
     const noteHTML = item.note ? "<div class='r-item-note'>Коментар: "+escHtml(item.note)+"</div>" : "";
     itemsHTML += "<div class='r-item'><div class='r-item-title'><span class='ri-num'>№"+(idx+1)+"</span>"+(label?"<span class='ri-name'>"+escHtml(label)+"</span>":"")+"</div>"+svcs+noteHTML+"</div>";
@@ -126,6 +126,12 @@ function shareReceipt() {
   }).catch(()=>{ if(btn) btn.innerHTML=orig; });
 }
 
+function rcName(n) {
+  var t = String(n == null ? "" : n).replace(/\uD83D\uDCDD\s*/g, "").trim();
+  return t === "Чищення" ? "Чищення верху взуття" : t;
+}
+function rcList(str) { return String(str || "").split(",").map(function (x) { return rcName(x); }).filter(Boolean).join(", "); }
+
 function orderReceiptHTML(num) {
   const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
   const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
@@ -147,12 +153,12 @@ function orderReceiptHTML(num) {
       // Кожна послуга окремим рядком — з детального логу (лист «Послуги»)
       svcRow = detailedSvcs.map(s => {
         const p = extractAmt(gv(s,"Ціна"));
-        return "<div class='r-svcrow'><span>" + escHtml(gv(s,"Назва")) + "</span><span class='rs-price'>" + p.toLocaleString("uk-UA") + " ₴</span></div>";
+        return "<div class='r-svcrow'><span>" + escHtml(rcName(gv(s,"Назва"))) + "</span><span class='rs-price'>" + p.toLocaleString("uk-UA") + " ₴</span></div>";
       }).join("");
     } else {
       // Фолбек для старих замовлень без детального логу — одним рядком, як раніше
       const svcs = gv(it,"Послуги");
-      svcRow = "<div class='r-svcrow'><span>" + escHtml(svcs || "Послуги") + "</span><span class='rs-price'>" + amt.toLocaleString("uk-UA") + " ₴</span></div>";
+      svcRow = "<div class='r-svcrow'><span>" + escHtml(rcList(svcs) || "Послуги") + "</span><span class='rs-price'>" + amt.toLocaleString("uk-UA") + " ₴</span></div>";
     }
     const noteHTML = note ? "<div class='r-item-note'>Коментар: " + escHtml(note) + "</div>" : "";
     itemsHTML += "<div class='r-item'><div class='r-item-title'><span class='ri-num'>№" + (idx+1) + "</span><span class='ri-name'>" + escHtml(name) + "</span></div>" + svcRow + noteHTML + "</div>";
