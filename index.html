@@ -8407,6 +8407,7 @@ loadPrice();
    Додано окремим блоком наприкінці файлу. Дані й функції основного коду
    (ORDERS, ITEMS, NO, PRICE, openOrder, pickModel, toggleOp ...) не змінюються,
    підміняються лише рендер вікна речі (renderItemEditor) та додається сторінка «Прийом». */
+window.rwFull = function (n) { return n === "Чищення" ? "Чищення верху взуття" : n; };
 (function () {
   "use strict";
 
@@ -9299,7 +9300,7 @@ loadPrice();
     var n = it.services.length, open = it.wzRo !== false, rows = "";
     it.services.forEach(function (sv, si) {
       var core = sv.kind === "core", unit = core ? sv.price : sv.unit, qty = core ? 1 : (sv.qty || 1), base = wzFloor(it, sv);
-      var raised = unit > base && base > 0, nm = core ? sv.name : (sv.baseName || sv.name);
+      var raised = unit > base && base > 0, nm = core ? rwFull(sv.name) : (sv.baseName || sv.name);
       rows += "<div class='w2-rl'><span class='n'>" + h(nm) + "</span><span class='pc1" + (raised ? " up" : "") + "' onclick='wzPrToggle(" + it.id + "," + si + ")'>" + money(unit) + "</span>" +
         "<span class='w2-q'>" + (core ? "<u onclick='wzRm(" + it.id + "," + si + ")'>×</u><em>1</em><u class='ph'>+</u>" :
           "<u onclick='wzQty(" + it.id + "," + si + ",-1)'>" + ((qty === 0.5 || (qty === 1 && !wzIsPair(sv))) ? "×" : "−") + "</u><em>" + wzQtyLbl(qty) + "</em><u onclick='wzQty(" + it.id + "," + si + ",1)'>+</u>") + "</span>" +
@@ -10819,7 +10820,7 @@ loadPrice();
         svcs.forEach(function (sv) {
           var ix = serviceStatusIndex(gv(sv, "Статус")); nsv++; if (ix === 2 || issued) rdy++;
           var mk = (ix === 2 || issued) ? "<span class='iv-ok'>✓</span>" : (ix === 1 ? "<span class='iv-wk'>●</span>" : "<span class='iv-nw'>○</span>");
-          h += "<div class='iv-rl'><span>" + mk + " " + esc(nopen(gv(sv, "Назва")) || "Послуга") + "</span><span class='iv-p'>" + rcePriceCell(num, sv) + "</span></div>";
+          h += "<div class='iv-rl'><span>" + mk + " " + esc(nopen(rwFull(gv(sv, "Назва"))) || "Послуга") + "</span><span class='iv-p'>" + rcePriceCell(num, sv) + "</span></div>";
         });
       } else {
         nsv++; var st = itemStage(num, it, idx); if (st >= 2) rdy++;
