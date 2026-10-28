@@ -8984,10 +8984,11 @@ window.rwFull = function (n) { return n === "Чищення" ? "Чищення �
   function wzUp(q) { return q < 1 ? 1 : q + 1; }
   function wzDown(s) { var q = s.qty || 1; if (q > 1) return q - 1; if (q === 1 && wzIsPair(s)) return 0.5; return 0; }
   function wzSync(s) { s.qty = s.qty || 1; s.price = Math.round(s.unit * s.qty); s.name = s.baseName + (s.qty !== 1 ? " × " + wzQtyLbl(s.qty) : ""); }
-  function wzFloor(it, s) {
+  function wzBase(it, s) {
     if (s.kind === "core") { var p = opPriceFor(it, s.op); return p ? (parseInt(p.price) || 0) : 0; }
     return s.custom ? 0 : (s.base || 0);
   }
+  function wzFloor(it, s) { return (typeof isAdmin === "function" && isAdmin()) ? 0 : wzBase(it, s); }
 
   window.wzAdd = function (id, li) {
     var it = wzItem(id), l = WZ_LIST[li]; if (!it || !l) return;
@@ -9299,14 +9300,14 @@ window.rwFull = function (n) { return n === "Чищення" ? "Чищення �
   function wzReceipt(it) {
     var n = it.services.length, open = it.wzRo !== false, rows = "";
     it.services.forEach(function (sv, si) {
-      var core = sv.kind === "core", unit = core ? sv.price : sv.unit, qty = core ? 1 : (sv.qty || 1), base = wzFloor(it, sv);
+      var core = sv.kind === "core", unit = core ? sv.price : sv.unit, qty = core ? 1 : (sv.qty || 1), base = wzBase(it, sv), flr = wzFloor(it, sv);
       var raised = unit > base && base > 0, nm = core ? rwFull(sv.name) : (sv.baseName || sv.name);
       rows += "<div class='w2-rl'><span class='n'>" + h(nm) + "</span><span class='pc1" + (raised ? " up" : "") + "' onclick='wzPrToggle(" + it.id + "," + si + ")'>" + money(unit) + "</span>" +
         "<span class='w2-q'>" + (core ? "<u onclick='wzRm(" + it.id + "," + si + ")'>×</u><em>1</em><u class='ph'>+</u>" :
           "<u onclick='wzQty(" + it.id + "," + si + ",-1)'>" + ((qty === 0.5 || (qty === 1 && !wzIsPair(sv))) ? "×" : "−") + "</u><em>" + wzQtyLbl(qty) + "</em><u onclick='wzQty(" + it.id + "," + si + ",1)'>+</u>") + "</span>" +
         "<span class='s'>" + money(sv.price) + "</span></div>";
       if (it.wzPr && it.wzPr[si]) {
-        rows += "<div class='wz-prw'>Ціна за 1" + (base ? " (не нижче прайсу " + money(base) + ")" : "") + "<span class='wz-step'><button " + (unit <= base ? "disabled" : "") + " onclick='wzPrStep(" + it.id + "," + si + ",-50)'>−</button><span class='n' style='min-width:56px' onclick='wzPrKeypad(" + it.id + "," + si + ")'>" + unit + "</span><button onclick='wzPrStep(" + it.id + "," + si + ",50)'>+</button></span></div>";
+        rows += "<div class='wz-prw'>Ціна за 1" + (base ? (flr ? " (не нижче прайсу " + money(base) + ")" : " (прайс " + money(base) + ")") : "") + "<span class='wz-step'><button " + (unit <= flr ? "disabled" : "") + " onclick='wzPrStep(" + it.id + "," + si + ",-50)'>−</button><span class='n' style='min-width:56px' onclick='wzPrKeypad(" + it.id + "," + si + ")'>" + unit + "</span><button onclick='wzPrStep(" + it.id + "," + si + ",50)'>+</button></span></div>";
       }
     });
     return "<div class='w2-rc'><div class='w2-rh' onclick='wzRcpTog(" + it.id + ")'><b>Чек</b><span>" + (n ? n + " " + (n === 1 ? "послуга" : (n < 5 ? "послуги" : "послуг")) : "порожній") + "</span><em>" + (open ? "▾" : "▴") + "</em></div>" +
