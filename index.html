@@ -7296,6 +7296,15 @@ function openOrder(num) {
     const receiver = gv(o,"Приймальник");
     const dCreated = gv(o,"Дата створення");
     if (receiver || dCreated) historyHTML += "<div class='n-hist-row'><span class='hl'>Прийнято</span><span>" + (receiver || "—") + (dCreated ? " · " + dowDate(dCreated) : "") + "</span></div>";
+    // Виконав: окремий рядок на кожну закриту послугу (майстер з колонки «Майстер» і час готовності)
+    svcs.forEach(function (sv) {
+      const m = gv(sv, "Майстер");
+      if (m && serviceStatusIndex(gv(sv, "Статус")) === 2) {
+        const dr = gv(sv, "Дата готово");
+        historyHTML += "<div class='n-hist-row'><span class='hl'>Виконав</span><span>" +
+          (svcs.length > 1 ? (gv(sv, "Назва") || "Послуга") + " — " : "") + m + (dr ? " · " + dowDate(dr) : "") + "</span></div>";
+      }
+    });
     if (notified) historyHTML += "<div class='n-hist-row'><span class='hl'>Сповістив</span><span>" + (notifiedBy || "—") + " · " + dowDate(notified) + "</span></div>";
     if (issuedBy || dIssue) historyHTML += "<div class='n-hist-row'><span class='hl'>Видав</span><span>" + (issuedBy || "—") + (dIssue ? " · " + dowDate(dIssue) : "") + "</span></div>";
 
@@ -7608,32 +7617,20 @@ async function confirmIssueWholeOrder(num, master) {
   closeSettle();
   const its = ITEMS.filter(i => gv(i,"Номер замовлення") === num);
   const nowVal = new Date().toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit",year:"numeric"}) + " " + new Date().toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
-  for (let idx = 0; idx < its.length; idx++) {
-    const it = its[idx];
-    if (gv(it,"Статус") === "📦 Виданий") continue;
-    const wasNotified = !!gv(it,"Сповіщено");
+  its.forEach(function (it) {
+    if (gv(it,"Статус") === "📦 Виданий") return;
     it["Статус"] = "📦 Виданий";
     it["Хто видав"] = master;
     it["Дата видачі"] = nowVal;
-    if (!wasNotified) it["Сповіщено"] = nowVal;
-    openOrder(num);
-    const itemNum = gv(it,"Номер виробу") || (num + "-" + (idx+1));
-    try {
-      await fetch(API_URL.replace("/order","/status"), {
-        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ item_num: itemNum, status: "📦 Виданий", master: master })
-      });
-      if (!wasNotified) {
-        await fetch(API_URL.replace("/order","/notify"), {
-          method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({ item_num: itemNum, notified: true })
-        });
-      }
-    } catch(e) { console.error("bulk issue failed", e); }
-  }
+    if (!gv(it,"Сповіщено")) it["Сповіщено"] = nowVal;
+  });
+  openOrder(num);
   if (currentPage === "todayplan") renderers.todayplan();
   if (currentPage === "assign") renderers.assign();
   if (currentPage === "myworks") renderers.myworks();
+  // Одне звернення до сервера на все замовлення (раніше було по запиту на кожне виріб)
+  rwPost("/order/issue", { order_num: num, master: master },
+    "Не вдалося зберегти видачу " + num + ". Повторіть видачу.");
 }
 
 function backToOrders() {
@@ -7752,18 +7749,13 @@ async function assignMaster(num, itemIdx, action, master) {
   closeSettle();
   openOrder(num);
   const itemNum = gv(it,"Номер виробу") || (num + "-" + (itemIdx+1));
-  try {
-    await fetch(API_URL.replace("/order","/status"), {
-      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ item_num: itemNum, status: status, master: master })
-    });
-    if (action === "issue" && !wasNotified) {
-      await fetch(API_URL.replace("/order","/notify"), {
-        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ item_num: itemNum, notified: true })
-      });
-    }
-  } catch(e) { console.error("assign master failed", e); }
+  // Видача окремого виробу (частинами): запис статусу й «сповіщено» йде у фоні, паралельно, з повтором
+  rwPost("/status", { item_num: itemNum, status: status, master: master },
+    "Не вдалося зберегти статус " + itemNum + ". Повторіть дію.");
+  if (action === "issue" && !wasNotified) {
+    rwPost("/notify", { item_num: itemNum, notified: true },
+      "Не вдалося зберегти позначку сповіщення " + itemNum + ".");
+  }
 }
 
 /* Зміна статусу виробу (запис через API) */
@@ -8007,12 +7999,7 @@ async function applyBonusSpend(num, maxSpend, toPay) {
   if (o && amt > 0) o["Списано бонусів"] = String(amt);
   openOrder(num);
   if (amt > 0) {
-    try {
-      await fetch(API_URL.replace("/order","/bonus"), {
-        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ order_num: num, spent: amt })
-      });
-    } catch(e) { console.error("bonus spend failed", e); }
+    rwPost("/bonus", { order_num: num, spent: amt }, "Не вдалося зберегти бонуси " + num + ". Повторіть.");
   }
 }
 
@@ -8144,6 +8131,32 @@ function setSettleMethod(m, btn) {
   const infoBox = document.getElementById("settle-card-info");
   if (infoBox) infoBox.innerHTML = (m === "Картка" && payConfigured()) ? "<div class='settle-card-req'>" + payPanelHTML() + "</div>" : (m === "ФОП" && fopConfigured()) ? "<div class='settle-card-req'>" + fopPanelHTML() + "</div>" : "";
 }
+/* Запис на сервер у фоні: до 3 спроб; якщо не вдалося, лишається повідомлення, поки його не закриють */
+function rwFail(msg) {
+  let b = document.getElementById("rw-fail");
+  if (!b) {
+    b = document.createElement("div");
+    b.id = "rw-fail";
+    b.style.cssText = "position:fixed;left:12px;right:12px;bottom:84px;z-index:99999;background:#8c2f2f;color:#fff;border-radius:12px;padding:12px 14px;font:13px/1.4 Commissioner,sans-serif;display:flex;gap:10px;align-items:center;box-shadow:0 6px 20px rgba(0,0,0,.35)";
+    document.body.appendChild(b);
+  }
+  b.innerHTML = "<div style='flex:1'></div><button style='background:none;border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit' onclick=\"document.getElementById('rw-fail').remove()\">OK</button>";
+  b.firstChild.textContent = msg;
+}
+async function rwPost(path, body, failMsg) {
+  const delays = [0, 700, 1800];
+  for (let a = 0; a < delays.length; a++) {
+    if (delays[a]) await new Promise(function (r) { setTimeout(r, delays[a]); });
+    try {
+      const res = await fetch(API_URL.replace("/order", path), {
+        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body)
+      });
+      if (res.ok) return true;
+    } catch (e) { /* повторимо */ }
+  }
+  rwFail(failMsg);
+  return false;
+}
 let settleOwnsModal = false;
 function closeSettle() {
   const ov = document.querySelector(".settle-overlay");
@@ -8159,12 +8172,9 @@ async function confirmSettle() {
   if (o) { o["Сума доплати"] = String(amt); o["Спосіб доплати"] = settleState.method; }
   closeSettle();
   openOrder(num);
-  try {
-    await fetch(API_URL.replace("/order","/settle"), {
-      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ order_num: num, amount: amt, method: settleState.method })
-    });
-  } catch(e) { console.error("settle failed", e); }
+  // Запис оплати йде у фоні, вікно бонусів показуємо одразу
+  rwPost("/settle", { order_num: num, amount: amt, method: settleState.method },
+    "Не вдалося зберегти оплату " + num + ". Повторіть оплату.");
 
   // Якщо це фінальний платіж (замовлення тепер повністю оплачене) — пропонуємо нарахувати бонуси.
   // Списання вже відбулось (якщо клієнт погодився) ДО прийняття оплати — startSettleFlow.
@@ -8209,12 +8219,7 @@ async function confirmAccrueStep(num) {
     const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
     if (o) o["Нараховано бонусів"] = String(amt);
     if (detailOrderNum) openOrder(detailOrderNum);
-    try {
-      await fetch(API_URL.replace("/order","/bonus"), {
-        method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ order_num: num, accrued: amt })
-      });
-    } catch(e) { console.error("accrue failed", e); }
+    rwPost("/bonus", { order_num: num, accrued: amt }, "Не вдалося зберегти бонуси " + num + ". Повторіть.");
   }
 }
 function skipAccrueStep() {
@@ -8292,12 +8297,7 @@ async function accrueBonus(num, amount) {
   const o = ORDERS.find(x => gv(x,"Номер замовлення") === num);
   if (o) o["Нараховано бонусів"] = String(amount);
   openOrder(num);
-  try {
-    await fetch(API_URL.replace("/order","/bonus"), {
-      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ order_num: num, accrued: amount })
-    });
-  } catch(e) { console.error("accrue failed", e); }
+  rwPost("/bonus", { order_num: num, accrued: amount }, "Не вдалося зберегти бонуси " + num + ". Повторіть.");
 }
 
 function openSpendBonus(num, balance, total) {
@@ -8328,12 +8328,7 @@ async function confirmSpendBonus(num, maxSpend) {
   if (o) o["Списано бонусів"] = String(amt);
   closeSettle();
   openOrder(num);
-  try {
-    await fetch(API_URL.replace("/order","/bonus"), {
-      method: "POST", mode: "cors", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ order_num: num, spent: amt })
-    });
-  } catch(e) { console.error("spend failed", e); }
+  rwPost("/bonus", { order_num: num, spent: amt }, "Не вдалося зберегти бонуси " + num + ". Повторіть.");
 }
 const NOTIFY_TEMPLATES = {
   ready:    (v, num, item) => "Доброго дня, " + v + "! Ваше замовлення " + num + " (" + item + ") готове до видачі. Чекаємо вас у Rewise Studio. Дякуємо, що обрали нас.",
@@ -10738,7 +10733,6 @@ window.rwFull = function (n) { return n === "Чищення" ? "Чищення �
     var P = payInfo(num), its = itemsOf(num), issued = 0, pending = 0;
     its.forEach(function (it) { var v = extractAmt(gv(it, "Сума")); if (itemIssued(it)) issued += v; else pending += v; });
     var paid = (P.ps.isPaid && !P.settle) ? P.total : ((P.ps.isPrepay ? P.prepay : 0) + P.settle);
-    if (P.ps.isPaid && P.settle) paid = P.total + P.settle;
     return { P: P, issued: issued, pending: pending, paid: paid, acct: paid - issued };
   }
 
@@ -10843,10 +10837,10 @@ window.rwFull = function (n) { return n === "Чищення" ? "Чищення �
     }
     var due = Math.max(0, A.pending - Math.max(0, A.acct));
     if (A.pending === 0) {
-      out += "<div class='iv-big " + (A.acct >= 0 ? "iv-bok" : "") + "'><span>" + (A.acct > 0 ? "Здача клієнту" : (A.acct < 0 ? "Борг" : "Розраховано повністю")) + "</span><b>" + (A.acct > 0 ? money(A.acct) : (A.acct < 0 ? money(-A.acct) : "\u2713")) + "</b></div>";
+      out += "<div class='iv-big " + (A.acct >= 0 ? "iv-bok" : "") + "'><span>" + (A.acct > 0 ? "Переплата" : (A.acct < 0 ? "Борг" : "Розраховано повністю")) + "</span><b>" + (A.acct > 0 ? money(A.acct) : (A.acct < 0 ? money(-A.acct) : "\u2713")) + "</b></div>";
     } else {
       out += "<div class='iv-big " + (due === 0 ? "iv-bok" : "") + "'><span>" + (due === 0 ? "Решта покрита" : (rdy === nsv ? "До сплати" : "Залишок до сплати")) + "</span><b>" + (due === 0 ? "\u2713" : money(due)) + "</b></div>";
-      if (A.acct > 0 && anyIssued) out += "<div class='iv-rs'><span>На рахунку замовлення</span><span>" + money(A.acct) + (A.acct > A.pending ? " \u00B7 здача " + money(A.acct - A.pending) : "") + "</span></div>";
+      if (A.acct > 0 && anyIssued) out += "<div class='iv-rs'><span>На рахунку замовлення</span><span>" + money(A.acct) + (A.acct > A.pending ? " \u00B7 переплата " + money(A.acct - A.pending) : "") + "</span></div>";
     }
     return out + "</div>";
   }
