@@ -47,7 +47,7 @@ function footerText(status) {
 }
 
 function receiptHeaderHTML(num, dateStr) {
-  return "<div class='r-header'><div class='r-logo'>Rewise Studio</div><div class='r-subtag'>Ремонт · Реставрація · Чищення</div></div>" +
+  return "<div class='r-header'><div class='r-subtag' style='margin-top:0;font-size:11.5px'>Ремонт · Реставрація · Чищення</div></div>" +
     "<div class='r-meta'><span class='r-meta-num'>" + escHtml(num || "") + "</span><span>" + dateStr + "</span></div>";
 }
 
@@ -115,7 +115,7 @@ function shareReceipt() {
     canvas.toBlob(blob => {
       const file = new File([blob], "rewise-koshtorys.png", { type: "image/png" });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({ files: [file], title: "Rewise — Кошторис" }).then(()=>{ if(btn) btn.innerHTML=orig; }).catch(()=>{ if(btn) btn.innerHTML=orig; });
+        navigator.share({ files: [file], title: "Кошторис" }).then(()=>{ if(btn) btn.innerHTML=orig; }).catch(()=>{ if(btn) btn.innerHTML=orig; });
       } else {
         const link = document.createElement("a");
         link.download = "rewise-koshtorys-"+Date.now()+".png";
@@ -187,7 +187,7 @@ function shareOrderReceipt(num) {
     canvas.toBlob(blob => {
       const file = new File([blob], "rewise-chek-" + num + ".png", { type: "image/png" });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({ files: [file], title: "Rewise — Чек " + num }).catch(()=>{});
+        navigator.share({ files: [file], title: "Чек " + num }).catch(()=>{});
       } else {
         const link = document.createElement("a");
         link.download = "rewise-chek-" + num + ".png";
