@@ -83,6 +83,25 @@ body{background:#f6f3ec;font-family:'Commissioner',system-ui,sans-serif;color:#2
 .it .chev{margin-left:auto;font-size:11px;color:#a89f8f;cursor:pointer;white-space:nowrap}
 .cl{margin-top:8px;background:#faf8f4;border-radius:9px;padding:7px 10px;font-size:12.5px;color:#4a443a}
 .card .it{display:flex;gap:6px;align-items:center}
+.prog{height:3px;border-radius:2px;background:#eee7d6;margin-top:8px;overflow:hidden}
+.prog i{display:block;height:100%;background:#7FB05A;transition:width .35s}
+.det{max-height:0;overflow:hidden;transition:max-height .3s}
+.card.open .det{max-height:520px}
+.card.open{border-color:#d8c7a4;box-shadow:0 3px 12px rgba(120,95,50,.12)}
+.line{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid #f1ecdf;font-size:13px}
+.line .ln{min-width:0;flex:1}
+.line .ln b{display:block;font-weight:600;font-size:13px}
+.line .ln span{font-size:11.5px;color:#6b655b}
+.seg{display:flex;border:1px solid #c9c1ae;border-radius:9px;overflow:hidden;flex:none}
+.seg div{padding:7px 9px;font-size:11.5px;cursor:pointer;background:#fff;color:#6b655b;border-left:1px solid #e5dfd0}
+.seg div:first-child{border-left:0}
+.seg.dis{opacity:.5;pointer-events:none}
+.seg div.on.n{background:#dbe8f7;color:#2f5f94;font-weight:600}
+.seg div.on.w{background:#f7e6c8;color:#8a5a12;font-weight:600}
+.seg div.on.r{background:#e4efd9;color:#3f6a24;font-weight:600}
+.btn-all{display:block;width:100%;margin-top:8px;border-radius:10px;padding:10px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;background:rgba(106,160,68,.1);border:1px solid rgba(106,160,68,.45);color:#3f6a24}
+.zp .v.up{color:#b9e39a}
+.zp .v{transition:color .4s}
 .snack{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));max-width:520px;margin:0 auto;background:#2b2722;color:#fff;border-radius:12px;padding:12px 14px;font-size:14px;display:flex;justify-content:space-between;align-items:center;z-index:5}
 .snack u{color:#e6c98f;cursor:pointer}
 .msg{padding:60px 24px;text-align:center;color:#6b655b;line-height:1.6}
@@ -223,13 +242,45 @@ function btnHTML(x) {
 }
 function stLbl(x) { return { new: "Новий", work: "В роботі", rd: "Готово" }[x.st]; }
 function stCls(x) { return { new: "", work: "wk", rd: "rd" }[x.st]; }
-function cardHTML(x) {
-  var ti = termInfo(x), op = !!OPEN[x.id];
-  return "<div class='card" + (ti.late ? " late" : "") + "' onclick=\"toggleCl('" + x.id + "')\"><div class='nr'><span class='n'>" + esc(x.order) + "</span><span class='k'>" + esc(x.item) + "</span><span class='tm" + (ti.late ? " l" : "") + "'>" + esc(ti.label) + "</span></div>" +
-    "<div class='sv'><span>" + esc(x.svc) + "</span><span class='pc'>" + money(x.price) + "</span></div>" +
-    "<div class='it'>" + esc(x.what) + "<span class='chev'>\u041a\u043b\u0456\u0454\u043d\u0442 " + (op ? "\u25B4" : "\u25BE") + "</span></div>" +
-    (op ? "<div class='cl'>\u041a\u043b\u0456\u0454\u043d\u0442: <b>" + esc(x.client || "-") + "</b></div>" : "") +
-    "<div class='ft'><span class='st " + stCls(x) + "'><i></i>" + stLbl(x) + "</span>" + btnHTML(x) + "</div></div>";
+function groups(matchIds) {
+  var map = {}, order = [];
+  (ST.services || []).forEach(function (x) {
+    var g = x.order + "|" + x.item;
+    if (!map[g]) { map[g] = { key: g, order: x.order, item: x.item, what: x.what, client: x.client, term: x.term, sv: [] }; order.push(g); }
+    map[g].sv.push(x);
+  });
+  return order.map(function (g) { return map[g]; }).filter(function (g) {
+    return g.sv.some(function (x) { return matchIds[x.id]; });
+  });
+}
+function gState(g) {
+  var n = g.sv.length, r = g.sv.filter(function (x) { return x.st === "rd"; }).length, nw = g.sv.filter(function (x) { return x.st === "new"; }).length;
+  return { done: r, n: n, st: r === n ? "rd" : (nw === n ? "new" : "work") };
+}
+var SEGL = [["new", "Нова"], ["work", "В роботі"], ["rd", "Готово"]], SEGC = { new: "n", work: "w", rd: "r" };
+function segHTML(x) {
+  return "<div class='seg" + (BUSY[x.id] ? " dis" : "") + "' onclick='event.stopPropagation()'>" + SEGL.map(function (k) {
+    return "<div class='" + (x.st === k[0] ? "on " + SEGC[k[0]] : "") + "' onclick=\"event.stopPropagation();setSt('" + x.id + "','" + k[0] + "')\">" + k[1] + "</div>";
+  }).join("") + "</div>";
+}
+function cardHTML(g) {
+  var t0 = g.sv[0], ti = termInfo({ term: g.term, st: gState(g).st }), op = !!OPEN[g.key], gs = gState(g);
+  var pct = Math.round(gs.done * 100 / gs.n);
+  var lbl = gs.st === "rd" ? "Готово" : (gs.st === "new" ? "Новий" : "В роботі");
+  var more = gs.n > 1 ? " \u00b7 " + gs.done + " з " + gs.n : "";
+  var h = "<div class='card" + (ti.late ? " late" : "") + (op ? " open" : "") + "' onclick=\"toggleCl('" + g.key + "')\">" +
+    "<div class='nr'><span class='n'>" + esc(g.order) + "</span><span class='k'>" + esc(g.item) + "</span><span class='tm" + (ti.late ? " l" : "") + "'>" + esc(ti.label) + "</span></div>" +
+    "<div class='sv'><span>" + g.sv.map(function (x) { return esc(x.svc); }).join(" \u00b7 ") + "</span></div>" +
+    "<div class='it'>" + esc(g.what) + "<span class='chev'>" + (op ? "\u25B4" : "\u25BE") + "</span></div>" +
+    "<div class='prog'><i style='width:" + pct + "%'></i></div>" +
+    "<div class='det'><div class='cl'>\u041a\u043b\u0456\u0454\u043d\u0442: <b>" + esc(g.client || "-") + "</b></div>";
+  g.sv.forEach(function (x) {
+    h += "<div class='line'><div class='ln'><b>" + esc(x.svc) + "</b><span>" + money(x.price) + "</span></div>" + segHTML(x) + "</div>";
+  });
+  if (gs.done < gs.n) h += "<button class='btn-all' onclick=\"event.stopPropagation();allDone('" + g.key + "')\">\u0423\u0441\u0435 \u0433\u043e\u0442\u043e\u0432\u043e</button>";
+  h += "</div><div class='ft'><span class='st " + stCls({ st: gs.st }) + "'><i></i>" + lbl + more + "</span>" +
+    (gs.n === 1 ? btnHTML(t0) : "") + "</div></div>";
+  return h;
 }
 function rowHTML(x) {
   var ti = termInfo(x);
@@ -255,7 +306,7 @@ function render() {
   var body;
   if (!v.length) body = "<div class='empty'>Тут порожньо</div>";
   else if (VW === "list") body = "<div class='lst'>" + v.map(rowHTML).join("") + "</div>";
-  else body = v.map(cardHTML).join("");
+  else { var ids = {}; v.forEach(function (x) { ids[x.id] = 1; }); body = groups(ids).map(cardHTML).join(""); }
   var tabs = [["today", "Сьогодні"], ["all", "Усі мої"], ["rd", "Готові"]].map(function (t) {
     return "<div class='" + ((TAB === t[0] && !STF) ? "on" : "") + "' onclick=\"setTab('" + t[0] + "')\">" + t[1] + "</div>";
   }).join("");
@@ -279,7 +330,7 @@ function earnVal() {
 }
 function zpHTML() {
   var ps = [["day", "\u0421\u044c\u043e\u0433\u043e\u0434\u043d\u0456"], ["week", "\u0422\u0438\u0436\u0434\u0435\u043d\u044c"], ["month", "\u041c\u0456\u0441\u044f\u0446\u044c"]];
-  return "<div class='zp'><div class='l'>\u041c\u0456\u0439 \u0431\u0430\u043b\u0430\u043d\u0441</div><div class='v'>" + money(earnVal()) + "</div><div class='pr'>" +
+  return "<div class='zp'><div class='l'>\u041c\u0456\u0439 \u0431\u0430\u043b\u0430\u043d\u0441</div><div class='v" + (window.__fb ? " up" : "") + "'>" + money(earnVal()) + "</div><div class='pr'>" +
     ps.map(function (p) { return "<div class='" + (PER === p[0] ? "on" : "") + "' onclick=\"setPer('" + p[0] + "')\">" + p[1] + "</div>"; }).join("") +
     "</div><div class='n'>" + esc(perLbl()) + ". \u0420\u0430\u0445\u0443\u0454\u0442\u044c\u0441\u044f \u043f\u043e\u0432\u043d\u0430 \u0441\u0443\u043c\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0438\u0445 \u0440\u043e\u0431\u0456\u0442</div></div>";
 }
@@ -305,21 +356,54 @@ function send(id, to) {
     if (j.status !== "ok") throw new Error(j.message || "error");
   });
 }
-function act(id) {
-  var x = findS(id); if (!x || BUSY[id]) return;
-  var old = x.st, to = old === "new" ? "work" : "rd";
-  x.st = to;
-  if (to === "rd") ADJ += (x.price || 0); else if (old === "rd") ADJ -= (x.price || 0);
-  SNACK = { t: (to === "work" ? "Взято в роботу: " : "Завершено: ") + x.order + " " + x.item, id: id, old: old };
+function applyChanges(list, snackText) {
+  /* list: [{x, to}] */
+  var olds = [], applied = [];
+  list.forEach(function (c) {
+    if (BUSY[c.x.id] || c.x.st === c.to) return;
+    olds.push({ x: c.x, old: c.x.st });
+    if (c.to === "rd") ADJ += (c.x.price || 0); else if (c.x.st === "rd") ADJ -= (c.x.price || 0);
+    c.x.st = c.to; applied.push(c);
+  });
+  if (!applied.length) return;
+  SNACK = { t: snackText, olds: olds };
+  flashBal();
   render();
-  clearTimeout(window.__sn); window.__sn = setTimeout(function () { SNACK = null; render(); }, 4000);
-  send(id, to).then(function () { load(true); }).catch(function () { x.st = old; if (to === "rd") ADJ -= (x.price || 0); SNACK = null; ERR = "Не вдалося зберегти. Спробуйте ще раз"; render(); });
+  clearTimeout(window.__sn); window.__sn = setTimeout(function () { SNACK = null; render(); }, 5000);
+  applied.forEach(function (c, i) {
+    var old = olds[i].old;
+    send(c.x.id, c.to).then(function () { load(true); }).catch(function () {
+      c.x.st = old; if (c.to === "rd") ADJ -= (c.x.price || 0); else if (old === "rd") ADJ += (c.x.price || 0);
+      SNACK = null; ERR = "\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0431\u0435\u0440\u0435\u0433\u0442\u0438. \u0421\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u0449\u0435 \u0440\u0430\u0437"; render();
+    });
+  });
+}
+function flashBal() { window.__fb = true; setTimeout(function () { window.__fb = false; var e = document.querySelector(".zp .v"); if (e) e.classList.remove("up"); }, 800); }
+function act(id) {
+  var x = findS(id); if (!x) return;
+  var to = x.st === "new" ? "work" : "rd";
+  applyChanges([{ x: x, to: to }], (to === "work" ? "\u0412\u0437\u044f\u0442\u043e \u0432 \u0440\u043e\u0431\u043e\u0442\u0443: " : "\u0417\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u043e: ") + x.order + " " + x.item);
+}
+function setSt(id, to) {
+  var x = findS(id); if (!x) return;
+  applyChanges([{ x: x, to: to }], x.svc + ": " + { new: "\u041d\u043e\u0432\u0430", work: "\u0432 \u0440\u043e\u0431\u043e\u0442\u0456", rd: "\u0433\u043e\u0442\u043e\u0432\u043e" }[to]);
+}
+function allDone(key) {
+  var list = (ST.services || []).filter(function (x) { return (x.order + "|" + x.item) === key; }).map(function (x) { return { x: x, to: "rd" }; });
+  if (list.length) applyChanges(list, "\u0417\u0430\u043c\u043e\u0432\u043b\u0435\u043d\u043d\u044f " + list[0].x.order + " " + list[0].x.item + " \u0433\u043e\u0442\u043e\u0432\u0435");
 }
 function undo() {
   if (!SNACK) return;
-  var x = findS(SNACK.id), old = SNACK.old; if (!x) return;
-  var cur = x.st; x.st = old; if (cur === "rd") ADJ -= (x.price || 0); else if (old === "rd") ADJ += (x.price || 0); SNACK = null; render();
-  send(x.id, old).then(function () { load(true); }).catch(function () { x.st = cur; ERR = "Не вдалося скасувати. Спробуйте ще раз"; render(); });
+  var olds = SNACK.olds; SNACK = null;
+  var curs = olds.map(function (o) { return o.x.st; });
+  olds.forEach(function (o, i) {
+    if (curs[i] === "rd") ADJ -= (o.x.price || 0); else if (o.old === "rd") ADJ += (o.x.price || 0);
+    o.x.st = o.old;
+  });
+  render();
+  olds.forEach(function (o, i) {
+    send(o.x.id, o.old).then(function () { load(true); }).catch(function () { o.x.st = curs[i]; ERR = "\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0441\u043a\u0430\u0441\u0443\u0432\u0430\u0442\u0438. \u0421\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u0449\u0435 \u0440\u0430\u0437"; render(); });
+  });
 }
 
 initKey(); render(); load();
