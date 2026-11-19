@@ -297,6 +297,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Tenor+Sans&family=Commissioner:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+<script src="js/ru.js?v=1"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -6594,10 +6595,24 @@ async function applyPendingPrice() {
   toast(failed ? ("Збережено з помилками: " + failed) : "Зміни застосовано");
 }
 
+function setUiLang(l) {
+  try { localStorage.setItem("rw_lang", l); } catch (e) {}
+  location.reload();
+}
 function renderParamsEditor() {
   const box = document.getElementById("settings-body");
   if (!box) return;
+  var curLang = "ru"; try { curLang = localStorage.getItem("rw_lang") || "ru"; } catch (e) {}
   box.innerHTML =
+    "<div class='stat-panel' style='max-width:560px'>" +
+      "<div class='stat-panel-label'>Мова інтерфейсу</div>" +
+      "<div class='param-row'><div><div class='param-name'>Мова CRM</div>" +
+        "<div class='param-hint'>Чек, кошторис і SMS клієнту завжди українською</div></div>" +
+        "<div style='display:flex;gap:6px'>" +
+          "<button class='ptab" + (curLang === "ru" ? " active" : "") + "' onclick=\"setUiLang('ru')\">Русский</button>" +
+          "<button class='ptab" + (curLang === "uk" ? " active" : "") + "' onclick=\"setUiLang('uk')\">Українська</button>" +
+        "</div></div>" +
+    "</div>" +
     "<div class='stat-panel' style='max-width:560px'>" +
       "<div class='stat-panel-label'>Бонусна програма</div>" +
       "<div class='param-row'><div><div class='param-name'>🟢 Розраховується, % від чека</div>" +
@@ -10986,7 +11001,7 @@ window.rwFull = function (n) { return n === "Чищення" ? "Чищення �
     var pa = body.querySelector("#pay-actions-wrap"); if (pa) pa.remove();
     body.querySelectorAll(".ord-left .n-row").forEach(function (r) {
       var l = r.querySelector(".n-rl"); var t = l ? l.textContent : "";
-      if (t !== "Термін" && t !== "Отримання") r.style.display = "none";
+      if (t !== "Термін" && t !== "Отримання" && t !== "Срок" && t !== "Получение") r.style.display = "none";
     });
   }
 
