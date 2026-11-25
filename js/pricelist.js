@@ -41,6 +41,12 @@
   var ALL = [];
   var obj = "", proc = "", q = "", openKey = "";
   var sortMode = "", sortDir = "asc", menuOpen = false;
+  /* остання сортування зберігається в цьому браузері */
+  try {
+    var sv = JSON.parse(localStorage.getItem("rw_pl_sort") || "null");
+    if (sv && /^(price|alpha|pop)$/.test(sv.m)) { sortMode = sv.m; sortDir = sv.d == "desc" ? "desc" : "asc"; }
+  } catch (e) {}
+  function saveSort() { try { localStorage.setItem("rw_pl_sort", JSON.stringify({ m: sortMode, d: sortDir })); } catch (e) {} }
   var sw = "price";                 // 'price' | 'kosh'
   var animateNext = false, lastSlide = null;
   var popMap = null;
@@ -370,7 +376,7 @@
       if (k == "price" && sortMode == "price") sortDir = sortDir == "asc" ? "desc" : "asc";
       else if (k && k == sortMode && k != "price") sortMode = "";
       else { sortMode = k; sortDir = "asc"; }
-      menuOpen = (k == "price"); paint();
+      menuOpen = (k == "price"); saveSort(); paint();
     },
     menu: function () { menuOpen = !menuOpen; paint(); },
     q: function (v) { q = v; paint(true); },
